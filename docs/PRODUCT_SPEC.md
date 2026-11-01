@@ -1,12 +1,14 @@
 # kahoru.lol — Especificación del producto
 
-**Estado:** planificación · **Versión del documento:** 0.1 · **Última revisión:** 2026-11-01  
+**Estado:** desarrollo de Fase 1 · **Versión del documento:** 0.2 · **Última revisión:** 2026-11-01
 **Repositorio:** https://github.com/frackk/kahoru.lol  
 **Autor:** frack.one  
 **Plataforma inicial:** Windows 10/11, escritorio  
 **Idioma inicial:** español; localización ampliable
 
 > Documento de referencia para el desarrollo. Describe el producto que se quiere construir, no funciones que ya estén implementadas. Ante una discrepancia entre este documento y el código, registrar la diferencia y decidir explícitamente cuál debe actualizarse.
+
+**Primera entrega:** aplicación base, simulador manual y catálogo de campeones. La conexión con LoL y los motores de recomendación siguen pendientes. Los contratos concretos y la separación entre fase y conectividad están documentados en `ARCHITECTURE.md` y `decisions/0001-desktop-foundation.md`.
 
 ## 1. Visión
 
@@ -235,7 +237,7 @@ Al salir del draft, la aplicación pasa a una vista compacta dedicada a la consu
 - No utilizar hooks gráficos, inyección, lectura de memoria ni métodos para esquivar sistemas antitrampas.
 - No mostrar notificaciones o animaciones invasivas durante la partida.
 - No realizar análisis de IA pesado en segundo plano mientras se juega.
-- No actualizar recomendaciones de gameplay en vivo sin revisión específica de la política de Riot.
+- No actualizar recomendaciones de gameplay en vivo. Durante la partida se consulta información preparada previamente.
 - Permitir ocultar/mostrar con un atajo configurable, si el método de atajos es compatible.
 - Si no puede confirmar que el juego se inició, mantener un modo manual y no asumir el estado.
 

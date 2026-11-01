@@ -1,30 +1,57 @@
 # kahoru.lol
 
-Asistente de escritorio para League of Legends. Analiza el draft, compara elecciones por rol y composición, prepara alternativas de runas y builds, y presenta una estrategia breve para cada partida.
+Aplicación de escritorio para preparar partidas de League of Legends. **made by [frack.one](https://frack.one)**.
 
-El objetivo es ofrecer recomendaciones contextualizadas, claras y actualizadas sin interferir con el rendimiento del juego. El desarrollo empieza por un simulador de draft y avanzará por etapas hacia la integración con el cliente, siempre que las funciones sean compatibles con las políticas de Riot Games.
+La versión 0.1.0 implementa la primera etapa: un simulador de draft ejecutado en Windows con Tauri 2, Rust, React y TypeScript. Permite editar ambos equipos, confirmar picks, bloquear campeones, intercambiar posiciones y recorrer estados de sesión. El catálogo oficial de 173 campeones está incluido y funciona sin conexión.
 
-**Estado:** planificación y diseño técnico. Todavía no hay una versión funcional publicada.
+El simulador se identifica siempre como entrada manual. La conexión con LoL, el ranking contextual, los planes, la inferencia de roles y la importación de runas pertenecen a etapas posteriores. No se ofrecen estadísticas ni recomendaciones ficticias.
 
-## Alcance previsto
+Durante una partida, el alcance previsto es consultar planes preparados antes de jugar. Se excluyen recomendaciones adaptadas en tiempo real y automatización de gameplay.
 
-- Recomendaciones de campeones para los cinco roles, con puntajes relativos y motivos.
-- Detección de picks, bans y cambios de draft; estimación de roles rivales con confianza visible.
-- Variantes de runas y builds para la composición completa, con componentes y orden de compra.
-- Plan previo de partida: condiciones de victoria, amenazas y prioridades estratégicas.
-- Vista compacta durante la partida y actualización de datos por parche.
-- Modo manual/simulador, preferencias personales y funcionamiento degradado sin conexión.
+## Ejecutar desde el código
 
-Las funciones no están disponibles todavía. La implementación y sus restricciones están definidas en [la especificación del producto](docs/PRODUCT_SPEC.md).
+Requisitos: Windows 10/11 x64, Node.js 24 o posterior, Rust (versión fijada en `rust-toolchain.toml`), Visual Studio Build Tools con C++/Windows SDK y WebView2. Visual Studio Code es opcional y no reemplaza las herramientas de compilación.
 
-## Desarrollo
+```powershell
+npm ci
+npm run tauri -- dev
+```
 
-La arquitectura propuesta utiliza Tauri, Rust, React y TypeScript. La primera etapa tendrá una aplicación ejecutable para Windows con simulación de draft, pruebas y carga de datos oficiales. La integración real con League of Legends se validará por separado.
+`npm run dev` sirve la interfaz para desarrollo web; las operaciones de sesión requieren el proceso nativo. El navegador muestra esta limitación y no sustituye el núcleo por datos simulados adicionales.
 
-Los colaboradores y agentes deben seguir [AGENTS.md](AGENTS.md) y consultar [PRODUCT_SPEC.md](docs/PRODUCT_SPEC.md) antes de modificar código.
+## Compilar
 
-## Créditos
+```powershell
+npm run tauri -- build
+```
 
-**made by [frack.one](https://frack.one)**
+El ejecutable queda en `src-tauri/target/release/kahoru-lol.exe` y el instalador en `src-tauri/target/release/bundle/nsis/`. El instalador inicial no lleva firma de editor. La instalación de WebView2 puede requerir conexión si el equipo no lo tiene.
+
+## Verificar
+
+```powershell
+npm run format:check
+npm run lint
+npm test
+cargo fmt --manifest-path src-tauri/Cargo.toml --check
+cargo clippy --locked --manifest-path src-tauri/Cargo.toml --all-targets -- -D warnings
+cargo test --locked --manifest-path src-tauri/Cargo.toml
+npm run tauri -- build --debug --no-bundle
+npm run test:native
+```
+
+La prueba nativa abre una ventana temporal, selecciona diez campeones a través de la interfaz, comprueba transiciones, desconexión, limpieza y preferencias. Usa un puerto de depuración WebView2 solo en ese proceso de prueba. No lo habilita en el producto distribuido. Guarda una captura en `test-results/`, fuera de Git.
+
+El workflow Windows repite las verificaciones y prepara el instalador como artefacto de compilación. Los resultados locales y límites están en [VALIDATION.md](docs/VALIDATION.md).
+
+## Documentación
+
+- [Especificación y roadmap](docs/PRODUCT_SPEC.md).
+- [Arquitectura y contratos](docs/ARCHITECTURE.md).
+- [Fuentes y actualización del catálogo](docs/DATA_SOURCES.md).
+- [Integraciones y revisión de políticas](docs/COMPLIANCE.md).
+- [Decisión de la primera entrega](docs/decisions/0001-desktop-foundation.md).
+
+Antes de colaborar, leer [AGENTS.md](AGENTS.md) y la especificación. Las integraciones con Riot requieren verificación técnica y revisión de su uso antes de habilitarse.
 
 kahoru.lol isn't endorsed by Riot Games and doesn't reflect the views or opinions of Riot Games or anyone officially involved in producing or managing Riot Games properties. Riot Games, and all associated properties are trademarks or registered trademarks of Riot Games, Inc.

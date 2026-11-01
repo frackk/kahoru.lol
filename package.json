@@ -1,0 +1,45 @@
+{
+  "name": "kahoru-lol",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "author": "frack.one",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "build": "tsc --noEmit && vite build",
+    "test": "vitest run",
+    "lint": "eslint . --max-warnings 0",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "tauri": "tauri",
+    "data:update": "node scripts/update-catalog.mjs",
+    "test:native": "node scripts/test-native.mjs"
+  },
+  "dependencies": {
+    "@tauri-apps/api": "^2.0.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@tauri-apps/cli": "^2.0.0",
+    "@types/node": "^24.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "^5.0.0",
+    "eslint": "^10.14.0",
+    "eslint-plugin-react-hooks": "^7.0.0",
+    "playwright-core": "^1.64.1",
+    "prettier": "^3.0.0",
+    "typescript": "^5.9.0",
+    "typescript-eslint": "^8.72.1",
+    "vite": "^7.0.0",
+    "vitest": "^5.0.5"
+  },
+  "overrides": {
+    "minimatch": "^11.0.1"
+  },
+  "engines": {
+    "node": ">=24.0.0"
+  }
+}
