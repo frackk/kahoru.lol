@@ -65,6 +65,17 @@ try {
   assert.ok(page, "No se encontró la ventana principal");
   const errors = [];
   page.on("pageerror", (error) => errors.push(error.message));
+  if (process.argv.includes("--live")) {
+    const live = page.getByRole("region", {
+      name: "Cliente de League of Legends",
+    });
+    await live.getByText("CONECTADO", { exact: true }).waitFor();
+    await mkdir("test-results", { recursive: true });
+    await page.screenshot({
+      path: "test-results/live-client.png",
+      fullPage: true,
+    });
+  }
   await page.getByRole("button", { name: "Nuevo draft" }).click();
   const catalog = JSON.parse(
     await readFile(new URL("../data/champions.json", import.meta.url), "utf8"),

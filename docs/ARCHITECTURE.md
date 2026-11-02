@@ -6,7 +6,7 @@ La primera entrega usa Tauri 2, Rust, React y TypeScript. Es una aplicación de 
 
 - `src-tauri/src/session.rs`: sesión, validaciones y transiciones del simulador.
 - `src-tauri/src/catalog.rs`: lectura y validación del catálogo incluido.
-- `src-tauri/src/lib.rs`: tres comandos IPC y estado compartido.
+- `src-tauri/src/lib.rs`: cuatro comandos IPC y estado compartido.
 - `src/contracts.ts`: contrato de presentación y filtro de campeones disponibles.
 - `src/App.tsx`: navegación y coordinación de comandos.
 - `src/features/draft/Draft.tsx`: edición de draft y controles de simulación.
@@ -31,3 +31,7 @@ Solo se guarda la preferencia de espaciado en almacenamiento local de WebView2. 
 Los motores de ranking, inferencia, runas y estrategia se incorporarán por etapas. El adaptador LCU producirá contratos de dominio y no expondrá credenciales al frontend.
 
 Las dependencias quedan fijadas en `package-lock.json` y `Cargo.lock`. Se fuerza `minimatch` 11 por correcciones de seguridad en las dependencias de lint; cualquier cambio del override requiere repetir lint y pruebas. Playwright Core solo interviene en pruebas y usa WebView2 instalado, sin descargar navegadores.
+
+## Integración local, 0.2.0
+
+`client.rs` mantiene una instantánea independiente del simulador. La pantalla Inicio consulta `get_live_session`; `DraftSlot` se comparte con el contrato existente. Los comandos de simulación solo modifican su sesión manual y nunca escriben en LoL. No hay identidades de jugadores en el contrato de lectura. El estado de conexión se actualiza desde un único lector nativo. Los detalles y límites están en `CLIENT_INTEGRATION.md`.

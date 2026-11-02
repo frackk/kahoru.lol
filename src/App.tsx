@@ -7,6 +7,7 @@ import {
   type Session,
 } from "./contracts";
 import { Draft } from "./features/draft/Draft";
+import { LiveClient } from "./features/LiveClient";
 import { readPreferences } from "./preferences";
 
 type Page = "home" | "draft" | "settings" | "about";
@@ -114,7 +115,7 @@ export function App() {
           ))}
         </nav>
         <div className="sidebar-bottom">
-          <span className="version">DESARROLLO · v0.1.0</span>
+          <span className="version">DESARROLLO · v0.2.0</span>
           <span>
             made by <strong>frack.one</strong>
           </span>
@@ -126,7 +127,7 @@ export function App() {
           <div className="status-group">
             <span className="status">
               <i />
-              Modo manual
+              Cliente local + simulador
             </span>
             <span className="badge">DATOS {catalog?.version ?? "—"}</span>
           </div>
@@ -148,6 +149,7 @@ export function App() {
           )}
           {page === "home" && (
             <>
+              <LiveClient catalog={catalog} />
               <div className="eyebrow">TU PRÓXIMA PARTIDA</div>
               <h1>
                 Prepará el draft.
@@ -175,7 +177,7 @@ export function App() {
                   </button>
                 </section>
                 <section className="panel">
-                  <div className="eyebrow">SESIÓN ACTUAL</div>
+                  <div className="eyebrow">SESIÓN DEL SIMULADOR</div>
                   <h2>{session ? phaseNames[session.phase] : "Sin iniciar"}</h2>
                   <dl>
                     <div>
@@ -184,7 +186,7 @@ export function App() {
                     </div>
                     <div>
                       <dt>Conexión con LoL</dt>
-                      <dd>Pendiente de integrar</dd>
+                      <dd>Detección automática</dd>
                     </div>
                     <div>
                       <dt>Fuente</dt>
@@ -206,8 +208,8 @@ export function App() {
                     {catalog?.version ?? "—"}
                   </strong>
                   <p>
-                    Catálogo local disponible sin conexión. La versión del juego
-                    todavía no se detecta.
+                    Catálogo local disponible sin conexión. El parche del juego
+                    se consulta en la conexión del cliente.
                   </p>
                 </div>
               </section>
@@ -263,8 +265,8 @@ export function App() {
               <section className="panel settings">
                 <h2>Datos y privacidad</h2>
                 <p>
-                  No se recopilan cuentas, historial de partidas ni telemetría.
-                  Esta versión no se conecta con el cliente de LoL.
+                  La conexión con LoL es local y de solo lectura. No se
+                  recopilan cuentas, historial de partidas ni telemetría.
                 </p>
                 <p>
                   El catálogo se incluye con la aplicación; las actualizaciones
@@ -275,14 +277,14 @@ export function App() {
           )}
           {page === "about" && (
             <>
-              <div className="eyebrow">KAHORU.LOL · 0.1.0</div>
+              <div className="eyebrow">KAHORU.LOL · 0.2.0</div>
               <h1>Antes de entrar a la Grieta.</h1>
               <section className="panel about">
                 <h2>made by frack.one</h2>
                 <p>
-                  Primera entrega: simulador de draft y base de escritorio. Las
-                  recomendaciones, builds e importación de runas se incorporarán
-                  en sus etapas de validación.
+                  Detección del cliente local y lectura automática del draft.
+                  Las recomendaciones, builds e importación de runas siguen en
+                  desarrollo.
                 </p>
                 <dl>
                   <div>
@@ -305,7 +307,7 @@ export function App() {
                   </div>
                   <div>
                     <dt>Parche del cliente</dt>
-                    <dd>Sin detectar</dd>
+                    <dd>Disponible en Inicio</dd>
                   </div>
                 </dl>
                 <p className="source-url">{catalog?.source}</p>

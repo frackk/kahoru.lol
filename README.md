@@ -2,6 +2,8 @@
 
 Aplicación de escritorio para preparar partidas de League of Legends. **made by [frack.one](https://frack.one)**.
 
+Carpeta de trabajo en este equipo: `E:\Cosas\kahoru.lol`.
+
 ## Código fuente
 
 | Carpeta          | Contenido                                                     |
@@ -16,9 +18,9 @@ Aplicación de escritorio para preparar partidas de League of Legends. **made by
 
 ## Estado
 
-La versión 0.1.0 implementa la primera etapa: un simulador de draft ejecutado en Windows con Tauri 2, Rust, React y TypeScript. Permite editar ambos equipos, confirmar picks, bloquear campeones, intercambiar posiciones y recorrer estados de sesión. El catálogo oficial de 173 campeones está incluido y funciona sin conexión.
+La versión 0.2.0 incorpora conexión local de solo lectura a League of Legends, detección de fase y carga automática de equipos, picks y bans. La pantalla Inicio muestra los datos del cliente y conserva el simulador como herramienta de prueba. Permite editar ambos equipos, confirmar picks, bloquear campeones, intercambiar posiciones y recorrer estados de sesión. El catálogo oficial de 173 campeones está incluido y funciona sin conexión.
 
-El simulador se identifica siempre como entrada manual. La conexión con LoL, el ranking contextual, los planes, la inferencia de roles y la importación de runas pertenecen a etapas posteriores. No se ofrecen estadísticas ni recomendaciones ficticias.
+El simulador se identifica siempre como entrada manual. El ranking contextual, los planes, la inferencia de roles y la importación de runas siguen pendientes. No se ofrecen estadísticas ni recomendaciones ficticias.
 
 Durante una partida, el alcance previsto es consultar planes preparados antes de jugar. Se excluyen recomendaciones adaptadas en tiempo real y automatización de gameplay.
 
@@ -62,6 +64,7 @@ El workflow Windows repite las verificaciones y prepara el instalador como artef
 
 - [Especificación y roadmap](docs/PRODUCT_SPEC.md).
 - [Arquitectura y contratos](docs/ARCHITECTURE.md).
+- [Integración con el cliente: endpoints y pruebas](docs/CLIENT_INTEGRATION.md).
 - [Fuentes y actualización del catálogo](docs/DATA_SOURCES.md).
 - [Integraciones y revisión de políticas](docs/COMPLIANCE.md).
 - [Decisión de la primera entrega](docs/decisions/0001-desktop-foundation.md).

@@ -1,6 +1,6 @@
 # kahoru.lol — Especificación del producto
 
-**Estado:** desarrollo de Fase 1 · **Versión del documento:** 0.2 · **Última revisión:** 2026-11-01
+**Estado:** desarrollo de Fase 2 · **Versión del documento:** 0.3 · **Última revisión:** 2026-11-01
 **Repositorio:** https://github.com/frackk/kahoru.lol  
 **Autor:** frack.one  
 **Plataforma inicial:** Windows 10/11, escritorio  

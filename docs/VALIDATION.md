@@ -26,3 +26,7 @@ El instalador se generó en Windows; queda pendiente probar instalación y desin
 ## GitHub Actions
 
 El 1 de noviembre la compilación y las pruebas unitarias pasaron en GitHub; el recorrido nativo falló porque WebView2 no abrió el puerto de prueba. El workflow ahora comprueba e instala el runtime antes de abrir la aplicación. El script registra la salida del proceso y detecta cierres anticipados. La ejecución remota debe confirmar esta corrección.
+
+## Verificación 0.2.0 en E:
+
+El 2 de noviembre se ejecutaron nueve pruebas Rust y cuatro TypeScript, Clippy, lint, formato y build. La prueba ignorada por defecto de conexión real se ejecutó expresamente y pasó con el cliente abierto. El recorrido nativo `--live` comprobó la conexión y capturó equipos reales en selección de una personalizada. No se realizaron acciones de juego desde kahoru.lol. La ejecución remota de interfaz sigue fallando al abrir WebView2 en el runner; no se presenta como aprobada.

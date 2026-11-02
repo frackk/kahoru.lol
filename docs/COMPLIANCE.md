@@ -30,3 +30,7 @@ No se recopilan identidades, historial, credenciales ni telemetría. No se leen 
 - [Retirada de acceso directo a memoria](https://support.riotgames.com/en-us/riot/performance/game-memory-access-removed-for-third-party-apps).
 
 La consulta estática prepartida aparece entre los casos admitidos; eso no habilita coaching basado en la evolución de una partida. La integración real y la distribución requieren completar las condiciones aplicables al producto. El registro ante Riot todavía no se realizó desde este repositorio.
+
+## Desarrollo 0.2.0
+
+El lector LCU se probó localmente el 2 de noviembre de 2026: fase, versión y sesión de una personalizada. Está en evaluación técnica, con registro y declaración de usos ante Riot todavía pendientes. Se utiliza exclusivamente lectura; no se afirma aprobación particular del producto. Ver `CLIENT_INTEGRATION.md` para rutas, campos y límites de las pruebas.
