@@ -98,7 +98,7 @@ try {
           }),
         { championId, role },
       );
-      assert.equal(value.schemaVersion, 2);
+      assert.equal(value.schemaVersion, 3);
       const data = value.analysis.data;
       assert.ok(Array.isArray(data.skills.order));
       assert.ok(data.skills.play >= 100);

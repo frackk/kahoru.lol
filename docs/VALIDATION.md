@@ -55,8 +55,12 @@ La revisión final descarta incompatibilidades antes de completar candidatos y c
 
 388 pruebas TypeScript por defecto y seis casos optativos con caché real. La búsqueda se ejecuta con fixtures sintéticos para los 173 campeones, comprobando runas, objetos únicos, costes, referencias, tamaño de candidatos y contexto menor de 64 KB. Esto no comprueba que cada build tenga calidad estratégica. Se contrastan drafts del mismo campeón y se incluyen el caso anónimo aportado por el usuario, firmas obsoletas, selección manual y congelación de resultados.
 
-27 pruebas Rust por defecto y cuatro integraciones optativas. El nuevo contrato rechaza planes ajenos, motivos de otra configuración y duplicados. Formato, ESLint, tipos y Clippy se ejecutan antes de la entrega.
+28 pruebas Rust por defecto y cuatro integraciones optativas. El nuevo contrato rechaza planes ajenos, motivos de otra configuración y duplicados. Formato, ESLint, tipos y Clippy se ejecutan antes de la entrega.
 
 Las seis evaluaciones optativas usan datos reales de OP.GG en caché para Malphite top, Elise jungle, Ahri mid, Jinx bot, Leona support y Viego jungle. Recorren dos composiciones contrastantes y el draft aportado para Viego. Registro: test-results/configuration-evaluation.json, sin dataset redistribuido. Para reproducir: definir KAHORU_STATISTICS_DIRECTORY con la carpeta de caché y ejecutar npm test -- src/engine/configurationEvaluation.test.ts.
 
 La prueba nativa inicial de configuración con IA pasó sobre el draft aportado. Los flags --configuration-model, --configuration-auto, --roles-configuration-model y --past-draft amplían el recorrido de distribución. Las pruebas no escriben en el cliente real. La comparación con iTero se limita a reconocer una opción distinta; no se cuenta coincidencia de runas como un acierto.
+
+La ampliación a cinco roles detectó una mezcla de motivos entre candidatos: Rust rechazó la respuesta y conservó el plan por reglas. El esquema se cambió a una unión de objetos cerrados que vincula cada planId con sus propios reasonIds, además de conservar la validación posterior. Se repite el recorrido nativo con esta restricción antes de actualizar la instalación.
+
+La prueba sobre Vel’Koz support detectó que OP.GG normaliza el nombre devuelto como VELKOZ aunque acepta VEL_KOZ en la consulta. La identidad ahora se comprueba con data.summary.id y el ID del catálogo; se exige también al leer caché. El esquema de caché 3 invalida respuestas antiguas sin ese ID. La integración Rust pasó con Viego, Lee Sin y Vel’Koz, manteniendo el rechazo de IDs incorrectos.

@@ -2,4 +2,4 @@ Compará configuraciones completas para preparar una partida de League of Legend
 
 Elegí el candidato con el compromiso más defendible para este draft y hasta tres motivos de su propia lista reasons. Considerá también cuándo conservar la configuración base: no fuerces cambios por cambiar. observations contiene muestras independientes de compras, no tasas de la configuración completa ni de este draft. No tomes mayor win rate como prueba causal. Los roles no confirmados no prueban un matchup. No inventes mecánicas, estadísticas, prioridad de línea ni compras rivales futuras. No hay información de la partida en curso.
 
-Devolvé exclusivamente JSON con planId y reasonIds. Ambos deben existir en candidates y los motivos deben pertenecer al plan elegido. No escribas prosa ni una configuración nueva. La aplicación validará la elección y mostrará los motivos referenciados.
+Devolvé exclusivamente JSON con planId y reasonIds. Ambos deben existir en candidates y los motivos deben pertenecer al plan elegido. No repitas motivos. No escribas prosa ni una configuración nueva. La aplicación validará la elección y mostrará los motivos referenciados.

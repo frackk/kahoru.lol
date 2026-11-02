@@ -1,6 +1,6 @@
 use serde::Deserialize;
 use serde_json::{json, Value};
-use std::collections::{BTreeSet, HashSet};
+use std::collections::HashSet;
 
 #[derive(Deserialize)]
 pub struct Reason {
@@ -47,11 +47,10 @@ pub fn read(context: &str) -> Result<Option<Vec<Candidate>>, String> {
     Ok(Some(candidates))
 }
 pub fn schema(candidates: &[Candidate]) -> Value {
-    let reasons: BTreeSet<_> = candidates
-        .iter()
-        .flat_map(|p| p.reasons.iter().map(|r| &r.id))
-        .collect();
-    json!({"type":"object","properties":{"planId":{"type":"string","enum":candidates.iter().map(|p|&p.id).collect::<Vec<_>>()},"reasonIds":{"type":"array","minItems":1,"maxItems":3,"items":{"type":"string","enum":reasons}}},"required":["planId","reasonIds"],"additionalProperties":false})
+    let choices: Vec<_> = candidates.iter().map(|candidate| {
+        json!({"type":"object","properties":{"planId":{"const":candidate.id},"reasonIds":{"type":"array","minItems":1,"maxItems":3,"items":{"type":"string","enum":candidate.reasons.iter().map(|r|&r.id).collect::<Vec<_>>()}}},"required":["planId","reasonIds"],"additionalProperties":false})
+    }).collect();
+    json!({"oneOf": choices})
 }
 pub fn select(candidates: &[Candidate], answer: &str) -> Result<String, String> {
     let value: Value =
@@ -84,6 +83,15 @@ mod tests {
     fn choices_and_reasons_must_belong_to_the_same_candidate() {
         let context = r#"{"kind":"configuration","candidates":[{"id":"config-1","reasons":[{"id":"a","text":"Armadura"}]},{"id":"config-2","reasons":[{"id":"b","text":"Movilidad"}]}]}"#;
         let candidates = read(context).unwrap().unwrap();
+        let grammar = schema(&candidates);
+        assert_eq!(
+            grammar["oneOf"][0]["properties"]["planId"]["const"],
+            "config-1"
+        );
+        assert_eq!(
+            grammar["oneOf"][0]["properties"]["reasonIds"]["items"]["enum"],
+            json!(["a"])
+        );
         assert!(select(&candidates, r#"{"planId":"config-1","reasonIds":["a"]}"#).is_ok());
         assert!(select(&candidates, r#"{"planId":"config-1","reasonIds":["b"]}"#).is_err());
         assert!(select(&candidates, r#"{"planId":"inventado","reasonIds":["a"]}"#).is_err());

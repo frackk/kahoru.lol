@@ -212,9 +212,11 @@ async fn get_champion_analysis(
         .map(|c| c.slug.clone())
         .ok_or("Campeón no disponible")?;
     let provider = state.statistics.clone();
-    tauri::async_runtime::spawn_blocking(move || provider.analysis(&slug, &role, refresh))
-        .await
-        .map_err(|_| "Consulta estadística interrumpida")?
+    tauri::async_runtime::spawn_blocking(move || {
+        provider.analysis(champion_id, &slug, &role, refresh)
+    })
+    .await
+    .map_err(|_| "Consulta estadística interrumpida")?
 }
 
 #[tauri::command]

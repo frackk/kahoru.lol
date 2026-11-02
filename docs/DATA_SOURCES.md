@@ -48,3 +48,5 @@ El último comando requiere LoL abierto y descubre el lockfile; `LEAGUE_LOCKFILE
 Revisión del 02/11/2026: [LoLalytics identifica su API como privada y excluye uso por terceros](https://a3.lolalytics.com/); no se integra. [Mobalytics documenta un widget para sitios web](https://mobalytics.gg/builds-widget-documentation/), no un contrato general de extracción para este motor. El acceso de desarrollo del widget no se trata como permiso para reutilizarlo en una aplicación distribuida.
 
 [OP.GG pide atribución y evitar solicitudes excesivas](https://help.op.gg/hc/en-us/articles/31091405109401-Can-I-use-OP-GG-data). La aplicación utiliza su MCP público con caché y cita la fuente; no se redistribuyen respuestas como dataset. Estas revisiones no sustituyen las condiciones que correspondan a una distribución futura.
+
+Desde 0.6 se solicita también data.summary.id. La caché estadística usa esquema 3 y valida el ID oficial del campeón, además de posición y estructura: diferencias de espacios o apóstrofos del nombre no deben rechazar una respuesta legítima. Se comprobó el caso VEL_KOZ → VELKOZ sin relajar el control de identidad.

@@ -13,6 +13,9 @@ pub struct Statistics {
     names: Mutex<HashMap<String, String>>,
     directory: PathBuf,
 }
+fn matches_identity(analysis: &Value, champion_id: u32) -> bool {
+    analysis["data"]["summary"]["id"].as_u64() == Some(u64::from(champion_id))
+}
 fn usable(analysis: &Value) -> bool {
     let ids = |value: &Value| {
         value.as_array().is_some_and(|a| {
@@ -87,7 +90,13 @@ impl Statistics {
             directory,
         }
     }
-    pub fn analysis(&self, slug: &str, role: &str, refresh: bool) -> Result<Value, String> {
+    pub fn analysis(
+        &self,
+        champion_id: u32,
+        slug: &str,
+        role: &str,
+        refresh: bool,
+    ) -> Result<Value, String> {
         if slug.is_empty() || !slug.bytes().all(|b| b.is_ascii_alphanumeric()) {
             return Err("Identificador no compatible".into());
         }
@@ -120,7 +129,9 @@ impl Statistics {
                             *t <= now + 300
                                 && value["championKey"] == slug
                                 && value["role"] == role
-                                && value["schemaVersion"] == 2
+                                && value["schemaVersion"] == 3
+                                && value["championId"] == champion_id
+                                && matches_identity(&value["analysis"], champion_id)
                                 && usable(&value["analysis"])
                         }) {
                             cache.insert(key.clone(), (time, value));
@@ -163,7 +174,7 @@ impl Statistics {
             .ok_or("El proveedor no reconoce este campeón")?
             .clone();
         drop(names);
-        let fields=vec!["champion","position","data.summary.average_stats.{play,win_rate,pick_rate}","data.core_items.{ids[],play,win,pick_rate}","data.boots.{ids[],play,win,pick_rate}","data.starter_items.{ids[],play,win,pick_rate}","data.runes.{primary_page_id,secondary_page_id,primary_rune_ids[],secondary_rune_ids[],stat_mod_ids[],play,win}","data.summoner_spells.{ids[],play,win}","data.fourth_items[].{ids[],play,win}","data.fifth_items[].{ids[],play,win}","data.sixth_items[].{ids[],play,win}","data.trends.win.{version,created_at}","data.damage_type","data.skills.{order[],play,win}","data.skill_masteries.builds[].{order[],play,win}","data.weak_counters[].{champion_id,play,win,my_win_rate}","data.strong_counters[].{champion_id,play,win,my_win_rate}"];
+        let fields=vec!["champion","position","data.summary.id","data.summary.average_stats.{play,win_rate,pick_rate}","data.core_items.{ids[],play,win,pick_rate}","data.boots.{ids[],play,win,pick_rate}","data.starter_items.{ids[],play,win,pick_rate}","data.runes.{primary_page_id,secondary_page_id,primary_rune_ids[],secondary_rune_ids[],stat_mod_ids[],play,win}","data.summoner_spells.{ids[],play,win}","data.fourth_items[].{ids[],play,win}","data.fifth_items[].{ids[],play,win}","data.sixth_items[].{ids[],play,win}","data.trends.win.{version,created_at}","data.damage_type","data.skills.{order[],play,win}","data.skill_masteries.builds[].{order[],play,win}","data.weak_counters[].{champion_id,play,win,my_win_rate}","data.strong_counters[].{champion_id,play,win,my_win_rate}"];
         let data = call(
             "lol_get_champion_analysis",
             json!({"game_mode":"ranked","champion":champion,"position":position,"lang":"en_US","desired_output_fields":fields}),
@@ -171,7 +182,7 @@ impl Statistics {
         if !usable(&data) {
             return Err("OP.GG devolvió un análisis incompleto o incompatible".into());
         }
-        if data["champion"] != champion
+        if !matches_identity(&data, champion_id)
             || data["position"]
                 .as_str()
                 .map(str::to_ascii_lowercase)
@@ -180,7 +191,7 @@ impl Statistics {
         {
             return Err("El proveedor devolvió otro campeón o posición".into());
         }
-        let value = json!({"schemaVersion":2,"source":"OP.GG MCP","championKey":slug,"role":role,"retrievedAt":now,"region":null,"tier":"all","analysis":data});
+        let value = json!({"schemaVersion":3,"championId":champion_id,"source":"OP.GG MCP","championKey":slug,"role":role,"retrievedAt":now,"region":null,"tier":"all","analysis":data});
         if std::fs::create_dir_all(&self.directory).is_ok() {
             if let Ok(mut file) = tempfile::NamedTempFile::new_in(&self.directory) {
                 if let Ok(bytes) = serde_json::to_vec(&value) {
@@ -238,6 +249,13 @@ fn call(name: &str, arguments: Value) -> Result<Value, String> {
 mod tests {
     use super::*;
     #[test]
+    fn identity_uses_canonical_id_instead_of_name_punctuation() {
+        let mut value = json!({"champion":"VELKOZ","data":{"summary":{"id":161}}});
+        assert!(matches_identity(&value, 161));
+        value["data"]["summary"]["id"] = json!(234);
+        assert!(!matches_identity(&value, 161));
+    }
+    #[test]
     fn malformed_cached_or_remote_rows_are_rejected() {
         let sample = json!({"ids":[6672],"play":1000,"win":500});
         let mut analysis = json!({"champion":"VIEGO","position":"jungle","data":{"trends":{"win":{"version":"16.21"}},"core_items":sample,"starter_items":sample,"fourth_items":[],"runes":{"primary_page_id":8000,"secondary_page_id":8300,"primary_rune_ids":[8010,9111,9104,8014],"secondary_rune_ids":[8304,8347],"stat_mod_ids":[5005,5008,5001]}}});
@@ -259,7 +277,7 @@ mod tests {
     fn published_analysis_is_available() {
         let dir = tempfile::tempdir().unwrap();
         let stats = Statistics::new(dir.path().to_path_buf());
-        let v = stats.analysis("Viego", "JUNGLE", false).unwrap();
+        let v = stats.analysis(234, "Viego", "JUNGLE", false).unwrap();
         assert_eq!(v["analysis"]["champion"], "VIEGO");
         assert!(
             v["analysis"]["data"]["core_items"]["play"]
@@ -267,7 +285,9 @@ mod tests {
                 .unwrap()
                 > 0
         );
-        let alias = stats.analysis("LeeSin", "JUNGLE", false).unwrap();
+        let alias = stats.analysis(64, "LeeSin", "JUNGLE", false).unwrap();
         assert_eq!(alias["analysis"]["champion"], "LEE_SIN");
+        let punctuation = stats.analysis(161, "Velkoz", "SUPPORT", false).unwrap();
+        assert_eq!(punctuation["analysis"]["data"]["summary"]["id"], 161);
     }
 }
