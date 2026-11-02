@@ -7,6 +7,11 @@ use std::{path::PathBuf, time::Duration};
 #[derive(Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ClientSnapshot {
+    #[serde(skip)]
+    game_id: Option<u64>,
+    pub session_id: Option<String>,
+    pub player_champion_id: Option<u32>,
+    pub map_id: Option<u32>,
     pub connected: bool,
     pub phase: String,
     pub version: Option<String>,
@@ -20,6 +25,10 @@ pub struct ClientSnapshot {
 impl Default for ClientSnapshot {
     fn default() -> Self {
         Self {
+            game_id: None,
+            session_id: None,
+            player_champion_id: None,
+            map_id: None,
             connected: false,
             phase: "Unknown".into(),
             version: None,
@@ -106,15 +115,21 @@ pub fn poll(client: &Client, previous: &ClientSnapshot) -> ClientSnapshot {
         let credentials = parse_lockfile(&raw)?;
         let value = read(client, &credentials, "/lol-gameflow/v1/gameflow-phase")?;
         let phase = value.as_str().ok_or("Fase del cliente no compatible.")?;
-        let mut next = if matches!(
+        let metadata = if matches!(
             phase,
-            "GameStart" | "InProgress" | "WaitingForStats" | "PreEndOfGame" | "EndOfGame"
-        ) && previous.connected
-        {
-            previous.clone()
+            "ChampSelect"
+                | "GameStart"
+                | "InProgress"
+                | "Reconnect"
+                | "WaitingForStats"
+                | "PreEndOfGame"
+                | "EndOfGame"
+        ) {
+            Some(read(client, &credentials, "/lol-gameflow/v1/session")?)
         } else {
-            ClientSnapshot::default()
+            None
         };
+        let mut next = carry_session(previous, phase, metadata.as_ref());
         next.connected = true;
         next.phase = phase.into();
         next.message = "Cliente conectado · Solo lectura".into();
@@ -142,6 +157,57 @@ pub fn poll(client: &Client, previous: &ClientSnapshot) -> ClientSnapshot {
     }
 }
 
+fn carry_session(
+    previous: &ClientSnapshot,
+    phase: &str,
+    metadata: Option<&Value>,
+) -> ClientSnapshot {
+    let id = metadata
+        .and_then(|v| v.get("gameData"))
+        .and_then(|g| g.get("gameId"))
+        .and_then(Value::as_u64)
+        .filter(|id| *id > 0);
+    let draft_continues = previous.connected
+        && previous.phase == "ChampSelect"
+        && (previous.game_id.is_none() || id.is_none() || previous.game_id == id);
+    let same_game = id.is_some() && previous.game_id == id;
+    let in_game = matches!(
+        phase,
+        "GameStart" | "InProgress" | "Reconnect" | "WaitingForStats" | "PreEndOfGame" | "EndOfGame"
+    );
+    let preserve = in_game && (draft_continues || same_game);
+    let mut next = if preserve {
+        previous.clone()
+    } else {
+        ClientSnapshot::default()
+    };
+    next.game_id = id;
+    next.map_id = metadata
+        .and_then(|m| m.get("map"))
+        .and_then(|m| m.get("id"))
+        .and_then(Value::as_u64)
+        .and_then(|n| u32::try_from(n).ok());
+    if phase == "ChampSelect" || in_game {
+        next.session_id = if draft_continues || preserve {
+            previous.session_id.clone()
+        } else {
+            None
+        };
+        if next.session_id.is_none() {
+            next.session_id = id.map(|id| format!("lcu-{id}"));
+        }
+        if next.session_id.is_none() && phase == "ChampSelect" {
+            next.session_id = Some(format!(
+                "lcu-{}",
+                std::time::SystemTime::now()
+                    .duration_since(std::time::UNIX_EPOCH)
+                    .unwrap_or_default()
+                    .as_nanos()
+            ));
+        }
+    }
+    next
+}
 fn role(value: &str) -> Option<Role> {
     match value {
         "top" => Some(Role::Top),
@@ -208,6 +274,15 @@ fn populate(next: &mut ClientSnapshot, value: &Value) -> Result<(), &'static str
     next.allies = parse_team("myTeam")?;
     next.enemies = parse_team("theirTeam")?;
     let local = value.get("localPlayerCellId").and_then(Value::as_i64);
+    next.player_champion_id = value
+        .get("myTeam")
+        .and_then(Value::as_array)
+        .and_then(|team| {
+            team.iter()
+                .position(|p| local.is_some() && p.get("cellId").and_then(Value::as_i64) == local)
+        })
+        .and_then(|i| next.allies.get(i))
+        .and_then(|slot| slot.champion_id);
     next.player_role = value
         .get("myTeam")
         .and_then(Value::as_array)
@@ -238,6 +313,32 @@ fn populate(next: &mut ClientSnapshot, value: &Value) -> Result<(), &'static str
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn game_identity_preserves_a_prepared_draft_across_loading_and_reconnect() {
+        let mut draft = ClientSnapshot {
+            connected: true,
+            phase: "ChampSelect".into(),
+            session_id: Some("draft-before-id".into()),
+            player_champion_id: Some(103),
+            ..Default::default()
+        };
+        let metadata = serde_json::json!({"gameData":{"gameId":42},"map":{"id":11}});
+        let mut game = carry_session(&draft, "InProgress", Some(&metadata));
+        assert_eq!(game.session_id, draft.session_id);
+        assert_eq!(game.player_champion_id, Some(103));
+        game.phase = "InProgress".into();
+        game.connected = false;
+        assert_eq!(
+            carry_session(&game, "InProgress", Some(&metadata)).session_id,
+            draft.session_id
+        );
+        let other = serde_json::json!({"gameData":{"gameId":43},"map":{"id":11}});
+        assert!(carry_session(&game, "InProgress", Some(&other))
+            .player_champion_id
+            .is_none());
+        draft.phase = "Lobby".into();
+        assert!(carry_session(&draft, "Lobby", None).session_id.is_none());
+    }
     #[test]
     fn observed_custom_draft_is_supported_without_filling_empty_slots() {
         let value =

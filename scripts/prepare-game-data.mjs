@@ -6,10 +6,13 @@ const version = process.argv[2];
 if (!/^\d+\.\d+\.\d+$/.test(version ?? ""))
   throw new Error("Se requiere una versión explícita de Data Dragon.");
 const base = `https://ddragon.leagueoflegends.com/cdn/${version}`;
+const responses = new Map();
 async function json(url) {
   const r = await fetch(url, { signal: AbortSignal.timeout(30_000) });
   if (!r.ok) throw new Error(`${r.status}: ${url}`);
-  return r.json();
+  const raw = await r.text();
+  responses.set(url, raw);
+  return JSON.parse(raw);
 }
 const [champions, items, trees] = await Promise.all([
   json(`${base}/data/es_AR/champion.json`),
@@ -24,7 +27,7 @@ const catalog = {
   locale: "es_AR",
   source: `${base}/data/es_AR/champion.json`,
   retrievedAt: new Date().toISOString(),
-  sha256: hash(JSON.stringify(champions)),
+  sha256: hash(responses.get(`${base}/data/es_AR/champion.json`)),
   champions: Object.values(champions.data)
     .map((c) => ({
       id: Number(c.key),
@@ -101,6 +104,11 @@ await Promise.all(
       const entry = queue.pop();
       if (!entry) return;
       const [path, url] = entry;
+      if (
+        !/^(champion|item|rune|tree)\/[A-Za-z0-9_.-]+\.png$/.test(path) ||
+        path.includes("..")
+      )
+        throw new Error("Ruta de imagen no válida");
       const r = await fetch(url, { signal: AbortSignal.timeout(30_000) });
       if (!r.ok) throw new Error(`${r.status}: ${url}`);
       const bytes = Buffer.from(await r.arrayBuffer());
@@ -114,6 +122,9 @@ await Promise.all(
       game.assets[path] = { url, sha256: hash(bytes) };
     }
   }),
+);
+game.assets = Object.fromEntries(
+  Object.entries(game.assets).sort(([a], [b]) => a.localeCompare(b)),
 );
 await writeFile("data/game-data.json", JSON.stringify(game, null, 2) + "\n");
 await writeFile("data/champions.json", JSON.stringify(catalog, null, 2) + "\n");

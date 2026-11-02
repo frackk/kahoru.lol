@@ -1,3 +1,6 @@
+import { Preparation } from "./Preparation";
+import { possibleRoles } from "../engine/recommendations";
+import { ChampionIcon } from "../gameData";
 import { useEffect, useState } from "react";
 import { invoke, isTauri } from "@tauri-apps/api/core";
 import {
@@ -8,6 +11,9 @@ import {
 } from "../contracts";
 
 interface LiveSnapshot {
+  sessionId: string | null;
+  playerChampionId: number | null;
+  mapId: number | null;
   connected: boolean;
   phase: string;
   version: string | null;
@@ -57,6 +63,7 @@ export function LiveClient({ catalog }: { catalog: Catalog | null }) {
       clearTimeout(timer);
     };
   }, []);
+  const inferred = possibleRoles(snapshot?.enemies ?? []);
   const name = (id: number | null) =>
     id === null
       ? "Sin revelar"
@@ -106,16 +113,14 @@ export function LiveClient({ catalog }: { catalog: Catalog | null }) {
                 {snapshot[team].map((slot, i) => (
                   <div className="slot" key={i}>
                     <div className="slot-main">
-                      <span className="portrait">
-                        {slot.championId
-                          ? name(slot.championId).slice(0, 2)
-                          : "?"}
-                      </span>
+                      <ChampionIcon id={slot.championId} />
                       <span>
                         <small>
                           {slot.role
                             ? roleNames[slot.role]
-                            : "Rol sin confirmar"}{" "}
+                            : team === "enemies" && inferred[i]?.length
+                              ? `Hipótesis: ${inferred[i]!.map((r) => roleNames[r]).join(" / ")}`
+                              : "Rol sin confirmar"}{" "}
                           · {slot.locked ? "Confirmado" : "Provisional"}
                         </small>
                         <strong>{name(slot.championId)}</strong>
@@ -134,6 +139,26 @@ export function LiveClient({ catalog }: { catalog: Catalog | null }) {
             ))}
           </div>
         </>
+      )}
+      {snapshot?.sessionId && (
+        <Preparation
+          key={snapshot.sessionId}
+          context={{
+            sessionId: snapshot.sessionId,
+            playerRole: snapshot.playerRole,
+            playerChampionId: snapshot.playerChampionId,
+            allies: snapshot.allies,
+            enemies: snapshot.enemies,
+            bans: snapshot.bans,
+            gameVersion: snapshot.version,
+          }}
+          editable={snapshot.connected && snapshot.phase === "ChampSelect"}
+          disabledReason={
+            snapshot.mapId !== 11
+              ? "Los planes actuales solo cubren la Grieta del Invocador."
+              : undefined
+          }
+        />
       )}
       <p className="simulation-note">
         Los campeones se completan desde el cliente. Las acciones de juego se

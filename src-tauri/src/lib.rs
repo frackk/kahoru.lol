@@ -99,13 +99,11 @@ async fn update_game_data(state: State<'_, AppState>) -> Result<GameData, String
     .await;
     let result: Result<GameData, String> = (|| {
         let data = prepared.map_err(|_| "La actualización se interrumpió.")??;
-        if busy(&state.live.lock().map_err(|_| "Sesión no disponible")?.phase)
+        let live = state.live.lock().map_err(|_| "Sesión no disponible")?;
+        let mut session = state.session.lock().map_err(|_| "Sesión no disponible")?;
+        if busy(&live.phase)
             || !matches!(
-                state
-                    .session
-                    .lock()
-                    .map_err(|_| "Sesión no disponible")?
-                    .phase,
+                session.phase,
                 session::Phase::Idle | session::Phase::PostGame
             )
         {
@@ -113,7 +111,7 @@ async fn update_game_data(state: State<'_, AppState>) -> Result<GameData, String
         }
         game_data::activate(&data, &state.cache)?;
         *state.game.lock().map_err(|_| "Datos no disponibles")? = data.clone();
-        state.session.lock().map_err(|_| "Sesión no disponible")?.draft.patch=data.catalog.version.clone();
+        session.draft.patch = data.catalog.version.clone();
         Ok(data)
     })();
     if let Ok(mut s) = state.update.lock() {

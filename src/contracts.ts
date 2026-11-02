@@ -14,6 +14,10 @@ export interface Champion {
   slug: string;
   name: string;
   title: string;
+  icon?: string;
+  tags?: string[];
+  resource?: string;
+  range?: number;
 }
 export interface Catalog {
   version: string;

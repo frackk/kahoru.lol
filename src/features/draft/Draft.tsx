@@ -1,3 +1,5 @@
+import { Preparation } from "../Preparation";
+import { ChampionIcon } from "../../gameData";
 import { useState } from "react";
 import {
   availableChampions,
@@ -103,7 +105,7 @@ export function Draft({
                       }}
                     >
                       <span className={`portrait ${champion ? "filled" : ""}`}>
-                        {champion?.name.slice(0, 2) ?? "＋"}
+                        <ChampionIcon id={champion?.id ?? null} />
                       </span>
                       <span>
                         <small>
@@ -190,7 +192,7 @@ export function Draft({
                     )
                   }
                 >
-                  <span>{champion.name.slice(0, 2)}</span>
+                  <ChampionIcon id={champion.id} size={44} />
                   {champion.name}
                 </button>
               ))}
@@ -245,12 +247,37 @@ export function Draft({
           <section className="panel">
             <h2>Draft conservado</h2>
             <p>
-              Esta sesión de prueba permite comprobar la transición y limpieza
-              de datos. Los planes de runas y compras todavía no están
-              implementados.
+              La sesión conserva los planes preparados antes de entrar a
+              partida. Las compras se consultan sin adaptar indicaciones en
+              vivo.
             </p>
           </section>
         )}
+        <Preparation
+          context={{
+            sessionId: `sim-${draft.sessionId}`,
+            playerRole: draft.playerRole,
+            playerChampionId:
+              draft.allies[roles.indexOf(draft.playerRole)]?.championId ?? null,
+            allies: draft.allies,
+            enemies: draft.enemies,
+            bans: draft.bans,
+            gameVersion: draft.patch,
+          }}
+          editable={editable}
+          onChoose={
+            editable
+              ? (id) => {
+                  void send({
+                    type: "select",
+                    team: "allies",
+                    slot: roles.indexOf(draft.playerRole),
+                    champion: id,
+                  });
+                }
+              : undefined
+          }
+        />
         <section className="simulation-controls">
           <div>
             <strong>Controles de simulación</strong>

@@ -1,0 +1,1763 @@
+{
+  "patch": "16.21",
+  "revision": 1,
+  "reviewedAt": "2026-11-02",
+  "source": "Reglas estratégicas del proyecto; no contienen tasas observadas ni una clasificación de meta.",
+  "profiles": [
+    {
+      "championId": 266,
+      "slug": "Aatrox",
+      "group": "fighter",
+      "roles": [
+        "TOP"
+      ],
+      "damage": "physical",
+      "core": [
+        3071,
+        3053
+      ],
+      "starter": 1054,
+      "boots": 3047,
+      "runes": "fighter",
+      "traits": [
+        "frontline",
+        "healing"
+      ]
+    },
+    {
+      "championId": 122,
+      "slug": "Darius",
+      "group": "fighter",
+      "roles": [
+        "TOP"
+      ],
+      "damage": "physical",
+      "core": [
+        3071,
+        3053
+      ],
+      "starter": 1054,
+      "boots": 3047,
+      "runes": "fighter",
+      "traits": [
+        "frontline",
+        "healing"
+      ]
+    },
+    {
+      "championId": 86,
+      "slug": "Garen",
+      "group": "fighter",
+      "roles": [
+        "TOP"
+      ],
+      "damage": "physical",
+      "core": [
+        3071,
+        3053
+      ],
+      "starter": 1054,
+      "boots": 3047,
+      "runes": "fighter",
+      "traits": [
+        "frontline",
+        "healing"
+      ]
+    },
+    {
+      "championId": 875,
+      "slug": "Sett",
+      "group": "fighter",
+      "roles": [
+        "TOP"
+      ],
+      "damage": "physical",
+      "core": [
+        3071,
+        3053
+      ],
+      "starter": 1054,
+      "boots": 3047,
+      "runes": "fighter",
+      "traits": [
+        "frontline",
+        "healing"
+      ]
+    },
+    {
+      "championId": 58,
+      "slug": "Renekton",
+      "group": "fighter",
+      "roles": [
+        "TOP"
+      ],
+      "damage": "physical",
+      "core": [
+        3071,
+        3053
+      ],
+      "starter": 1054,
+      "boots": 3047,
+      "runes": "fighter",
+      "traits": [
+        "frontline",
+        "healing"
+      ]
+    },
+    {
+      "championId": 24,
+      "slug": "Jax",
+      "group": "duelist",
+      "roles": [
+        "TOP"
+      ],
+      "damage": "mixed",
+      "core": [
+        3078,
+        3153
+      ],
+      "starter": 1055,
+      "boots": 3047,
+      "runes": "fighter",
+      "traits": [
+        "attacks",
+        "side"
+      ]
+    },
+    {
+      "championId": 114,
+      "slug": "Fiora",
+      "group": "duelist",
+      "roles": [
+        "TOP"
+      ],
+      "damage": "physical",
+      "core": [
+        3078,
+        3153
+      ],
+      "starter": 1055,
+      "boots": 3047,
+      "runes": "fighter",
+      "traits": [
+        "attacks",
+        "side"
+      ]
+    },
+    {
+      "championId": 164,
+      "slug": "Camille",
+      "group": "duelist",
+      "roles": [
+        "TOP"
+      ],
+      "damage": "physical",
+      "core": [
+        3078,
+        3153
+      ],
+      "starter": 1055,
+      "boots": 3047,
+      "runes": "fighter",
+      "traits": [
+        "attacks",
+        "side"
+      ]
+    },
+    {
+      "championId": 82,
+      "slug": "Mordekaiser",
+      "group": "apfighter",
+      "roles": [
+        "TOP"
+      ],
+      "damage": "magic",
+      "core": [
+        4633,
+        3116
+      ],
+      "starter": 1056,
+      "boots": 3020,
+      "runes": "fighter",
+      "traits": [
+        "frontline",
+        "healing"
+      ]
+    },
+    {
+      "championId": 887,
+      "slug": "Gwen",
+      "group": "apfighter",
+      "roles": [
+        "TOP"
+      ],
+      "damage": "magic",
+      "core": [
+        4633,
+        3115
+      ],
+      "starter": 1056,
+      "boots": 3020,
+      "runes": "fighter",
+      "traits": [
+        "frontline",
+        "healing"
+      ]
+    },
+    {
+      "championId": 54,
+      "slug": "Malphite",
+      "group": "tank",
+      "roles": [
+        "TOP"
+      ],
+      "damage": "magic",
+      "core": [
+        3068,
+        2502
+      ],
+      "starter": 1054,
+      "boots": 3047,
+      "runes": "grasp",
+      "traits": [
+        "frontline",
+        "engage",
+        "peel"
+      ]
+    },
+    {
+      "championId": 516,
+      "slug": "Ornn",
+      "group": "tank",
+      "roles": [
+        "TOP"
+      ],
+      "damage": "magic",
+      "core": [
+        3068,
+        2502
+      ],
+      "starter": 1054,
+      "boots": 3047,
+      "runes": "grasp",
+      "traits": [
+        "frontline",
+        "engage",
+        "peel"
+      ]
+    },
+    {
+      "championId": 98,
+      "slug": "Shen",
+      "group": "tank",
+      "roles": [
+        "TOP"
+      ],
+      "damage": "mixed",
+      "core": [
+        3068,
+        2502
+      ],
+      "starter": 1054,
+      "boots": 3047,
+      "runes": "grasp",
+      "traits": [
+        "frontline",
+        "engage",
+        "peel"
+      ]
+    },
+    {
+      "championId": 64,
+      "slug": "LeeSin",
+      "group": "jungler",
+      "roles": [
+        "JUNGLE"
+      ],
+      "damage": "physical",
+      "core": [
+        3071,
+        3053
+      ],
+      "starter": 1103,
+      "boots": 3047,
+      "runes": "fighter",
+      "traits": [
+        "engage",
+        "frontline",
+        "healing",
+        "healing"
+      ]
+    },
+    {
+      "championId": 254,
+      "slug": "Vi",
+      "group": "jungler",
+      "roles": [
+        "JUNGLE"
+      ],
+      "damage": "physical",
+      "core": [
+        3071,
+        3053
+      ],
+      "starter": 1103,
+      "boots": 3047,
+      "runes": "fighter",
+      "traits": [
+        "engage",
+        "frontline",
+        "healing",
+        "healing"
+      ]
+    },
+    {
+      "championId": 59,
+      "slug": "JarvanIV",
+      "group": "jungler",
+      "roles": [
+        "JUNGLE"
+      ],
+      "damage": "physical",
+      "core": [
+        3071,
+        3053
+      ],
+      "starter": 1103,
+      "boots": 3047,
+      "runes": "fighter",
+      "traits": [
+        "engage",
+        "frontline",
+        "healing",
+        "healing"
+      ]
+    },
+    {
+      "championId": 5,
+      "slug": "XinZhao",
+      "group": "jungler",
+      "roles": [
+        "JUNGLE"
+      ],
+      "damage": "physical",
+      "core": [
+        3071,
+        3053
+      ],
+      "starter": 1103,
+      "boots": 3047,
+      "runes": "fighter",
+      "traits": [
+        "engage",
+        "frontline",
+        "healing",
+        "healing"
+      ]
+    },
+    {
+      "championId": 234,
+      "slug": "Viego",
+      "group": "jungler",
+      "roles": [
+        "JUNGLE"
+      ],
+      "damage": "physical",
+      "core": [
+        3071,
+        3053
+      ],
+      "starter": 1103,
+      "boots": 3047,
+      "runes": "fighter",
+      "traits": [
+        "engage",
+        "frontline",
+        "healing",
+        "healing"
+      ]
+    },
+    {
+      "championId": 56,
+      "slug": "Nocturne",
+      "group": "jungler",
+      "roles": [
+        "JUNGLE"
+      ],
+      "damage": "physical",
+      "core": [
+        3071,
+        3053
+      ],
+      "starter": 1103,
+      "boots": 3047,
+      "runes": "fighter",
+      "traits": [
+        "engage",
+        "frontline",
+        "healing",
+        "healing"
+      ]
+    },
+    {
+      "championId": 19,
+      "slug": "Warwick",
+      "group": "jungler",
+      "roles": [
+        "JUNGLE"
+      ],
+      "damage": "mixed",
+      "core": [
+        3071,
+        3053
+      ],
+      "starter": 1103,
+      "boots": 3047,
+      "runes": "fighter",
+      "traits": [
+        "engage",
+        "frontline",
+        "healing",
+        "healing"
+      ]
+    },
+    {
+      "championId": 11,
+      "slug": "MasterYi",
+      "group": "jungleattacks",
+      "roles": [
+        "JUNGLE"
+      ],
+      "damage": "physical",
+      "core": [
+        3153,
+        3124
+      ],
+      "starter": 1103,
+      "boots": 3006,
+      "runes": "attacks",
+      "traits": [
+        "attacks",
+        "scaling"
+      ]
+    },
+    {
+      "championId": 32,
+      "slug": "Amumu",
+      "group": "jungletank",
+      "roles": [
+        "JUNGLE"
+      ],
+      "damage": "magic",
+      "core": [
+        3068,
+        2502
+      ],
+      "starter": 1103,
+      "boots": 3111,
+      "runes": "tank",
+      "traits": [
+        "frontline",
+        "engage",
+        "peel"
+      ]
+    },
+    {
+      "championId": 154,
+      "slug": "Zac",
+      "group": "jungletank",
+      "roles": [
+        "JUNGLE"
+      ],
+      "damage": "magic",
+      "core": [
+        3068,
+        2502
+      ],
+      "starter": 1103,
+      "boots": 3111,
+      "runes": "tank",
+      "traits": [
+        "frontline",
+        "engage",
+        "peel"
+      ]
+    },
+    {
+      "championId": 113,
+      "slug": "Sejuani",
+      "group": "jungletank",
+      "roles": [
+        "JUNGLE"
+      ],
+      "damage": "magic",
+      "core": [
+        3068,
+        2502
+      ],
+      "starter": 1103,
+      "boots": 3111,
+      "runes": "tank",
+      "traits": [
+        "frontline",
+        "engage",
+        "peel"
+      ]
+    },
+    {
+      "championId": 33,
+      "slug": "Rammus",
+      "group": "jungletank",
+      "roles": [
+        "JUNGLE"
+      ],
+      "damage": "magic",
+      "core": [
+        3068,
+        2502
+      ],
+      "starter": 1103,
+      "boots": 3111,
+      "runes": "tank",
+      "traits": [
+        "frontline",
+        "engage",
+        "peel"
+      ]
+    },
+    {
+      "championId": 876,
+      "slug": "Lillia",
+      "group": "jungleap",
+      "roles": [
+        "JUNGLE"
+      ],
+      "damage": "magic",
+      "core": [
+        6653,
+        3116
+      ],
+      "starter": 1103,
+      "boots": 3020,
+      "runes": "fighter",
+      "traits": [
+        "scaling"
+      ]
+    },
+    {
+      "championId": 63,
+      "slug": "Brand",
+      "group": "jungleap",
+      "roles": [
+        "JUNGLE"
+      ],
+      "damage": "magic",
+      "core": [
+        6653,
+        3116
+      ],
+      "starter": 1103,
+      "boots": 3020,
+      "runes": "fighter",
+      "traits": [
+        "poke",
+        "scaling"
+      ]
+    },
+    {
+      "championId": 131,
+      "slug": "Diana",
+      "group": "jungleburst",
+      "roles": [
+        "JUNGLE"
+      ],
+      "damage": "magic",
+      "core": [
+        3152,
+        4645
+      ],
+      "starter": 1103,
+      "boots": 3020,
+      "runes": "assassin",
+      "traits": [
+        "engage"
+      ]
+    },
+    {
+      "championId": 28,
+      "slug": "Evelynn",
+      "group": "jungleburst",
+      "roles": [
+        "JUNGLE"
+      ],
+      "damage": "magic",
+      "core": [
+        3152,
+        4645
+      ],
+      "starter": 1103,
+      "boots": 3020,
+      "runes": "assassin",
+      "traits": [
+        "burst",
+        "pick"
+      ]
+    },
+    {
+      "championId": 60,
+      "slug": "Elise",
+      "group": "jungleburst",
+      "roles": [
+        "JUNGLE"
+      ],
+      "damage": "magic",
+      "core": [
+        3152,
+        4645
+      ],
+      "starter": 1103,
+      "boots": 3020,
+      "runes": "assassin",
+      "traits": [
+        "burst",
+        "pick"
+      ]
+    },
+    {
+      "championId": 121,
+      "slug": "Khazix",
+      "group": "junglead",
+      "roles": [
+        "JUNGLE"
+      ],
+      "damage": "physical",
+      "core": [
+        3142,
+        6694
+      ],
+      "starter": 1103,
+      "boots": 3158,
+      "runes": "assassin",
+      "traits": [
+        "burst"
+      ]
+    },
+    {
+      "championId": 107,
+      "slug": "Rengar",
+      "group": "junglead",
+      "roles": [
+        "JUNGLE"
+      ],
+      "damage": "physical",
+      "core": [
+        3142,
+        6694
+      ],
+      "starter": 1103,
+      "boots": 3158,
+      "runes": "assassin",
+      "traits": [
+        "burst"
+      ]
+    },
+    {
+      "championId": 99,
+      "slug": "Lux",
+      "group": "mage",
+      "roles": [
+        "MID"
+      ],
+      "damage": "magic",
+      "core": [
+        6655,
+        4645
+      ],
+      "starter": 1056,
+      "boots": 3020,
+      "runes": "mage",
+      "traits": [
+        "poke",
+        "scaling"
+      ]
+    },
+    {
+      "championId": 61,
+      "slug": "Orianna",
+      "group": "mage",
+      "roles": [
+        "MID"
+      ],
+      "damage": "magic",
+      "core": [
+        6655,
+        4645
+      ],
+      "starter": 1056,
+      "boots": 3020,
+      "runes": "mage",
+      "traits": [
+        "poke",
+        "scaling"
+      ]
+    },
+    {
+      "championId": 134,
+      "slug": "Syndra",
+      "group": "mage",
+      "roles": [
+        "MID"
+      ],
+      "damage": "magic",
+      "core": [
+        6655,
+        4645
+      ],
+      "starter": 1056,
+      "boots": 3020,
+      "runes": "mage",
+      "traits": [
+        "poke",
+        "scaling"
+      ]
+    },
+    {
+      "championId": 112,
+      "slug": "Viktor",
+      "group": "mage",
+      "roles": [
+        "MID"
+      ],
+      "damage": "magic",
+      "core": [
+        6655,
+        4645
+      ],
+      "starter": 1056,
+      "boots": 3020,
+      "runes": "mage",
+      "traits": [
+        "poke",
+        "scaling"
+      ]
+    },
+    {
+      "championId": 45,
+      "slug": "Veigar",
+      "group": "mage",
+      "roles": [
+        "MID"
+      ],
+      "damage": "magic",
+      "core": [
+        6655,
+        4645
+      ],
+      "starter": 1056,
+      "boots": 3020,
+      "runes": "mage",
+      "traits": [
+        "poke",
+        "scaling"
+      ]
+    },
+    {
+      "championId": 1,
+      "slug": "Annie",
+      "group": "mage",
+      "roles": [
+        "MID"
+      ],
+      "damage": "magic",
+      "core": [
+        6655,
+        4645
+      ],
+      "starter": 1056,
+      "boots": 3020,
+      "runes": "mage",
+      "traits": [
+        "poke",
+        "scaling"
+      ]
+    },
+    {
+      "championId": 910,
+      "slug": "Hwei",
+      "group": "mage",
+      "roles": [
+        "MID"
+      ],
+      "damage": "magic",
+      "core": [
+        6655,
+        4645
+      ],
+      "starter": 1056,
+      "boots": 3020,
+      "runes": "mage",
+      "traits": [
+        "poke",
+        "scaling"
+      ]
+    },
+    {
+      "championId": 115,
+      "slug": "Ziggs",
+      "group": "mage",
+      "roles": [
+        "MID"
+      ],
+      "damage": "magic",
+      "core": [
+        6655,
+        4645
+      ],
+      "starter": 1056,
+      "boots": 3020,
+      "runes": "mage",
+      "traits": [
+        "poke",
+        "scaling"
+      ]
+    },
+    {
+      "championId": 101,
+      "slug": "Xerath",
+      "group": "mage",
+      "roles": [
+        "MID"
+      ],
+      "damage": "magic",
+      "core": [
+        6655,
+        4645
+      ],
+      "starter": 1056,
+      "boots": 3020,
+      "runes": "mage",
+      "traits": [
+        "poke",
+        "scaling"
+      ]
+    },
+    {
+      "championId": 161,
+      "slug": "Velkoz",
+      "group": "mage",
+      "roles": [
+        "MID"
+      ],
+      "damage": "magic",
+      "core": [
+        6655,
+        4645
+      ],
+      "starter": 1056,
+      "boots": 3020,
+      "runes": "mage",
+      "traits": [
+        "poke",
+        "scaling"
+      ]
+    },
+    {
+      "championId": 103,
+      "slug": "Ahri",
+      "group": "ahri",
+      "roles": [
+        "MID"
+      ],
+      "damage": "magic",
+      "core": [
+        3118,
+        4645
+      ],
+      "starter": 1056,
+      "boots": 3020,
+      "runes": "ahri",
+      "traits": [
+        "pick",
+        "peel"
+      ]
+    },
+    {
+      "championId": 84,
+      "slug": "Akali",
+      "group": "apassassin",
+      "roles": [
+        "MID"
+      ],
+      "damage": "magic",
+      "core": [
+        3152,
+        4645
+      ],
+      "starter": 1056,
+      "boots": 3020,
+      "runes": "assassin",
+      "traits": [
+        "burst",
+        "side"
+      ]
+    },
+    {
+      "championId": 55,
+      "slug": "Katarina",
+      "group": "apassassin",
+      "roles": [
+        "MID"
+      ],
+      "damage": "magic",
+      "core": [
+        3152,
+        4645
+      ],
+      "starter": 1056,
+      "boots": 3020,
+      "runes": "assassin",
+      "traits": [
+        "burst",
+        "side"
+      ]
+    },
+    {
+      "championId": 105,
+      "slug": "Fizz",
+      "group": "apassassin",
+      "roles": [
+        "MID"
+      ],
+      "damage": "magic",
+      "core": [
+        3152,
+        4645
+      ],
+      "starter": 1056,
+      "boots": 3020,
+      "runes": "assassin",
+      "traits": [
+        "burst",
+        "side"
+      ]
+    },
+    {
+      "championId": 238,
+      "slug": "Zed",
+      "group": "adassassin",
+      "roles": [
+        "MID"
+      ],
+      "damage": "physical",
+      "core": [
+        3142,
+        6694
+      ],
+      "starter": 1055,
+      "boots": 3158,
+      "runes": "assassin",
+      "traits": [
+        "burst",
+        "side"
+      ]
+    },
+    {
+      "championId": 91,
+      "slug": "Talon",
+      "group": "adassassin",
+      "roles": [
+        "MID"
+      ],
+      "damage": "physical",
+      "core": [
+        3142,
+        6694
+      ],
+      "starter": 1055,
+      "boots": 3158,
+      "runes": "assassin",
+      "traits": [
+        "burst",
+        "side"
+      ]
+    },
+    {
+      "championId": 246,
+      "slug": "Qiyana",
+      "group": "adassassin",
+      "roles": [
+        "MID"
+      ],
+      "damage": "physical",
+      "core": [
+        3142,
+        6694
+      ],
+      "starter": 1055,
+      "boots": 3158,
+      "runes": "assassin",
+      "traits": [
+        "burst",
+        "side"
+      ]
+    },
+    {
+      "championId": 157,
+      "slug": "Yasuo",
+      "group": "critmelee",
+      "roles": [
+        "MID",
+        "TOP"
+      ],
+      "damage": "physical",
+      "core": [
+        3046,
+        3031
+      ],
+      "starter": 1055,
+      "boots": 3006,
+      "runes": "fighter",
+      "traits": [
+        "attacks",
+        "side",
+        "scaling"
+      ]
+    },
+    {
+      "championId": 777,
+      "slug": "Yone",
+      "group": "critmelee",
+      "roles": [
+        "MID",
+        "TOP"
+      ],
+      "damage": "mixed",
+      "core": [
+        3046,
+        3031
+      ],
+      "starter": 1055,
+      "boots": 3006,
+      "runes": "fighter",
+      "traits": [
+        "attacks",
+        "side",
+        "scaling"
+      ]
+    },
+    {
+      "championId": 22,
+      "slug": "Ashe",
+      "group": "marksman",
+      "roles": [
+        "BOT"
+      ],
+      "damage": "physical",
+      "core": [
+        3508,
+        3031
+      ],
+      "starter": 1055,
+      "boots": 3006,
+      "runes": "attacks",
+      "traits": [
+        "attacks",
+        "scaling",
+        "engage"
+      ]
+    },
+    {
+      "championId": 51,
+      "slug": "Caitlyn",
+      "group": "marksman",
+      "roles": [
+        "BOT"
+      ],
+      "damage": "physical",
+      "core": [
+        6676,
+        3031
+      ],
+      "starter": 1055,
+      "boots": 3006,
+      "runes": "attacks",
+      "traits": [
+        "attacks",
+        "scaling",
+        "engage"
+      ]
+    },
+    {
+      "championId": 222,
+      "slug": "Jinx",
+      "group": "marksman",
+      "roles": [
+        "BOT"
+      ],
+      "damage": "physical",
+      "core": [
+        3032,
+        3031
+      ],
+      "starter": 1055,
+      "boots": 3006,
+      "runes": "attacks",
+      "traits": [
+        "attacks",
+        "scaling",
+        "engage"
+      ]
+    },
+    {
+      "championId": 236,
+      "slug": "Lucian",
+      "group": "marksman",
+      "roles": [
+        "BOT"
+      ],
+      "damage": "physical",
+      "core": [
+        3508,
+        3031
+      ],
+      "starter": 1055,
+      "boots": 3006,
+      "runes": "attacks",
+      "traits": [
+        "attacks",
+        "scaling",
+        "engage"
+      ]
+    },
+    {
+      "championId": 21,
+      "slug": "MissFortune",
+      "group": "marksman",
+      "roles": [
+        "BOT"
+      ],
+      "damage": "physical",
+      "core": [
+        6676,
+        3031
+      ],
+      "starter": 1055,
+      "boots": 3006,
+      "runes": "attacks",
+      "traits": [
+        "attacks",
+        "scaling",
+        "engage"
+      ]
+    },
+    {
+      "championId": 119,
+      "slug": "Draven",
+      "group": "marksman",
+      "roles": [
+        "BOT"
+      ],
+      "damage": "physical",
+      "core": [
+        6676,
+        3031
+      ],
+      "starter": 1055,
+      "boots": 3006,
+      "runes": "attacks",
+      "traits": [
+        "attacks",
+        "scaling",
+        "engage"
+      ]
+    },
+    {
+      "championId": 498,
+      "slug": "Xayah",
+      "group": "marksman",
+      "roles": [
+        "BOT"
+      ],
+      "damage": "physical",
+      "core": [
+        3508,
+        3031
+      ],
+      "starter": 1055,
+      "boots": 3006,
+      "runes": "attacks",
+      "traits": [
+        "attacks",
+        "scaling",
+        "engage"
+      ]
+    },
+    {
+      "championId": 15,
+      "slug": "Sivir",
+      "group": "marksman",
+      "roles": [
+        "BOT"
+      ],
+      "damage": "physical",
+      "core": [
+        3508,
+        3031
+      ],
+      "starter": 1055,
+      "boots": 3006,
+      "runes": "attacks",
+      "traits": [
+        "attacks",
+        "scaling",
+        "engage"
+      ]
+    },
+    {
+      "championId": 18,
+      "slug": "Tristana",
+      "group": "marksman",
+      "roles": [
+        "BOT"
+      ],
+      "damage": "physical",
+      "core": [
+        6676,
+        3031
+      ],
+      "starter": 1055,
+      "boots": 3006,
+      "runes": "attacks",
+      "traits": [
+        "attacks",
+        "scaling",
+        "engage"
+      ]
+    },
+    {
+      "championId": 145,
+      "slug": "Kaisa",
+      "group": "onhit",
+      "roles": [
+        "BOT"
+      ],
+      "damage": "mixed",
+      "core": [
+        3153,
+        3124
+      ],
+      "starter": 1055,
+      "boots": 3006,
+      "runes": "attacks",
+      "traits": [
+        "attacks",
+        "scaling",
+        "antiTank",
+        "engage"
+      ]
+    },
+    {
+      "championId": 67,
+      "slug": "Vayne",
+      "group": "onhit",
+      "roles": [
+        "BOT"
+      ],
+      "damage": "mixed",
+      "core": [
+        3153,
+        3124
+      ],
+      "starter": 1055,
+      "boots": 3006,
+      "runes": "attacks",
+      "traits": [
+        "attacks",
+        "scaling",
+        "antiTank",
+        "engage"
+      ]
+    },
+    {
+      "championId": 96,
+      "slug": "KogMaw",
+      "group": "onhit",
+      "roles": [
+        "BOT"
+      ],
+      "damage": "mixed",
+      "core": [
+        3153,
+        3124
+      ],
+      "starter": 1055,
+      "boots": 3006,
+      "runes": "attacks",
+      "traits": [
+        "attacks",
+        "scaling",
+        "antiTank",
+        "engage"
+      ]
+    },
+    {
+      "championId": 110,
+      "slug": "Varus",
+      "group": "onhit",
+      "roles": [
+        "BOT"
+      ],
+      "damage": "mixed",
+      "core": [
+        3153,
+        3124
+      ],
+      "starter": 1055,
+      "boots": 3006,
+      "runes": "attacks",
+      "traits": [
+        "attacks",
+        "scaling",
+        "antiTank",
+        "engage"
+      ]
+    },
+    {
+      "championId": 202,
+      "slug": "Jhin",
+      "group": "jhin",
+      "roles": [
+        "BOT"
+      ],
+      "damage": "physical",
+      "core": [
+        6676,
+        3031
+      ],
+      "starter": 1055,
+      "boots": 3009,
+      "runes": "fleet",
+      "traits": [
+        "poke",
+        "pick"
+      ]
+    },
+    {
+      "championId": 81,
+      "slug": "Ezreal",
+      "group": "ezreal",
+      "roles": [
+        "BOT"
+      ],
+      "damage": "physical",
+      "core": [
+        3078,
+        3004
+      ],
+      "starter": 1055,
+      "boots": 3158,
+      "runes": "fighter",
+      "traits": [
+        "poke"
+      ]
+    },
+    {
+      "championId": 89,
+      "slug": "Leona",
+      "group": "engage",
+      "roles": [
+        "SUPPORT"
+      ],
+      "damage": "magic",
+      "core": [
+        3190,
+        3109
+      ],
+      "starter": 3865,
+      "boots": 3111,
+      "runes": "tank",
+      "traits": [
+        "frontline",
+        "engage",
+        "peel"
+      ]
+    },
+    {
+      "championId": 111,
+      "slug": "Nautilus",
+      "group": "engage",
+      "roles": [
+        "SUPPORT"
+      ],
+      "damage": "magic",
+      "core": [
+        3190,
+        3109
+      ],
+      "starter": 3865,
+      "boots": 3111,
+      "runes": "tank",
+      "traits": [
+        "frontline",
+        "engage",
+        "peel"
+      ]
+    },
+    {
+      "championId": 12,
+      "slug": "Alistar",
+      "group": "engage",
+      "roles": [
+        "SUPPORT"
+      ],
+      "damage": "magic",
+      "core": [
+        3190,
+        3109
+      ],
+      "starter": 3865,
+      "boots": 3111,
+      "runes": "tank",
+      "traits": [
+        "frontline",
+        "engage",
+        "peel",
+        "healing"
+      ]
+    },
+    {
+      "championId": 526,
+      "slug": "Rell",
+      "group": "engage",
+      "roles": [
+        "SUPPORT"
+      ],
+      "damage": "magic",
+      "core": [
+        3190,
+        3109
+      ],
+      "starter": 3865,
+      "boots": 3111,
+      "runes": "tank",
+      "traits": [
+        "frontline",
+        "engage",
+        "peel"
+      ]
+    },
+    {
+      "championId": 53,
+      "slug": "Blitzcrank",
+      "group": "engage",
+      "roles": [
+        "SUPPORT"
+      ],
+      "damage": "magic",
+      "core": [
+        3190,
+        3109
+      ],
+      "starter": 3865,
+      "boots": 3111,
+      "runes": "tank",
+      "traits": [
+        "frontline",
+        "engage",
+        "peel"
+      ]
+    },
+    {
+      "championId": 412,
+      "slug": "Thresh",
+      "group": "engage",
+      "roles": [
+        "SUPPORT"
+      ],
+      "damage": "magic",
+      "core": [
+        3190,
+        3109
+      ],
+      "starter": 3865,
+      "boots": 3111,
+      "runes": "tank",
+      "traits": [
+        "frontline",
+        "engage",
+        "peel"
+      ]
+    },
+    {
+      "championId": 497,
+      "slug": "Rakan",
+      "group": "engage",
+      "roles": [
+        "SUPPORT"
+      ],
+      "damage": "magic",
+      "core": [
+        3190,
+        3109
+      ],
+      "starter": 3865,
+      "boots": 3111,
+      "runes": "tank",
+      "traits": [
+        "frontline",
+        "engage",
+        "peel",
+        "healing"
+      ]
+    },
+    {
+      "championId": 201,
+      "slug": "Braum",
+      "group": "guard",
+      "roles": [
+        "SUPPORT"
+      ],
+      "damage": "magic",
+      "core": [
+        3190,
+        3109
+      ],
+      "starter": 3865,
+      "boots": 3047,
+      "runes": "guardian",
+      "traits": [
+        "frontline",
+        "peel",
+        "healing"
+      ]
+    },
+    {
+      "championId": 44,
+      "slug": "Taric",
+      "group": "guard",
+      "roles": [
+        "SUPPORT"
+      ],
+      "damage": "magic",
+      "core": [
+        3190,
+        3109
+      ],
+      "starter": 3865,
+      "boots": 3047,
+      "runes": "guardian",
+      "traits": [
+        "frontline",
+        "peel",
+        "healing"
+      ]
+    },
+    {
+      "championId": 117,
+      "slug": "Lulu",
+      "group": "enchanter",
+      "roles": [
+        "SUPPORT"
+      ],
+      "damage": "magic",
+      "core": [
+        6617,
+        3504
+      ],
+      "starter": 3865,
+      "boots": 3158,
+      "runes": "aery",
+      "traits": [
+        "peel",
+        "scaling"
+      ]
+    },
+    {
+      "championId": 40,
+      "slug": "Janna",
+      "group": "enchanter",
+      "roles": [
+        "SUPPORT"
+      ],
+      "damage": "magic",
+      "core": [
+        6617,
+        3504
+      ],
+      "starter": 3865,
+      "boots": 3158,
+      "runes": "aery",
+      "traits": [
+        "peel",
+        "scaling",
+        "healing"
+      ]
+    },
+    {
+      "championId": 267,
+      "slug": "Nami",
+      "group": "enchanter",
+      "roles": [
+        "SUPPORT"
+      ],
+      "damage": "magic",
+      "core": [
+        6617,
+        3504
+      ],
+      "starter": 3865,
+      "boots": 3158,
+      "runes": "aery",
+      "traits": [
+        "peel",
+        "scaling",
+        "healing"
+      ]
+    },
+    {
+      "championId": 16,
+      "slug": "Soraka",
+      "group": "enchanter",
+      "roles": [
+        "SUPPORT"
+      ],
+      "damage": "magic",
+      "core": [
+        6617,
+        3504
+      ],
+      "starter": 3865,
+      "boots": 3158,
+      "runes": "aery",
+      "traits": [
+        "peel",
+        "scaling",
+        "healing"
+      ]
+    },
+    {
+      "championId": 902,
+      "slug": "Milio",
+      "group": "enchanter",
+      "roles": [
+        "SUPPORT"
+      ],
+      "damage": "magic",
+      "core": [
+        6617,
+        3504
+      ],
+      "starter": 3865,
+      "boots": 3158,
+      "runes": "aery",
+      "traits": [
+        "peel",
+        "scaling",
+        "healing"
+      ]
+    },
+    {
+      "championId": 350,
+      "slug": "Yuumi",
+      "group": "enchanter",
+      "roles": [
+        "SUPPORT"
+      ],
+      "damage": "magic",
+      "core": [
+        6617,
+        3504
+      ],
+      "starter": 3865,
+      "boots": 3158,
+      "runes": "aery",
+      "traits": [
+        "peel",
+        "scaling",
+        "healing"
+      ]
+    },
+    {
+      "championId": 37,
+      "slug": "Sona",
+      "group": "enchanter",
+      "roles": [
+        "SUPPORT"
+      ],
+      "damage": "magic",
+      "core": [
+        6617,
+        3504
+      ],
+      "starter": 3865,
+      "boots": 3158,
+      "runes": "aery",
+      "traits": [
+        "peel",
+        "scaling",
+        "healing"
+      ]
+    },
+    {
+      "championId": 147,
+      "slug": "Seraphine",
+      "group": "enchanter",
+      "roles": [
+        "SUPPORT"
+      ],
+      "damage": "magic",
+      "core": [
+        6617,
+        3504
+      ],
+      "starter": 3865,
+      "boots": 3158,
+      "runes": "aery",
+      "traits": [
+        "peel",
+        "scaling",
+        "healing"
+      ]
+    },
+    {
+      "championId": 43,
+      "slug": "Karma",
+      "group": "enchanter",
+      "roles": [
+        "SUPPORT"
+      ],
+      "damage": "magic",
+      "core": [
+        6617,
+        3504
+      ],
+      "starter": 3865,
+      "boots": 3158,
+      "runes": "aery",
+      "traits": [
+        "peel",
+        "scaling"
+      ]
+    },
+    {
+      "championId": 555,
+      "slug": "Pyke",
+      "group": "pyke",
+      "roles": [
+        "SUPPORT"
+      ],
+      "damage": "physical",
+      "core": [
+        3179,
+        3142
+      ],
+      "starter": 3865,
+      "boots": 3158,
+      "runes": "assassin",
+      "traits": [
+        "engage",
+        "pick"
+      ]
+    }
+  ]
+}
