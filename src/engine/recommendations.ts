@@ -41,6 +41,7 @@ export interface Plan {
   tradeoff: string;
   starter: number[];
   items: number[];
+  questUpgrade: number | null;
   runes: RunePage;
   steps: PurchaseStep[];
   branches: string[];
@@ -297,28 +298,33 @@ function named(data: GameData, ps: Profile[]): string {
 function strategy(data: GameData, p: Profile, ctx: DraftContext): string[] {
   const allies = teamProfiles(ctx.allies),
     enemies = teamProfiles(ctx.enemies);
+  const champion = named(data, [p]);
   const front = enemies.filter((e) => e.traits.includes("frontline")),
     engage = enemies.filter((e) => e.traits.includes("engage"));
   const lines: string[] = [];
   if (p.traits.includes("side"))
     lines.push(
-      "Tu perfil aporta presión lateral; coordinar esa presión con la posición de los objetivos es una alternativa a agruparse siempre.",
+      `${champion} ofrece presión lateral. Ese plan necesita que el equipo pueda sostener el mapa sin agruparse siempre.`,
     );
   else if (p.traits.includes("peel"))
     lines.push(
-      "Tu perfil aporta protección: conservar recursos para acompañar al daño sostenido es una opción frente a iniciar por cuenta propia.",
+      `${champion} aporta protección. Acompañar al daño sostenido aliado es una alternativa a buscar la iniciación.`,
     );
   else if (p.traits.includes("poke"))
     lines.push(
-      "Tu perfil puede desgastar antes de una pelea; el plan pierde valor si el equipo entra sin aprovechar ese alcance.",
+      `${champion} puede desgastar antes de una pelea. La composición aprovecha menos ese alcance si busca contacto inmediato.`,
     );
   else if (p.traits.includes("engage"))
     lines.push(
-      "Tu perfil puede abrir peleas; necesita seguimiento aliado para que el control inicial se convierta en ventaja.",
+      `${champion} puede abrir peleas; necesita seguimiento aliado para aprovechar el control inicial.`,
+    );
+  else if (p.traits.includes("burst"))
+    lines.push(
+      `${champion} concentra daño en ventanas cortas. Su plan pierde fuerza en intercambios prolongados contra primera línea.`,
     );
   else
     lines.push(
-      "Tu perfil busca daño sostenido: la protección y el espacio para atacar condicionan cuánto aporta en peleas.",
+      `${champion} busca daño sostenido. La protección aliada y el espacio para atacar condicionan su aporte en peleas.`,
     );
   if (front.length)
     lines.push(
@@ -343,7 +349,7 @@ function strategy(data: GameData, p: Profile, ctx: DraftContext): string[] {
 export function rankChampions(
   data: GameData,
   ctx: DraftContext,
-  pool: number[] = [],
+  pool?: number[],
 ): RankEntry[] {
   if (!ctx.playerRole) return [];
   const occupied = new Set([
@@ -360,7 +366,7 @@ export function rankChampions(
         p.roles.includes(ctx.playerRole!) &&
         !occupied.has(p.championId) &&
         data.catalog.champions.some((c) => c.id === p.championId) &&
-        (!pool.length || pool.includes(p.championId)),
+        (!pool || pool.includes(p.championId)),
     )
     .map((p) => {
       let score = 50;
@@ -436,7 +442,7 @@ export function rankChampions(
 export function recommend(
   data: GameData,
   ctx: DraftContext,
-  pool: number[] = [],
+  pool?: number[],
 ): Recommendation {
   const signature = JSON.stringify([
     ctx,
@@ -495,6 +501,18 @@ export function recommend(
       const invalid = validateRunes(data, runes);
       if (invalid.length) throw new Error(invalid.join(" "));
       const items = finalItems(p, variant);
+      const questUpgrade = p.roles.includes("SUPPORT")
+        ? p.group === "enchanter"
+          ? 3870
+          : p.group === "pyke"
+            ? 3877
+            : 3869
+        : null;
+      if (questUpgrade) {
+        const upgrade = availableItem(data, questUpgrade, p);
+        if (!upgrade.from.includes(3867))
+          throw new Error("La mejora de misión requiere revisar su evolución.");
+      }
       if (new Set(items).size !== items.length)
         throw new Error("El plan repite objetos completos.");
       if ([3053, 3156].every((id) => items.includes(id)))
@@ -518,7 +536,7 @@ export function recommend(
           variant === "principal"
             ? "Mantiene el núcleo del perfil y una respuesta defensiva general."
             : variant === "armor"
-              ? "Cambia botas y una compra para tolerar mejor ataques físicos; opción previa al draft rival."
+              ? "Prioriza botas defensivas y una respuesta a ataques físicos, preparada antes de jugar."
               : "Añade resistencia mágica; cobra valor si el daño mágico rival condiciona tu acceso a las peleas.",
         tradeoff:
           variant === "principal"
@@ -526,10 +544,16 @@ export function recommend(
             : "Dedicar oro a defensa retrasa daño, penetración o utilidad del plan base.",
         starter,
         items,
+        questUpgrade,
         runes,
         steps,
         branches: [
           "Si cambia tu rol o el campeón, preparar un plan nuevo antes de entrar a partida.",
+          ...(questUpgrade
+            ? [
+                "Conservar Mapamundi y completar su misión hasta Recompensa Mundial. Elegir la mejora indicada en esa misma ranura; no se compra como un séptimo objeto.",
+              ]
+            : []),
           ...(teamProfiles(ctx.enemies).filter((e) =>
             e.traits.includes("healing"),
           ).length >= 2

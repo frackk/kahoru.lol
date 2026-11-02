@@ -23,6 +23,18 @@ function context(championId: number | null = 103): DraftContext {
   };
 }
 describe("planes revisados", () => {
+  it("el pool vacío filtra todas las alternativas y el pool declarado limita el ranking", () => {
+    expect(
+      recommend(data, { ...context(null), playerRole: "JUNGLE" }, []).ranking,
+    ).toEqual([]);
+    expect(
+      recommend(
+        data,
+        { ...context(null), playerRole: "JUNGLE" },
+        [64],
+      ).ranking.map((c) => c.championId),
+    ).toEqual([64]);
+  });
   it("prioriza una defensa según el draft conocido y explica la elección", () => {
     const enemy = (id: number) => ({
       championId: id,
@@ -83,6 +95,16 @@ describe("planes revisados", () => {
         expect(result.errors).toEqual([]);
         expect(result.plans.length).toBe(3);
         for (const plan of result.plans) {
+          expect(plan.items.length + (plan.questUpgrade ? 1 : 0)).toBe(6);
+          if (role === "SUPPORT") {
+            expect(plan.starter).toContain(3865);
+            expect(
+              data.items.find((i) => i.id === plan.questUpgrade)?.from,
+            ).toContain(3867);
+            expect(
+              plan.steps.some((s) => s.itemId === 3865 && s.kind === "sell"),
+            ).toBe(false);
+          }
           expect(validateRunes(data, plan.runes)).toEqual([]);
           expect(new Set(plan.items).size).toBe(plan.items.length);
           expect(new Set(plan.steps.map((s) => s.id)).size).toBe(

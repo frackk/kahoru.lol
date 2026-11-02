@@ -1,37 +1,39 @@
 # Arquitectura
 
-La primera entrega usa Tauri 2, Rust, React y TypeScript. Es una aplicación de una sola ventana. No ejecuta servicios auxiliares. Un lector nativo consulta periódicamente la API local del cliente.
+Versión 0.3.0. Tauri 2 aloja una ventana React/TypeScript sobre WebView2. Rust controla la conexión local, las descargas y los archivos. No hay servicios auxiliares ni backend remoto propio.
 
-## Responsabilidades
+## Componentes
 
-- `src-tauri/src/session.rs`: sesión, validaciones y transiciones del simulador.
-- `src-tauri/src/catalog.rs`: lectura y validación del catálogo incluido.
-- `src-tauri/src/lib.rs`: cuatro comandos IPC y estado compartido.
-- `src/contracts.ts`: contrato de presentación y filtro de campeones disponibles.
-- `src/App.tsx`: navegación y coordinación de comandos.
-- `src/features/draft/Draft.tsx`: edición de draft y controles de simulación.
-- `src/preferences.ts`: recuperación de preferencias locales.
+| Ubicación                    | Responsabilidad                                                               |
+| ---------------------------- | ----------------------------------------------------------------------------- |
+| `src-tauri/src/client.rs`    | Descubrir LCU, validar TLS y publicar snapshots sin identidades.              |
+| `src-tauri/src/session.rs`   | Sesión manual, revisiones, validaciones y transiciones.                       |
+| `src-tauri/src/game_data.rs` | Paquete oficial, actualización, imágenes y recuperación de caché.             |
+| `src-tauri/src/lib.rs`       | Estado compartido y siete comandos IPC.                                       |
+| `src/liveSession.ts`         | Consultar snapshots y preparar planes con independencia de la vista activa.   |
+| `src/engine/`                | Ranking, hipótesis de roles, runas, rutas de compra y conservación de planes. |
+| `src/gameData.tsx`           | Contrato del paquete y acceso acotado a imágenes.                             |
+| `src/features/`              | Cliente, simulador, preparación y biblioteca.                                 |
+| `data/knowledge/`            | Perfiles estratégicos y fragmentos con revisión propia.                       |
 
-Rust es la autoridad de la sesión. La interfaz solicita una acción con la revisión que conoce; el núcleo rechaza revisiones antiguas. Cada modificación se aplica sobre una copia y solo se publica cuando termina sin errores. Las acciones de la interfaz se serializan.
+El motor TypeScript es puro y no depende de React, red o disco. Recibe datos tipados y devuelve resultados explicados. La decisión está en [0002](decisions/0002-data-and-rules.md); Rust continúa siendo la autoridad de las operaciones nativas.
 
-## Contratos
+## Sesiones
 
-`DraftSnapshot` conserva los campos previstos en PRODUCT_SPEC. En esta entrega `DraftSlot` contiene `championId`, `locked` y `role`. Las posiciones aliadas son posiciones manuales del simulador; las rivales permanecen desconocidas. No hay inferencia automática.
+El simulador y el lector real están separados. Una acción manual requiere la revisión actual y se aplica sobre una copia antes de publicarse. Nunca escribe en LoL.
 
-El contenedor `Session` añade `source`, `phase` y `connection`. La conexión es independiente de la fase: una interrupción conserva los picks incluso durante `IN_GAME`. `source` siempre vale `simulator`; no se presenta como una conexión LCU.
+El lector nativo produce una instantánea con fase, versión, mapa, picks, bans, posición y campeón propios. Las intenciones y posiciones rivales se descartan. El identificador interno de partida permite conservar el draft durante carga y reconexión; una partida distinta invalida esa continuidad. Los endpoints y tiempos de sondeo están en [CLIENT_INTEGRATION.md](CLIENT_INTEGRATION.md).
 
-`updatedAt` contiene milisegundos Unix como texto; `revision` determina el orden local. `sessionId` identifica sesiones dentro de la ejecución actual, no es un identificador global ni se persiste. Un draft nuevo limpia picks y bans. Las preferencias no contienen información del draft.
+La preparación se actualiza durante selección, incluso fuera de Inicio. La corrección manual de rol y el plan elegido pertenecen a la sesión. Se conservan como máximo ocho preparaciones en memoria. Durante partida se consulta lo ya calculado; no se genera un plan nuevo para una partida cuyo draft no se observó.
 
-Los diez picks confirmados producen `DRAFT_FINALIZING`. Desconfirmar o cambiar un pick vuelve a `CHAMP_SELECT`. Los intercambios mueven campeones y confirmaciones, conservando las posiciones. Las fases posteriores son recorridos de prueba y no generan recomendaciones.
+## Datos y persistencia
 
-## Persistencia y dependencias
+El ejecutable incluye el paquete y sus imágenes. El botón de actualización descarga una versión compatible con el parche del cliente a la caché de Tauri, dentro de `game/`. Verifica estructura, recursos PNG y hashes antes de cambiar atómicamente `active.json`. No activa datos durante un draft o una partida. Si la caché está incompleta o corrupta, el arranque recupera el paquete incluido.
 
-Solo se guarda la preferencia de espaciado en almacenamiento local de WebView2. SQLite se incorpora cuando exista una necesidad de consultas o migraciones; no hace falta para un booleano. Catálogo y recursos se incluyen en el ejecutable. No se descargan fuentes tipográficas ni imágenes en ejecución.
+El frontend solo accede a imágenes del paquete incluido o de `$APPCACHE/game/**` mediante el protocolo de assets. No recibe acceso general al sistema de archivos, shell o red. Las descargas oficiales se hacen en Rust con HTTPS y sin redirecciones.
 
-Los motores de ranking, inferencia, runas y estrategia se incorporarán por etapas. El adaptador LCU producirá contratos de dominio y no expondrá credenciales al frontend.
+WebView2 guarda espaciado y champion pool en almacenamiento local. No se persisten drafts, identidades, historial ni credenciales. SQLite no aporta valor a estos datos y sigue sin incorporarse.
 
-Las dependencias quedan fijadas en `package-lock.json` y `Cargo.lock`. Se fuerza `minimatch` 11 por correcciones de seguridad en las dependencias de lint; cualquier cambio del override requiere repetir lint y pruebas. Playwright Core solo interviene en pruebas y usa WebView2 instalado, sin descargar navegadores.
+## Herramientas
 
-## Integración local, 0.2.0
-
-`client.rs` mantiene una instantánea independiente del simulador. La pantalla Inicio consulta `get_live_session`; `DraftSlot` se comparte con el contrato existente. Los comandos de simulación solo modifican su sesión manual y nunca escriben en LoL. No hay identidades de jugadores en el contrato de lectura. El estado de conexión se actualiza desde un único lector nativo. Los detalles y límites están en `CLIENT_INTEGRATION.md`.
+`package-lock.json` y `Cargo.lock` fijan las dependencias. SHA-256 comprueba integridad local; `tempfile` evita activar descargas incompletas; `time` registra fechas de procedencia. Playwright Core se usa únicamente en pruebas y controla WebView2 instalado. El puerto de depuración se habilita solo en el proceso temporal de prueba.

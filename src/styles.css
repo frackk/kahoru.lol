@@ -852,3 +852,31 @@ fieldset {
     grid-template-columns: 1fr;
   }
 }
+.recommended-label {
+  display: block;
+  color: var(--accent);
+  font-size: 10px;
+  margin-top: 7px;
+}
+.pool-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.pool-controls select,
+.pool-controls button {
+  font-size: 11px;
+  padding: 6px 9px;
+}
+
+.quest-upgrade {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-top: 16px;
+}
+.quest-upgrade p {
+  margin: 0;
+  font-size: 12px;
+}

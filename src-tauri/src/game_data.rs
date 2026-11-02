@@ -77,7 +77,8 @@ fn valid_version(v: &str) -> bool {
             .all(|s| !s.is_empty() && s.len() < 6 && s.bytes().all(|b| b.is_ascii_digit()))
 }
 fn safe_path(p: &str) -> bool {
-    !p.contains('\\')
+    p.bytes()
+        .all(|b| b.is_ascii_alphanumeric() || b"/._-".contains(&b))
         && !p.starts_with('/')
         && p.split('/').all(|s| !s.is_empty() && s != "." && s != "..")
         && p.ends_with(".png")
@@ -187,6 +188,8 @@ impl GameData {
             )
             .map_err(|_| "Índice inválido")?;
             if folder.is_empty()
+                || folder == "."
+                || folder == ".."
                 || !folder
                     .bytes()
                     .all(|b| b.is_ascii_alphanumeric() || b == b'.' || b == b'-')
@@ -465,6 +468,7 @@ mod tests {
         assert!(data.assets.len() > 300);
         assert!(!safe_path("../a.png"));
         assert!(!safe_path("a\\b.png"));
+        assert!(!safe_path("a:b.png"));
         assert!(!valid_version("16.21/1"));
         let mut bad = data;
         bad.catalog.champions.push(bad.catalog.champions[0].clone());
@@ -473,7 +477,58 @@ mod tests {
     #[test]
     fn corrupt_cache_falls_back_to_bundle() {
         let dir = tempfile::tempdir().unwrap();
-        std::fs::write(dir.path().join("active.json"), br#""../outside""#).unwrap();
-        assert!(GameData::load(dir.path()).asset_base.is_none());
+        for invalid in ["../outside", ".", ".."] {
+            std::fs::write(
+                dir.path().join("active.json"),
+                serde_json::to_vec(invalid).unwrap(),
+            )
+            .unwrap();
+            assert!(GameData::load(dir.path()).asset_base.is_none());
+        }
+    }
+    #[test]
+    fn cached_pack_loads_and_corrupt_asset_restores_bundle() {
+        let cache = tempfile::tempdir().unwrap();
+        let root = cache.path().join("verified-pack");
+        std::fs::create_dir(&root).unwrap();
+        let mut data = GameData::bundled().unwrap();
+        let source = Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("../public/game")
+            .join(&data.catalog.version);
+        for path in data.assets.keys() {
+            let target = root.join(path);
+            std::fs::create_dir_all(target.parent().unwrap()).unwrap();
+            std::fs::copy(source.join(path), target).unwrap();
+        }
+        std::fs::write(
+            root.join("game-data.json"),
+            serde_json::to_vec(&data).unwrap(),
+        )
+        .unwrap();
+        data.asset_base = Some(root.to_string_lossy().into());
+        activate(&data, cache.path()).unwrap();
+        assert_eq!(GameData::load(cache.path()).asset_base, data.asset_base);
+        std::fs::write(root.join(data.assets.keys().next().unwrap()), b"corrupt").unwrap();
+        let restored = GameData::load(cache.path());
+        assert!(restored.asset_base.is_none());
+        assert_eq!(restored.catalog.version, data.catalog.version);
+    }
+    #[test]
+    #[ignore = "descarga el paquete oficial completo; requiere red"]
+    fn downloaded_pack_can_be_activated_and_reloaded() {
+        let cache = tempfile::tempdir().unwrap();
+        let mut current = GameData::bundled().unwrap();
+        let version = current.catalog.version.clone();
+        let patch = version.split('.').take(2).collect::<Vec<_>>().join(".");
+        current.catalog.version = format!("{patch}.0");
+        let progress = Arc::new(Mutex::new(UpdateStatus::default()));
+        let next = prepare(&current, Some(&version), cache.path(), progress.clone()).unwrap();
+        assert!(next.catalog.version.starts_with(&format!("{patch}.")));
+        assert!(next.asset_base.is_some());
+        assert_eq!(progress.lock().unwrap().completed, next.assets.len());
+        activate(&next, cache.path()).unwrap();
+        let loaded = GameData::load(cache.path());
+        assert_eq!(loaded.asset_base, next.asset_base);
+        assert_eq!(loaded.assets.len(), next.assets.len());
     }
 }

@@ -1,28 +1,8 @@
 import { Preparation } from "./Preparation";
 import { possibleRoles } from "../engine/recommendations";
 import { ChampionIcon } from "../gameData";
-import { useEffect, useState } from "react";
-import { invoke, isTauri } from "@tauri-apps/api/core";
-import {
-  roleNames,
-  type Catalog,
-  type DraftSlot,
-  type Role,
-} from "../contracts";
-
-interface LiveSnapshot {
-  sessionId: string | null;
-  playerChampionId: number | null;
-  mapId: number | null;
-  connected: boolean;
-  phase: string;
-  version: string | null;
-  allies: DraftSlot[];
-  enemies: DraftSlot[];
-  bans: number[];
-  playerRole: Role | null;
-  message: string;
-}
+import { roleNames, type Catalog } from "../contracts";
+import type { LiveSnapshot } from "../liveSession";
 
 const phases: Record<string, string> = {
   None: "Cliente abierto",
@@ -38,31 +18,15 @@ const phases: Record<string, string> = {
   EndOfGame: "Resultados",
 };
 
-export function LiveClient({ catalog }: { catalog: Catalog | null }) {
-  const [snapshot, setSnapshot] = useState<LiveSnapshot | null>(null);
-  const [error, setError] = useState("");
-  useEffect(() => {
-    if (!isTauri()) return;
-    let active = true;
-    let timer: ReturnType<typeof setTimeout>;
-    const refresh = async () => {
-      try {
-        const next = await invoke<LiveSnapshot>("get_live_session");
-        if (active) {
-          setSnapshot(next);
-          setError("");
-        }
-      } catch {
-        if (active) setError("No se pudo consultar la conexión con LoL.");
-      }
-      if (active) timer = setTimeout(() => void refresh(), 1_500);
-    };
-    void refresh();
-    return () => {
-      active = false;
-      clearTimeout(timer);
-    };
-  }, []);
+export function LiveClient({
+  catalog,
+  snapshot,
+  error,
+}: {
+  catalog: Catalog | null;
+  snapshot: LiveSnapshot | null;
+  error: string;
+}) {
   const inferred = possibleRoles(snapshot?.enemies ?? []);
   const name = (id: number | null) =>
     id === null

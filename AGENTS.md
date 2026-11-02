@@ -34,4 +34,4 @@ Data Dragon aporta datos estáticos, no estadísticas del meta. Cada agregado de
 
 ## Etapa actual
 
-La primera implementación cubre la Fase 1: aplicación base, navegación, simulador, catálogo validado y pruebas. Completar la investigación pendiente de Fase 0 antes de integrar funciones reales del cliente, importar runas o construir overlays.
+La versión 0.3.0 cubre lectura experimental del cliente, datos oficiales actualizables y primeras reglas de draft, runas y compras. Los límites concretos están en `docs/VALIDATION.md` y `docs/RECOMMENDATIONS.md`. Siguen pendientes el proveedor estadístico, la calibración estratégica y el registro ante Riot. Importación de runas y overlays requieren revisión propia antes de implementarse.

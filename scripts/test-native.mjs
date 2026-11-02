@@ -1,14 +1,14 @@
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
-import { mkdir, readFile, writeFile, mkdtemp } from "node:fs/promises";
+import { mkdir, readFile, writeFile, mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { join, resolve, dirname, basename } from "node:path";
 import { chromium } from "playwright-core";
 
 const port = 19223;
 const userData = await mkdtemp(join(tmpdir(), "kahoru-test-"));
 const executable = new URL(
-  process.argv[2] === "--release"
+  process.argv.includes("--release")
     ? "../src-tauri/target/release/kahoru-lol.exe"
     : "../src-tauri/target/debug/kahoru-lol.exe",
   import.meta.url,
@@ -23,6 +23,7 @@ const child = spawn(fileURLToPath(executable), [], {
   },
   stdio: ["ignore", "pipe", "pipe"],
 });
+const exited = new Promise((done) => child.once("close", done));
 let processOutput = "";
 for (const stream of [child.stdout, child.stderr]) {
   stream.on("data", (chunk) => {
@@ -127,6 +128,23 @@ try {
     .getByRole("heading", { name: "Resistir ataques físicos", exact: true })
     .waitFor();
   assert.equal(await page.locator(".selected-plan .rune-row img").count(), 9);
+  await page.getByLabel("Añadir al pool", { exact: true }).selectOption("99");
+  await page.getByRole("checkbox", { name: /^Solo mi pool/ }).check();
+  assert.equal(await page.locator(".rank-card").count(), 1);
+  await page
+    .getByRole("button", { name: "Datos del juego", exact: true })
+    .click();
+  await page.getByRole("button", { name: "Simulador", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Quitar favorito Lux", exact: true })
+    .waitFor();
+  await page
+    .locator(".selected-plan")
+    .getByRole("heading", { name: "Resistir ataques físicos", exact: true })
+    .waitFor();
+  await page
+    .getByRole("button", { name: "Quitar favorito Lux", exact: true })
+    .click();
   const firstSlot = page.locator(".allies .slot").first();
   await firstSlot.locator(".slot-main").click();
   await page.getByRole("button", { name: "Intercambiar", exact: true }).click();
@@ -206,11 +224,24 @@ try {
   assert.equal(await page.getByRole("alert").count(), 0);
   assert.deepEqual(errors, []);
   console.log(
-    "Windows: diez picks, fases, desconexión, limpieza, ajustes y avisos verificados.",
+    "Windows: diez picks, runas, planes conservados, imágenes, fases, reconexión y preferencias verificados.",
   );
 } finally {
   await mkdir("test-results", { recursive: true });
   await writeFile("test-results/native-process.log", processOutput);
   if (browser) await browser.close();
   child.kill();
+  await exited;
+  const temporary = resolve(userData);
+  if (
+    dirname(temporary) !== resolve(tmpdir()) ||
+    !basename(temporary).startsWith("kahoru-test-")
+  )
+    throw new Error("La carpeta temporal no pertenece a esta prueba.");
+  await rm(temporary, {
+    recursive: true,
+    force: true,
+    maxRetries: 10,
+    retryDelay: 300,
+  });
 }

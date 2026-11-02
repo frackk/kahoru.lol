@@ -1,36 +1,30 @@
-# Alcance y revisión de integraciones
+# Alcance de las integraciones
 
-Revisión documental: 1 de noviembre de 2026. Este registro describe el alcance técnico; no afirma aprobación particular de Riot.
+Revisión documental: 2026-11-02. Versión 0.3.0. Las pruebas técnicas no acreditan aprobación particular de Riot; el registro y la declaración de usos del producto siguen pendientes.
 
-| Capacidad                                                               | Estado en 0.1.0                                                               |
-| ----------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
-| Catálogo Data Dragon                                                    | Implementado; incluido y consultado localmente.                               |
-| Draft, cambios de fase y pérdida de conexión                            | Simulados y controlados manualmente.                                          |
-| Lectura LCU                                                             | Pendiente de validación y declaración de endpoints/usos.                      |
-| Estadísticas Riot Web API                                               | Sin configurar; pendiente de fuente, acceso y muestreo.                       |
-| Escritura de runas                                                      | No implementada. Requiere revisión técnica y de uso.                          |
-| Overlay y atajos globales                                               | No implementados.                                                             |
-| Recomendaciones durante la partida                                      | Fuera de alcance. Solo se prevé consulta de planes preparados antes de jugar. |
-| Memoria de LoL, inyección, hooks del juego y automatización de gameplay | Excluidos.                                                                    |
+| Capacidad                                                     | Estado                                                                |
+| ------------------------------------------------------------- | --------------------------------------------------------------------- |
+| Data Dragon e imágenes oficiales                              | Incluidos; actualización manual desde Riot.                           |
+| Draft y cambios de fase                                       | Lector local experimental y simulador separado.                       |
+| Ranking, runas, builds y estrategia                           | Reglas locales prepartida para 85 perfiles; sin estadísticas de meta. |
+| Consulta durante partida                                      | Conserva el plan preparado; sin adaptación a la evolución del juego.  |
+| Estadísticas Riot Web API                                     | Sin proveedor ni clave configurados.                                  |
+| Escritura/importación de runas                                | No implementada; pendiente de revisión técnica y de uso.              |
+| Overlay, atajos globales y Live Client Data API               | No implementados.                                                     |
+| Memoria de LoL, inyección, hooks y automatización de gameplay | Excluidos.                                                            |
 
-## Condiciones para integrar el cliente
+## Políticas y registro
 
-Registrar el producto y mantener descripción y funciones actualizadas ante Riot. Documentar para cada capacidad el endpoint, método, finalidad, campos utilizados, pruebas y fecha de revisión. Una respuesta válida de un endpoint no acredita que el uso esté permitido.
+La [política general](https://developer.riotgames.com/policies/general) admite recursos de Data Dragon y exige registrar y mantener actualizadas las funciones del producto. El [apartado LCU](https://developer.riotgames.com/docs/lol#league-client-api) explica que la interfaz no tiene soporte garantizado para terceros y pide declarar endpoints y usos.
 
-LCU carece de soporte garantizado para terceros. La aplicación debe conservar un modo manual cuando cambie o deje de estar disponible. Las funciones sin validación permanecen ausentes del producto; no existe un ajuste que permita habilitarlas.
+Los [casos de uso de League of Legends](https://support-developer.riotgames.com/hc/en-us/articles/22698698001939-League-of-Legends) incluyen consulta de datos estáticos disponibles antes de jugar y rechazan información desconocida de la sesión o aplicaciones que dicten decisiones. El producto presenta alternativas previas y no observa oro, posiciones, compras, cooldowns ni decisiones durante la partida. Este diseño debe describirse ante Riot antes de afirmar conformidad del producto concreto.
 
-No se recopilan identidades, historial, credenciales ni telemetría. El lector 0.2.0 consulta el lockfile y los metadatos de instalación locales; no accede a memoria de procesos. La interfaz no recibe permisos de archivos, shell ni red remota. El ejecutable incluye datos y recursos locales. El aviso de no afiliación está en Acerca de y README.
+No se habilita escritura por el mero hecho de que exista un endpoint. Antes de añadir importación corresponde comprobar páginas, límites, errores, reversibilidad y política aplicable. Los métodos utilizados y las pruebas actuales se documentan en [CLIENT_INTEGRATION.md](CLIENT_INTEGRATION.md).
 
-## Fuentes oficiales
+## Privacidad y superficie de acceso
 
-- [Política general: registro, integridad y claves](https://developer.riotgames.com/policies/general).
-- [LCU y Game Client API](https://developer.riotgames.com/docs/lol).
-- [Casos admitidos y no admitidos para League of Legends](https://support-developer.riotgames.com/hc/en-us/articles/22698698001939-League-of-Legends).
-- [Claves y cuotas](https://developer.riotgames.com/docs/portal).
-- [Retirada de acceso directo a memoria](https://support.riotgames.com/en-us/riot/performance/game-memory-access-removed-for-third-party-apps).
+El lector usa metadatos de instalación y un lockfile local. Mantiene las credenciales temporales en Rust, valida TLS con la raíz publicada por Riot y consulta únicamente loopback. El frontend no recibe nombres, PUUID, historial ni credenciales. No hay telemetría.
 
-La consulta estática prepartida aparece entre los casos admitidos; eso no habilita coaching basado en la evolución de una partida. La integración real y la distribución requieren completar las condiciones aplicables al producto. El registro ante Riot todavía no se realizó desde este repositorio.
+La actualización de recursos contacta el CDN oficial por HTTPS. No envía datos del draft o del jugador. El acceso de imágenes a disco está limitado a la caché del producto. No se deshabilitan certificados ni se inspecciona memoria de procesos.
 
-## Desarrollo 0.2.0
-
-El lector LCU se probó localmente el 2 de noviembre de 2026: fase, versión y sesión de una personalizada. Está en evaluación técnica, con registro y declaración de usos ante Riot todavía pendientes. Se utiliza exclusivamente lectura; no se afirma aprobación particular del producto. Ver `CLIENT_INTEGRATION.md` para rutas, campos y límites de las pruebas.
+El aviso de no afiliación aparece en Acerca de y README. El código propio pertenece al proyecto; los recursos de League of Legends siguen siendo propiedad de Riot Games.

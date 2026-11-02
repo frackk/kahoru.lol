@@ -11,6 +11,7 @@ import { LiveClient } from "./features/LiveClient";
 import { GameDataContext, type GameData } from "./gameData";
 import { DataLibrary } from "./features/DataLibrary";
 import { readPreferences } from "./preferences";
+import { useLiveSession } from "./liveSession";
 
 type Page = "home" | "draft" | "data" | "settings" | "about";
 const pages: { id: Page; label: string; icon: string }[] = [
@@ -24,6 +25,7 @@ const pages: { id: Page; label: string; icon: string }[] = [
 export function App() {
   const [page, setPage] = useState<Page>("home");
   const [gameData, setGameData] = useState<GameData | null>(null);
+  const live = useLiveSession(gameData);
   const [catalog, setCatalog] = useState<Catalog | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [error, setError] = useState("");
@@ -121,7 +123,7 @@ export function App() {
             ))}
           </nav>
           <div className="sidebar-bottom">
-            <span className="version">DESARROLLO · v0.2.0</span>
+            <span className="version">DESARROLLO · v0.3.0</span>
             <span>
               made by <strong>frack.one</strong>
             </span>
@@ -155,7 +157,11 @@ export function App() {
             )}
             {page === "home" && (
               <>
-                <LiveClient catalog={catalog} />
+                <LiveClient
+                  catalog={catalog}
+                  snapshot={live.snapshot}
+                  error={live.error}
+                />
                 <div className="eyebrow">TU PRÓXIMA PARTIDA</div>
                 <h1>
                   Prepará el draft.
@@ -285,22 +291,24 @@ export function App() {
                     recopilan cuentas, historial de partidas ni telemetría.
                   </p>
                   <p>
-                    El catálogo se incluye con la aplicación; las
-                    actualizaciones de datos se revisan antes de distribuirse.
+                    Comprobá el paquete oficial desde Datos del juego. Las
+                    reglas estratégicas tienen su propia revisión por parche;
+                    actualizar imágenes no equivale a actualizar el meta.
                   </p>
                 </section>
               </>
             )}
             {page === "about" && (
               <>
-                <div className="eyebrow">KAHORU.LOL · 0.2.0</div>
+                <div className="eyebrow">KAHORU.LOL · 0.3.0</div>
                 <h1>Antes de entrar a la Grieta.</h1>
                 <section className="panel about">
                   <h2>made by frack.one</h2>
                   <p>
                     Detección del cliente local y lectura automática del draft.
-                    Las recomendaciones, builds e importación de runas siguen en
-                    desarrollo.
+                    Ranking por composición, runas y rutas de compra para los
+                    perfiles cubiertos. La importación de runas y las
+                    estadísticas de meta siguen pendientes.
                   </p>
                   <dl>
                     <div>

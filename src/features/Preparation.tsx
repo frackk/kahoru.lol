@@ -18,7 +18,9 @@ export function Preparation({
   disabledReason?: string;
 }) {
   const data = useContext(GameDataContext);
-  const [manualRole, setManualRole] = useState<Role | null>(null);
+  const [manualRole, setManualRole] = useState<Role | null>(() =>
+    sessionPlans.role(context.sessionId),
+  );
   const [pool, setPool] = useState<number[]>(() => {
     try {
       const v: unknown = JSON.parse(
@@ -40,7 +42,7 @@ export function Preparation({
   const ctx = { ...context, playerRole: manualRole ?? context.playerRole };
   const prepared = disabledReason
     ? undefined
-    : sessionPlans.prepare(data, ctx, editable, poolOnly ? pool : []);
+    : sessionPlans.prepare(data, ctx, editable, poolOnly ? pool : undefined);
   const result = prepared?.result;
   const selected = result?.plans.find((p) => p.id === prepared?.selected);
   const rune = (id: number) =>
@@ -76,6 +78,9 @@ export function Preparation({
           .join(", "),
       "Compras: " +
         selected.items.map((id) => item(id)?.name ?? id).join(" → "),
+      ...(selected.questUpgrade
+        ? ["Mejora de misión: " + item(selected.questUpgrade)?.name]
+        : []),
     ].join("\n");
     try {
       await navigator.clipboard.writeText(text);
@@ -97,9 +102,11 @@ export function Preparation({
             aria-label="Rol del análisis"
             value={ctx.playerRole ?? ""}
             disabled={!editable || Boolean(onChoose)}
-            onChange={(e) =>
-              setManualRole(e.target.value ? (e.target.value as Role) : null)
-            }
+            onChange={(e) => {
+              const role = e.target.value ? (e.target.value as Role) : null;
+              sessionPlans.setRole(context.sessionId, role);
+              setManualRole(role);
+            }}
           >
             <option value="">Sin confirmar</option>
             {roles.map((r) => (
@@ -136,6 +143,44 @@ export function Preparation({
               Solo mi pool ({pool.length})
             </label>
           </div>
+          <div className="pool-controls">
+            <select
+              aria-label="Añadir al pool"
+              value=""
+              onChange={(e) => {
+                if (e.target.value) star(Number(e.target.value));
+              }}
+            >
+              <option value="">Añadir favorito…</option>
+              {profiles
+                .filter(
+                  (p) => !ctx.playerRole || p.roles.includes(ctx.playerRole),
+                )
+                .filter((p) => !pool.includes(p.championId))
+                .map((p) => (
+                  <option value={p.championId} key={p.championId}>
+                    {
+                      data.catalog.champions.find((c) => c.id === p.championId)
+                        ?.name
+                    }
+                  </option>
+                ))}
+            </select>
+            {pool.map((id) => (
+              <button
+                key={id}
+                onClick={() => star(id)}
+                aria-label={`Quitar favorito ${data.catalog.champions.find((c) => c.id === id)?.name}`}
+              >
+                {data.catalog.champions.find((c) => c.id === id)?.name} ×
+              </button>
+            ))}
+          </div>
+          {poolOnly && pool.length === 0 && (
+            <p className="small-note">
+              Agregá campeones a tu pool para ver alternativas con este filtro.
+            </p>
+          )}
           <div className="rank-grid">
             {result.ranking.slice(0, 8).map((entry) => {
               const c = data.catalog.champions.find(
@@ -302,6 +347,24 @@ export function Preparation({
                       </div>
                     ))}
                   </div>
+                  {selected.questUpgrade && (
+                    <div className="quest-upgrade">
+                      <GameIcon
+                        path={item(selected.questUpgrade)?.icon}
+                        label={
+                          item(selected.questUpgrade)?.name ??
+                          "Mejora de misión"
+                        }
+                        size={36}
+                      />
+                      <p>
+                        <strong>{item(selected.questUpgrade)?.name}</strong>
+                        <br />
+                        Mejora al completar la misión de support. Conserva la
+                        ranura de Mapamundi.
+                      </p>
+                    </div>
+                  )}
                 </section>
               </div>
               <details className="purchase-details">

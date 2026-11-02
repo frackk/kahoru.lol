@@ -1,32 +1,35 @@
-# Verificación de la primera entrega
+# Verificación
 
-Fecha: 2026-11-01. Entorno local: Windows 11 Home x64, compilación 26300; Node 24.22.1; Rust fijado en 1.99.1; WebView2 del equipo.
+Fecha: 2026-11-02. Versión 0.3.0. Entorno local: Windows 11 Home x64, compilación 26300; Node 24.22.1; Rust 1.99.1; WebView2 instalado. Carpeta de trabajo: `E:\Cosas\kahoru.lol`.
 
-## Comprobaciones ejecutadas
+## Pruebas locales
 
-| Comprobación                                        | Resultado                                                                                    |
-| --------------------------------------------------- | -------------------------------------------------------------------------------------------- |
-| TypeScript y build Vite                             | Correctos.                                                                                   |
-| ESLint y Prettier                                   | Correctos.                                                                                   |
-| Pruebas TypeScript                                  | 4 correctas: selección disponible y recuperación de preferencias.                            |
-| Pruebas Rust                                        | 6 correctas: catálogo, ciclo completo, roles/bans, swaps, acciones inválidas y recuperación. |
-| Rustfmt y Clippy con warnings como errores          | Correctos.                                                                                   |
-| Auditoría npm, incluidas herramientas de desarrollo | Sin vulnerabilidades reportadas.                                                             |
-| Recorrido nativo Windows, debug y release           | Correcto: bans, cinco roles, diez picks, swaps, fases, reconexión, limpieza y preferencias.  |
-| Compilación release e instalador NSIS x64           | Generados localmente.                                                                        |
+| Comprobación                               | Resultado                                                                              |
+| ------------------------------------------ | -------------------------------------------------------------------------------------- |
+| TypeScript, build Vite y ESLint            | Correctos.                                                                             |
+| Pruebas TypeScript                         | 150 correctas.                                                                         |
+| Pruebas Rust                               | 13 correctas; dos integraciones con red/cliente se ejecutan expresamente.              |
+| Rustfmt y Clippy con warnings como errores | Correctos.                                                                             |
+| Catálogo e imágenes                        | Paquete validado: 173 campeones, 272 objetos, 62 runas y 512 PNG.                      |
+| Planes                                     | Todos los perfiles y 50 drafts sintéticos, diez por rol.                               |
+| Caché                                      | Activación, carga íntegra y recuperación del paquete incluido al corromper una imagen. |
 
-La prueba nativa usa comandos reales del ejecutable mediante la interfaz de WebView2; no sustituye las respuestas IPC por mocks. La captura se guarda en `test-results/native-draft.png`. El núcleo no acepta picks duplicados, baneados o ajenos al catálogo. Los cambios rechazados no alteran el snapshot y las revisiones antiguas no se aplican.
+Las pruebas de planes comprueban exclusión de picks/bans, cambios de composición, roles conjuntos, páginas completas, recetas, seis ranuras y mejora de misión de support. También verifican la conservación de la elección manual y la congelación del plan al entrar a partida. Son comprobaciones de consistencia; no demuestran una mejora de rendimiento competitivo.
 
-## Límites de esta verificación
+## Recorrido nativo
 
-No se probaron conexión LCU, importación de runas, estadísticas, partidas reales, overlay ni compatibilidad con Vanguard: esas integraciones no forman parte de esta entrega. Tampoco se midieron FPS, CPU o memoria con LoL abierto. No se afirma haber cumplido los presupuestos de rendimiento del producto completo.
+`npm run test:native` controla el ejecutable real mediante WebView2, sin reemplazar IPC por mocks. Selecciona diez campeones, prueba roles, bans, swaps, fases, reconexión y preferencias. Comprueba runas, planes conservados e imágenes decodificadas en la biblioteca. `--update` añade una consulta real del manifiesto oficial; `--release` utiliza el ejecutable de distribución. Las capturas y logs quedan en `test-results/`, fuera de Git.
 
-El instalador se generó en Windows; queda pendiente probar instalación y desinstalación en una máquina limpia, además de Windows 10 y equipos de menor capacidad. La compilación CI debe evaluarse por separado del resultado local.
+La conexión LCU se verificó en una personalizada con el cliente 16.21.8342754: fase, versión, equipo y campeón seleccionado. La prueba TLS real se ejecutó expresamente y pasó. No se realizaron acciones de juego desde kahoru.lol. Ver [CLIENT_INTEGRATION.md](CLIENT_INTEGRATION.md).
 
-## GitHub Actions
+La integración de descarga completa también pasó: obtuvo JSON y las 512 imágenes oficiales, activó el paquete y lo recuperó con verificación de hashes desde una caché temporal. Se ejecuta aparte para evitar descargas en cada comprobación:
 
-El 1 de noviembre la compilación y las pruebas unitarias pasaron en GitHub; el recorrido nativo falló porque WebView2 no abrió el puerto de prueba. El workflow ahora comprueba e instala el runtime antes de abrir la aplicación. El script registra la salida del proceso y detecta cierres anticipados. La ejecución remota debe confirmar esta corrección.
+```powershell
+cargo test --locked --manifest-path src-tauri/Cargo.toml downloaded_pack_can_be_activated_and_reloaded -- --ignored
+```
 
-## Verificación 0.2.0 en E:
+## Límites
 
-El 2 de noviembre se ejecutaron nueve pruebas Rust y cuatro TypeScript, Clippy, lint, formato y build. La prueba ignorada por defecto de conexión real se ejecutó expresamente y pasó con el cliente abierto. El recorrido nativo `--live` comprobó la conexión y capturó equipos reales en selección de una personalizada. No se realizaron acciones de juego desde kahoru.lol. La ejecución remota de interfaz sigue fallando al abrir WebView2 en el runner; no se presenta como aprobada.
+Quedan pendientes una partida completa, swaps entre diez jugadores, reinicios durante carga y evaluación estratégica con partidas de prueba. No se probaron importación de runas, proveedor estadístico u overlay, porque no están implementados. Tampoco se midieron FPS, CPU o memoria con LoL en partida.
+
+El instalador debe probarse en una máquina limpia, Windows 10 y un equipo de menor capacidad. El resultado de GitHub Actions es independiente de las pruebas locales; los primeros recorridos remotos fallaron al iniciar el puerto de WebView2. El workflow usa ahora Windows Server 2022 y un perfil temporal aislado. La ejecución 41397457173 pasó el 2 de noviembre, incluido el recorrido de interfaz y el instalador. Repetirla para cambios posteriores.
