@@ -25,6 +25,19 @@ fn usable(analysis: &Value) -> bool {
         value.is_object() && ids(&value["ids"]) && value["play"].is_u64() && value["win"].is_u64()
     };
     let data = &analysis["data"];
+    let skill = |v: &Value| {
+        v["play"].is_u64()
+            && v["win"]
+                .as_u64()
+                .is_some_and(|w| w <= v["play"].as_u64().unwrap_or(0))
+            && v["order"].as_array().is_some_and(|a| {
+                a.len() <= 18
+                    && a.iter().all(|k| {
+                        k.as_str()
+                            .is_some_and(|k| ["Q", "W", "E", "R"].contains(&k))
+                    })
+            })
+    };
     analysis["champion"].is_string()
         && analysis["position"].is_string()
         && data.is_object()
@@ -46,6 +59,25 @@ fn usable(analysis: &Value) -> bool {
         && ["primary_page_id", "secondary_page_id"]
             .iter()
             .all(|k| data["runes"][k].is_u64())
+        && (data["summoner_spells"].is_null() || row(&data["summoner_spells"]))
+        && (data["skills"].is_null() || skill(&data["skills"]))
+        && (data["skill_masteries"].is_null()
+            || data["skill_masteries"]["builds"]
+                .as_array()
+                .is_some_and(|a| a.len() <= 100 && a.iter().all(skill)))
+        && ["strong_counters", "weak_counters"].iter().all(|k| {
+            data[k].is_null()
+                || data[k].as_array().is_some_and(|a| {
+                    a.len() <= 200
+                        && a.iter().all(|r| {
+                            r["champion_id"].as_u64().is_some_and(|id| id > 0)
+                                && r["play"].is_u64()
+                                && r["my_win_rate"]
+                                    .as_f64()
+                                    .is_some_and(|rate| (0.0..=1.0).contains(&rate))
+                        })
+                })
+        })
 }
 impl Statistics {
     pub fn new(directory: PathBuf) -> Self {
@@ -88,6 +120,7 @@ impl Statistics {
                             *t <= now + 300
                                 && value["championKey"] == slug
                                 && value["role"] == role
+                                && value["schemaVersion"] == 2
                                 && usable(&value["analysis"])
                         }) {
                             cache.insert(key.clone(), (time, value));
@@ -130,7 +163,7 @@ impl Statistics {
             .ok_or("El proveedor no reconoce este campeón")?
             .clone();
         drop(names);
-        let fields=vec!["champion","position","data.summary.average_stats.{play,win_rate,pick_rate}","data.core_items.{ids[],play,win,pick_rate}","data.boots.{ids[],play,win,pick_rate}","data.starter_items.{ids[],play,win,pick_rate}","data.runes.{primary_page_id,secondary_page_id,primary_rune_ids[],secondary_rune_ids[],stat_mod_ids[],play,win}","data.summoner_spells.{ids[],play,win}","data.fourth_items[].{ids[],play,win}","data.fifth_items[].{ids[],play,win}","data.sixth_items[].{ids[],play,win}","data.trends.win.{version,created_at}","data.damage_type"];
+        let fields=vec!["champion","position","data.summary.average_stats.{play,win_rate,pick_rate}","data.core_items.{ids[],play,win,pick_rate}","data.boots.{ids[],play,win,pick_rate}","data.starter_items.{ids[],play,win,pick_rate}","data.runes.{primary_page_id,secondary_page_id,primary_rune_ids[],secondary_rune_ids[],stat_mod_ids[],play,win}","data.summoner_spells.{ids[],play,win}","data.fourth_items[].{ids[],play,win}","data.fifth_items[].{ids[],play,win}","data.sixth_items[].{ids[],play,win}","data.trends.win.{version,created_at}","data.damage_type","data.skills.{order[],play,win}","data.skill_masteries.builds[].{order[],play,win}","data.weak_counters[].{champion_id,play,win,my_win_rate}","data.strong_counters[].{champion_id,play,win,my_win_rate}"];
         let data = call(
             "lol_get_champion_analysis",
             json!({"game_mode":"ranked","champion":champion,"position":position,"lang":"en_US","desired_output_fields":fields}),
@@ -147,7 +180,7 @@ impl Statistics {
         {
             return Err("El proveedor devolvió otro campeón o posición".into());
         }
-        let value = json!({"source":"OP.GG MCP","championKey":slug,"role":role,"retrievedAt":now,"region":null,"tier":"all","analysis":data});
+        let value = json!({"schemaVersion":2,"source":"OP.GG MCP","championKey":slug,"role":role,"retrievedAt":now,"region":null,"tier":"all","analysis":data});
         if std::fs::create_dir_all(&self.directory).is_ok() {
             if let Ok(mut file) = tempfile::NamedTempFile::new_in(&self.directory) {
                 if let Ok(bytes) = serde_json::to_vec(&value) {
@@ -209,6 +242,13 @@ mod tests {
         let sample = json!({"ids":[6672],"play":1000,"win":500});
         let mut analysis = json!({"champion":"VIEGO","position":"jungle","data":{"trends":{"win":{"version":"16.21"}},"core_items":sample,"starter_items":sample,"fourth_items":[],"runes":{"primary_page_id":8000,"secondary_page_id":8300,"primary_rune_ids":[8010,9111,9104,8014],"secondary_rune_ids":[8304,8347],"stat_mod_ids":[5005,5008,5001]}}});
         assert!(usable(&analysis));
+        analysis["data"]["skills"] = json!({"order":"QWE", "play":1000,"win":500});
+        assert!(!usable(&analysis));
+        analysis["data"]["skills"] = Value::Null;
+        analysis["data"]["weak_counters"] =
+            json!([{"champion_id":113,"play":1000,"my_win_rate":45}]);
+        assert!(!usable(&analysis));
+        analysis["data"]["weak_counters"] = Value::Null;
         analysis["data"]["runes"]["secondary_rune_ids"] = json!("invalid");
         assert!(!usable(&analysis));
         analysis["data"] = Value::Null;

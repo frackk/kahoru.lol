@@ -880,3 +880,24 @@ fieldset {
   margin: 0;
   font-size: 12px;
 }
+
+.skill-scroll {
+  overflow-x: auto;
+}
+.skill-order table {
+  width: 100%;
+  min-width: 560px;
+  border-collapse: collapse;
+  text-align: center;
+  font-size: 0.82rem;
+}
+.skill-order th,
+.skill-order td {
+  padding: 0.5rem 0.25rem;
+  border: 1px solid var(--border, #2b394b);
+}
+.skill-order .skill-point {
+  background: #244c4a;
+  color: #c1f5e8;
+  font-weight: 700;
+}

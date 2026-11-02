@@ -6,6 +6,10 @@ import {
   type Sample,
 } from "./analysis";
 import { strategy } from "./strategy";
+import { contextualLoadout } from "./loadoutContext";
+import { skillOrder, type SkillOrder } from "./skillOrder";
+import { draftSignals } from "./draftSignals";
+import { matchupEvidence, type MatchupEvidence } from "./matchups";
 import shards from "../../data/knowledge/shards.json";
 import type { DraftSlot, Role } from "../contracts";
 import type { GameData, Item } from "../gameData";
@@ -42,6 +46,10 @@ export interface PurchaseStep {
   condition?: string;
 }
 export interface Plan {
+  adjustments: string[];
+  skills?: SkillOrder;
+  matchups: MatchupEvidence[];
+  checkpoints: { itemId: number; finishInto: number; reason: string }[];
   recommended: boolean;
   id: string;
   title: string;
@@ -124,9 +132,11 @@ export function purchaseRoute(
   starter: number[],
   targets: number[],
   runes?: RunePage,
+  earlyComponents: number[] = [],
 ): PurchaseStep[] {
   let inventory: number[] = [];
   let steps: PurchaseStep[] = [];
+  let heldComponents = 0;
   const add = (
     itemId: number,
     kind: PurchaseStep["kind"],
@@ -188,16 +198,19 @@ export function purchaseRoute(
       return;
     }
     const item = availableItem(data, id, p);
-    for (const part of item.from) build(part, [...path, id]);
     const consumed: number[] = [];
     for (const part of item.from) {
-      const actual = part === 1001 && inventory.includes(2422) ? 2422 : part;
+      let actual = part === 1001 && inventory.includes(2422) ? 2422 : part;
+      if (!inventory.includes(actual)) build(part, [...path, id]);
+      actual = part === 1001 && inventory.includes(2422) ? 2422 : part;
       const i = inventory.indexOf(actual);
       if (i < 0) throw new Error("Falta un componente de la receta.");
       inventory.splice(i, 1);
       consumed.push(actual);
+      heldComponents++;
     }
-    if (inventory.length >= 6)
+    heldComponents -= consumed.length;
+    if (inventory.length + heldComponents >= 6)
       throw new InventoryFull("No hay ranuras para los componentes.");
     inventory.push(id);
     add(
@@ -207,17 +220,37 @@ export function purchaseRoute(
       consumed,
     );
   };
-  for (const id of targets) {
+  const ordered = [
+    ...targets.slice(0, 2),
+    ...earlyComponents,
+    ...targets.slice(2),
+  ];
+  for (const id of ordered) {
     const before = [...inventory];
     const count = steps.length;
+    const heldBefore = heldComponents;
     try {
       build(id, []);
     } catch (error) {
       if (!(error instanceof InventoryFull)) throw error;
       inventory = before;
+      heldComponents = heldBefore;
       steps = steps.slice(0, count);
       // La compra directa evita suponer ranuras adicionales para componentes tardíos.
       const item = availableItem(data, id, p);
+      const availableParts: number[] = [];
+      const consumeOwned = (part: number, path: number[]) => {
+        if (path.includes(part))
+          throw new Error("La receta contiene un ciclo.");
+        const index = inventory.indexOf(part);
+        if (index >= 0) {
+          inventory.splice(index, 1);
+          availableParts.push(part);
+        } else
+          for (const child of availableItem(data, part, p).from)
+            consumeOwned(child, [...path, part]);
+      };
+      for (const part of item.from) consumeOwned(part, [id]);
       if (inventory.length >= 6) {
         const index = inventory.indexOf(p.starter);
         if (index < 0 || p.starter === 3865) throw error;
@@ -235,8 +268,12 @@ export function purchaseRoute(
       add(
         id,
         "buy",
-        item.cost,
-        [],
+        item.cost -
+          availableParts.reduce(
+            (n, part) => n + availableItem(data, part, p).cost,
+            0,
+          ),
+        availableParts,
         "Compra completa cuando no haya espacio para toda la receta; la biblioteca muestra sus componentes.",
       );
     }
@@ -442,15 +479,28 @@ export function recommend(
     );
     return result;
   }
-  const runes: RunePage = {
+  const providerRunes: RunePage = {
     primary: a.runes?.primary_page_id,
     secondary: a.runes?.secondary_page_id,
     primaryRunes: a.runes?.primary_rune_ids ?? [],
     secondaryRunes: a.runes?.secondary_rune_ids ?? [],
     shards: a.runes?.stat_mod_ids ?? [],
   };
-  if (validateRunes(data, runes).length) {
+  if (validateRunes(data, providerRunes).length) {
     errors.push("Las runas del proveedor no son compatibles con el paquete.");
+    return result;
+  }
+  const loadout = contextualLoadout(
+    data,
+    ctx,
+    providerRunes,
+    hasSample(a.summoner_spells) ? a.summoner_spells.ids : [],
+  );
+  const runes = loadout.runes;
+  if (validateRunes(data, runes).length) {
+    errors.push(
+      "El ajuste contextual produjo una página inválida; no se ofrece para importar.",
+    );
     return result;
   }
   const official =
@@ -466,7 +516,23 @@ export function recommend(
       [3869, 3870, 3871, 3876, 3877].includes(id),
     ) ?? null;
   const core = a.core_items.ids.filter((id) => id !== upgrade);
-  const boots = hasSample(a.boots) ? a.boots.ids : [];
+  const signals = draftSignals(ctx);
+  const boots = hasSample(a.boots) ? [...a.boots.ids] : [];
+  const adjustments = [...loadout.reasons];
+  const defensiveBoots =
+    signals.magic >= 3 ? 3111 : signals.physical >= 3 ? 3047 : null;
+  if (
+    boots.length === 1 &&
+    [3006, 3047, 3111, 3158, 3020, 3009].includes(boots[0]) &&
+    defensiveBoots &&
+    defensiveBoots !== boots[0] &&
+    item(defensiveBoots)?.purchasable
+  ) {
+    boots[0] = defensiveBoots;
+    adjustments.push(
+      `${item(defensiveBoots)!.name}: resistencia ante la concentración de daño ${defensiveBoots === 3111 ? "mágico" : "físico"} rival; sustituye las botas estadísticas. Ajuste por reglas, no por muestra de matchup.`,
+    );
+  }
   const base = [...core.slice(0, 1), ...boots, ...core.slice(1)];
   const limit =
     ctx.playerRole === "SUPPORT" && a.starter_items.ids.includes(3865) ? 5 : 6;
@@ -480,9 +546,8 @@ export function recommend(
       row.ids.every((id) => !base.includes(id) && id !== upgrade),
     );
   const candidates: { ids: number[]; samples: Sample[]; fit: number }[] = [];
-  const enemies = teamProfiles(ctx.enemies);
-  const physical = enemies.filter((e) => e.damage === "physical").length,
-    magic = enemies.filter((e) => e.damage === "magic").length;
+  const physical = signals.physical,
+    magic = signals.magic;
   for (const first of rows) {
     const ids = [...base, ...first.ids];
     const samples = [first];
@@ -537,12 +602,39 @@ export function recommend(
         )
       )
         continue;
+      const checkpoints: Plan["checkpoints"] = [];
+      if (signals.healing.length >= 2) {
+        for (const finishInto of candidate.ids.slice(2)) {
+          const component = item(finishInto)?.from.find((id) =>
+            [3076, 3123, 3916].includes(id),
+          );
+          if (
+            !component ||
+            !item(component)?.purchasable ||
+            !/heridas graves/iu.test(item(component)!.description)
+          )
+            continue;
+          if (
+            component === 3076 &&
+            !signals.healing.some((e) => e.profile.traits.includes("attacks"))
+          )
+            continue;
+          checkpoints.push({
+            itemId: component,
+            finishInto,
+            reason:
+              "Adelantar heridas graves tras las dos primeras compras ante varias fuentes de curación; completar el objeto más adelante. Revisar si otro aliado puede cubrirlas. Vesta requiere recibir ataques del objetivo.",
+          });
+          break;
+        }
+      }
       const steps = purchaseRoute(
         data,
         routeProfile,
         starter,
         candidate.ids,
         runes,
+        checkpoints.map((c) => c.itemId),
       );
       result.plans.push({
         id: `items-${candidate.ids.join("-")}`,
@@ -561,7 +653,11 @@ export function recommend(
         items: candidate.ids,
         questUpgrade: upgrade,
         runes,
-        spells: hasSample(a.summoner_spells) ? a.summoner_spells.ids : [],
+        spells: loadout.spells,
+        adjustments,
+        skills: skillOrder(ctx, analysis),
+        matchups: matchupEvidence(ctx, analysis),
+        checkpoints,
         source: `OP.GG MCP · tendencias ${a.trends.win.version} · región no informada · todos los rangos. ${agrees ? "La página coincide con una recomendación del cliente de Riot." : "La página difiere de las recomendaciones del cliente; no hay consenso demostrado."}`,
         samples: [
           { label: "Núcleo", play: a.core_items.play, win: a.core_items.win },

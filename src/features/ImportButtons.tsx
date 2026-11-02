@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import type { RunePage } from "../engine/recommendations";
+import spellData from "../../data/knowledge/spells.json";
+type SpellOrder = "preserve" | "recommended" | "reverse" | "flashD" | "flashF";
 interface Props {
   championId: number;
   sessionId: string;
@@ -25,6 +27,21 @@ export function ImportButtons({
     [message, setMessage] = useState("");
   const [targets, setTargets] = useState<Target[] | null>(null),
     [target, setTarget] = useState<number | null>(null);
+  const [spellOrder, setSpellOrder] = useState<SpellOrder>(() => {
+    try {
+      const saved = localStorage.getItem("kahoru.spell-order.v1");
+      return saved === "recommended" ||
+        saved === "reverse" ||
+        saved === "flashD" ||
+        saved === "flashF"
+        ? saved
+        : "preserve";
+    } catch {
+      return "preserve";
+    }
+  });
+  const spellName = (id: number) =>
+    spellData.spells.find((s) => s.id === id)?.name ?? String(id);
   async function loadTargets() {
     try {
       setTargets(await invoke<Target[]>("get_import_targets"));
@@ -50,6 +67,7 @@ export function ImportButtons({
           runes: mode === "spells" ? null : runes,
           spells: mode === "runes" ? null : spells,
           replacementPageId: target,
+          spellOrder,
         },
       });
       setMessage(
@@ -84,6 +102,39 @@ export function ImportButtons({
   }
   return (
     <div className="import-controls">
+      {spells.length === 2 && (
+        <label>
+          Orden de hechizos
+          <select
+            aria-label="Orden de hechizos"
+            value={spellOrder}
+            disabled={pending}
+            onChange={(e) => {
+              const next = e.target.value as SpellOrder;
+              setSpellOrder(next);
+              try {
+                localStorage.setItem("kahoru.spell-order.v1", next);
+              } catch {
+                setMessage("No se pudo guardar el orden de hechizos.");
+              }
+            }}
+          >
+            <option value="preserve">Conservar las teclas del cliente</option>
+            <option value="flashD">
+              Flash siempre en D, cuando se recomiende
+            </option>
+            <option value="flashF">
+              Flash siempre en F, cuando se recomiende
+            </option>
+            <option value="recommended">
+              D: {spellName(spells[0])} · F: {spellName(spells[1])}
+            </option>
+            <option value="reverse">
+              D: {spellName(spells[1])} · F: {spellName(spells[0])}
+            </option>
+          </select>
+        </label>
+      )}
       <div className="import-actions">
         <button
           disabled={!enabled || pending}
@@ -106,7 +157,7 @@ export function ImportButtons({
       </div>
       <p className="small-note">
         {enabled
-          ? "Crea o actualiza una página propia. Conserva la tecla de Flash. Si no hay ranuras libres, podés elegir una página para reutilizar con respaldo."
+          ? "Aplica el orden elegido. Si no hay ranuras libres para runas, elegí una página para reutilizar con respaldo."
           : "Disponible en la selección real del cliente, antes de entrar a partida."}
       </p>
       {enabled && (

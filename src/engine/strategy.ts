@@ -7,7 +7,7 @@ export function strategy(data: GameData, context: DraftContext): string[] {
   return ["opening", "objectives", "fights"].map((phase) =>
     facts
       .filter((f) => f.phase === phase)
-      .slice(0, 2)
+      .slice(0, phase === "fights" ? 2 : 1)
       .map((f) => f.text)
       .join(" "),
   );

@@ -1,6 +1,7 @@
 import { useContext, useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { GameDataContext, GameIcon, type GameData } from "../gameData";
+import { refreshRecentStatistics } from "../statistics";
 
 interface LibraryEntry {
   id: number;
@@ -44,8 +45,14 @@ export function DataLibrary({
     try {
       const next = await invoke<GameData>("update_game_data");
       await onUpdate(next);
+      const official = (await invoke<{ message: string }>("get_update_status"))
+        .message;
       setMessage(
-        (await invoke<{ message: string }>("get_update_status")).message,
+        "Datos oficiales comprobados. Actualizando análisis recientes…",
+      );
+      const refreshed = await refreshRecentStatistics();
+      setMessage(
+        `${official} Análisis recientes comprobados: ${refreshed.completed}/${refreshed.total}.`,
       );
     } catch (e) {
       setMessage(String(e));
@@ -85,10 +92,32 @@ export function DataLibrary({
         <p role="status">{message}</p>
         <p className="small-note">
           Con LoL abierto se comprueban también sus páginas recomendadas,
-          posiciones y kits. El análisis de OP.GG se actualiza por campeón y rol
-          desde la preparación. Cambiar el catálogo vuelve a validar runas y
-          recetas.
+          posiciones y kits, y se revisan hasta cinco análisis consultados en
+          esta sesión: compras, runas, spells, habilidades y matchups de OP.GG.
+          Cambiar el catálogo vuelve a validar runas y recetas. Se respetan la
+          caché y los límites del proveedor.
         </p>
+        <details>
+          <summary>Fuentes y alcance</summary>
+          <p>
+            Riot Games: catálogo, descripciones, imágenes, versiones y páginas
+            del cliente. OP.GG MCP: agregados por campeón y posición. Son
+            fuentes distintas; las páginas de Riot no aportan una segunda
+            muestra estadística.
+          </p>
+          <p>
+            El conocimiento estratégico por reglas se distribuye con la
+            aplicación. No se entrena ni se reescribe automáticamente a partir
+            de búsquedas web.
+          </p>
+          <a
+            href="https://www.leagueoflegends.com/es-mx/news/tags/patch-notes/"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Notas oficiales de los parches
+          </a>
+        </details>
       </section>
       <div className="library-toolbar">
         <div className="control-buttons">

@@ -1,6 +1,6 @@
 # Recomendaciones
 
-Versión 0.4.0, parche incluido 16.21. Se retiraron los núcleos y páginas genéricas de la versión anterior. El caso de Viego mostró que agruparlo con otros luchadores producía una build sin fundamento suficiente.
+Versión 0.5.0, parche incluido 16.21. Se retiraron los núcleos y páginas genéricas de la versión anterior. El caso de Viego mostró que agruparlo con otros luchadores producía una build sin fundamento suficiente.
 
 ## Draft y posiciones
 
@@ -19,13 +19,31 @@ Hay dos fuentes distintas:
 
 El proveedor no expone un selector de región o parche en el contrato utilizado. Se informa la versión de tendencias que devuelve, todos los rangos y región no informada. No se afirma una ventana temporal completa que la fuente no identifica. La página de Riot permite contrastar runas; no constituye una segunda muestra estadística independiente.
 
-Se exige parche compatible, campos válidos y al menos 100 partidas por compra utilizada. Este umbral es conservador y no está calibrado. Si falta evidencia, no se fabrica una build. Los candidatos conservan el núcleo observado y comparan opciones tardías publicadas según los perfiles de daño y resistencias. Se muestran hasta tres rutas válidas; sus muestras separadas no equivalen a una tasa conjunta de victoria.
+Se exige parche compatible, campos válidos y al menos 100 partidas por compra utilizada. Este umbral es conservador y no está calibrado. Si falta evidencia, no se fabrica una build. Los candidatos conservan el núcleo observado y comparan opciones tardías publicadas según los perfiles de daño y resistencias. Las botas defensivas pueden sustituirse por reglas ante tres fuentes de daño físico o mágico; el cambio se identifica sin atribuirle la muestra de las botas originales. Se muestran hasta tres rutas válidas; sus muestras separadas no equivalen a una tasa conjunta de victoria.
 
 Las rutas comprueban recetas, ciclos, seis ranuras, restricciones por campeón e incompatibilidades conocidas. Calzado Mágico recibe las botas como condición de la runa, sin comprarlas antes; las mascotas y la misión de support conservan sus condiciones propias. Los costes son de referencia: no se observa oro real ni se compran objetos automáticamente.
 
 La elección manual se conserva mediante IDs de objetos estables. Al entrar a partida se congela el último plan. Si el draft no se observó, no se inventa una preparación anterior.
 
+## Ajustes contextuales de 0.5
+
+La runa clave del proveedor se conserva. Se comparan páginas del cliente con esa misma clave: Triunfo ante varias entradas rivales o resets propios, Caminar sobre Agua para coordinación de río con al menos dos aliados confirmados con control, y opciones de curación o resistencia al control cuando están publicadas. El cambio se explica como regla, sin inventar muestras de esas páginas. Segundo Aire puede reemplazar Coraza Ósea ante un rival de línea confirmado con perfil de poke; la página se valida de nuevo antes de mostrarse.
+
+Para bot, Limpiar puede sustituir el hechizo defensivo ante dos campeones confirmados con control removible identificado en sus kits. No se propone por supresiones o derribos aislados. Jungla conserva la combinación publicada, incluido Castigo. La importación permite conservar teclas, fijar Flash en D/F o elegir el orden exacto de los dos hechizos. Elegir el orden no escribe en el cliente: hace falta pulsar importar.
+
+Ante varias fuentes de curación, una ruta que ya incluye un objeto de heridas graves puede adelantar su componente tras las dos primeras compras. Vesta exige un objetivo curativo que utilice ataques; no se confunde reflejar ataques con aplicar heridas a cualquier rival. El componente se consume al completar su objeto, sin comprarlo dos veces. La ruta detallada sigue disponible en un desplegable.
+
+## Habilidades y matchups
+
+Se solicitan secuencias y alternativas observadas de OP.GG. Se exige muestra de 100, claves Q/W/E/R y rangos legales. Cuando la fuente publica 15 niveles, se completan los restantes priorizando R al estar disponible y solo si queda una única habilidad básica legal; la interfaz distingue ese tramo inferido. Jayce y Udyr tienen límites propios; Aphelios se excluye hasta implementar sus mejoras de atributos. Datos incompletos o secuencias incompatibles muestran ausencia de evidencia, sin relleno.
+
+En líneas, ante varias iniciaciones, el motor puede preferir una alternativa observada con las tres básicas disponibles a nivel 3. No se inventa una secuencia ni se afirma que su muestra corresponda a ese draft. El orden queda guardado con el plan y visible durante partida.
+
+Los matchups de OP.GG se consultan para el campeón elegido. Solo se muestran contra un rival confirmado en la misma posición, con 300 partidas como mínimo. El intervalo Wilson orientativo de 95 % no corrige sesgos, redondeo de la fuente ni diferencias de habilidad; la población sigue siendo la del proveedor. No se convierte la tasa en una garantía de línea ni se aplica al ranking de todos los candidatos.
+
 ## Estrategia
+
+En 0.5 el resumen usa tres bloques breves: apertura, recursos y peleas. Nombra aliados con control y sus habilidades, una fuente aliada de daño y herramientas rivales a respetar. Las referencias son posibilidades de coordinación, no predicciones de prioridad o de un gank exitoso. El modelo elige un hecho para apertura, uno para objetivos y hasta dos para peleas.
 
 La lectura por reglas separa apertura, objetivos y peleas, con campeón, rol, aliados y amenazas conocidos. Los rasgos cualitativos necesitan evaluación con partidas; no demuestran ventaja de línea.
 
@@ -33,4 +51,4 @@ El modelo local opcional selecciona prioridades entre hechos preparados por el m
 
 ## Pendientes
 
-Matchups empíricos, comparación entre proveedores estadísticos independientes, calibración por población y revisión estratégica de todos los campeones. Las pruebas de estructura no demuestran que una recomendación sea competitivamente mejor.
+Matchups para roles inferidos, uso estadístico en el ranking, comparación entre proveedores independientes, calibración por población y revisión estratégica de todos los campeones. El núcleo de compras continúa agregado por campeón/rol. No hay un agente experto que optimice conjuntamente todo el espacio de configuraciones. Las pruebas de estructura no demuestran que una recomendación sea competitivamente mejor.

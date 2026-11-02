@@ -14,7 +14,7 @@ Los fragmentos y nueve spells tienen metadatos e iconos incluidos por separado e
 
 ## Actualización oficial
 
-**Datos del juego → Comprobar datos** busca la revisión más reciente del parche detectado en LoL. Sin cliente utiliza la familia del paquete actual. Descarga JSON e imágenes a staging, valida y activa al terminar; ante fallos conserva la versión anterior. La caché se comprueba al arrancar. La activación se bloquea durante draft y partida.
+**Datos del juego → Comprobar datos** busca la revisión más reciente del parche detectado en LoL. Sin cliente utiliza la familia del paquete actual. Descarga JSON e imágenes a staging, valida y activa al terminar; ante fallos conserva la versión anterior. La caché se comprueba al arrancar. La activación se bloquea durante draft y partida. Después se revisan hasta cinco análisis recientes de la sesión; cada error se conserva sin sustituir datos por plantillas.
 
 Si LoL está abierto y en inicio o sala, también comprueba sus kits, posiciones y páginas. El catálogo y el cliente deben compartir parche. Si falla esta parte se informa por separado. Si queda un paquete de recomendaciones de otro parche, el motor bloquea los planes incompatibles.
 
@@ -23,15 +23,15 @@ Si LoL está abierto y en inicio o sala, también comprueba sus kits, posiciones
 Se utiliza la [interfaz MCP pública documentada por OP.GG](https://github.com/opgginc/opgg-mcp), en `https://mcp-api.op.gg/mcp`, mediante JSON-RPC `tools/call`:
 
 - `lol_list_champions`: claves y nombres canónicos; permite resolver aliases como Lee Sin.
-- `lol_get_champion_analysis`: campeón, posición y modo ranked; selección acotada de campos de compras, runas, spells y tendencias.
+- `lol_get_champion_analysis`: campeón, posición y modo ranked; selección acotada de campos de compras, runas, spells, habilidades, matchups y tendencias. Los campos se comprobaron mediante `tools/list` y consultas reales el 02/11/2026.
 
 No se extraen páginas HTML ni endpoints internos de sitios. El transporte puede devolver JSON o eventos SSE; el contenido se decodifica con un parser acotado, sin evaluar código o constructores. La respuesta debe corresponder al campeón y rol pedidos.
 
-La caché local dura doce horas. El botón **Actualizar análisis** permite refrescar, con un mínimo de sesenta segundos entre consultas. Solo se envían campeón y posición; no cuentas ni draft completo. Los datos de respuesta no se incluyen en Git; los tests usan muestras sintéticas identificadas.
+La caché local dura doce horas. El esquema 2 invalida las respuestas anteriores que no pedían habilidades y matchups. La memoria de la interfaz respeta también ese vencimiento. El botón **Actualizar análisis** permite refrescar, con un mínimo de sesenta segundos entre consultas. Solo se envían campeón y posición; no cuentas ni draft completo. Los datos de respuesta no se incluyen en Git; los tests usan muestras sintéticas identificadas.
 
 Límites: el contrato utilizado no admite región o parche explícitos. Se muestra versión de tendencias, fecha de consulta, todos los rangos y región no informada. No se conoce una ventana estadística exacta para cada fila. Una muestra observada de compras no prueba causalidad. Esta interfaz pública no concede por sí sola derechos generales de redistribución.
 
-Riot aporta una recomendación independiente de runas, pero no una segunda muestra estadística de builds. La comparación de varios proveedores y los matchups empíricos siguen pendientes.
+Riot aporta una recomendación independiente de runas, pero no una segunda muestra estadística de builds. La comparación de proveedores estadísticos sigue pendiente. Los matchups publicados se muestran solo con posición rival confirmada y al menos 300 partidas; no se usan como prueba causal ni se extrapolan a roles desconocidos.
 
 ## Preparación del repositorio
 

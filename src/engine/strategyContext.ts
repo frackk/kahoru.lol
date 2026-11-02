@@ -55,6 +55,7 @@ export function strategyContext(
             rune,
           ),
           reason: plan.reason,
+          matchups: plan.matchups,
         }
       : null,
     limits:

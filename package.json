@@ -1,7 +1,7 @@
 {
   "name": "kahoru-lol",
   "private": true,
-  "version": "0.4.0",
+  "version": "0.5.0",
   "type": "module",
   "author": "frack.one",
   "scripts": {

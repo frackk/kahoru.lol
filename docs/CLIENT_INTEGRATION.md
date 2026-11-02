@@ -33,7 +33,7 @@ No se borran páginas. La importación exige selección real vigente, mapa 11, c
 
 Si las ranuras están llenas, el usuario elige el destino. La copia se guarda antes del PUT y se puede restaurar desde la misma sección. Una página propia se reconoce por su registro local e identidad; no se reemplaza otra página por nombre parecido.
 
-Los spells conservan la tecla actual de Flash. La lectura posterior verifica página activa, IDs y spells; los errores parciales se informan sin afirmar éxito total. La app no refleja como cambios propios las ediciones posteriores realizadas manualmente en el cliente.
+Por defecto se conservan las teclas actuales. El usuario puede fijar Flash en D/F, independientemente del orden recibido de la fuente, o elegir el orden exacto de los dos spells. La preferencia se guarda localmente y se envía al núcleo con cada importación; no modifica el cliente hasta pulsar el botón. La lectura posterior verifica página activa, IDs y spells; los errores parciales se informan sin afirmar éxito total. La app no refleja como cambios propios las ediciones posteriores realizadas manualmente en el cliente.
 
 ## Conexión y privacidad
 

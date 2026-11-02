@@ -6,6 +6,17 @@ export interface Sample {
   win: number;
   pick_rate?: number;
 }
+export interface SkillSample {
+  order: string[];
+  play: number;
+  win: number;
+}
+export interface MatchupSample {
+  champion_id: number;
+  play: number;
+  win: number;
+  my_win_rate: number;
+}
 export interface Analysis {
   source: string;
   retrievedAt: number;
@@ -36,6 +47,10 @@ export interface Analysis {
       };
       trends: { win: { version: string; created_at: string } };
       damage_type: string;
+      skills?: SkillSample;
+      skill_masteries?: { builds: SkillSample[] };
+      weak_counters?: MatchupSample[];
+      strong_counters?: MatchupSample[];
     };
   };
 }

@@ -19,11 +19,11 @@ Carpeta de trabajo en este equipo: `E:\Cosas\kahoru.lol`.
 
 ## Estado
 
-La versión 0.4.0 lee el cliente local, detecta fases y completa picks, hovers aliados y bans. Incluye imágenes de campeones, runas, fragmentos, objetos y spells. El ranking por composición y el champion pool siguen disponibles.
+La versión 0.5.0 lee el cliente local, detecta fases y completa picks, hovers aliados y bans. Incluye imágenes de campeones, runas, fragmentos, objetos y spells. El ranking por composición y el champion pool siguen disponibles.
 
 Los 173 campeones tienen metadatos del kit y páginas recomendadas por Riot. Las builds usan análisis de OP.GG por campeón y posición, con parche y muestras; si faltan datos compatibles no se inventa una ruta. Se comparan hasta tres variantes construibles. El ranking todavía usa reglas cualitativas, con cobertura desigual de rasgos y sin matchups empíricos; no predice victoria. El simulador se identifica como entrada manual.
 
-La importación experimental aplica runas y spells mediante una acción explícita, conserva la tecla de Flash y permite reutilizar una página elegida con respaldo y restauración. La estrategia previa usa reglas y, opcionalmente, un modelo local para elegir prioridades entre hechos del motor. Durante partida se conserva lo preparado, sin adaptación en vivo ni automatización de gameplay. El registro del producto ante Riot sigue pendiente; no se afirma aprobación particular.
+La importación experimental aplica runas y spells mediante una acción explícita, permite conservar las teclas del cliente o elegir Flash en D/F, y permite reutilizar una página elegida con respaldo y restauración. El orden de habilidades muestra niveles 1–18 cuando hay una secuencia verificable. Los ajustes de runas, spells y botas explican el motivo y distinguen reglas de muestras estadísticas. La estrategia previa usa reglas y, opcionalmente, un modelo local para elegir prioridades entre hechos del motor. Durante partida se conserva lo preparado, sin adaptación en vivo ni automatización de gameplay. El registro del producto ante Riot sigue pendiente; no se afirma aprobación particular.
 
 ## Actualización de datos
 

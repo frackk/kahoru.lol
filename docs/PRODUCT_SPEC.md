@@ -1,6 +1,6 @@
 # kahoru.lol — Especificación del producto
 
-**Estado:** desarrollo de Fases 3 y 4 · **Versión del documento:** 0.4 · **Última revisión:** 2026-11-02
+**Estado:** desarrollo de Fases 3 y 4 · **Versión del documento:** 0.5 · **Última revisión:** 2026-11-02
 **Repositorio:** https://github.com/frackk/kahoru.lol  
 **Autor:** frack.one  
 **Plataforma inicial:** Windows 10/11, escritorio  
@@ -8,7 +8,7 @@
 
 > Documento de referencia para el desarrollo. Describe el producto que se quiere construir, no funciones que ya estén implementadas. Ante una discrepancia entre este documento y el código, registrar la diferencia y decidir explícitamente cuál debe actualizarse.
 
-**Estado actual (0.4.0):** lector experimental del cliente, simulador e imágenes oficiales; 173 campeones con kits, posiciones y 825 páginas de Riot. Las builds consultan OP.GG por campeón y rol y requieren datos compatibles. Importación explícita de runas y spells con respaldo y restauración, probada localmente. Estrategia previa por reglas y modelo local opcional que selecciona hechos del motor. Se conserva el plan en partida. Siguen pendientes matchups empíricos, contraste estadístico entre proveedores, calibración y registro ante Riot. Ver `RECOMMENDATIONS.md`, `CLIENT_INTEGRATION.md`, `LOCAL_MODEL.md` y `VALIDATION.md`.
+**Estado actual (0.5.0):** lector experimental del cliente, simulador e imágenes oficiales; 173 campeones con kits, posiciones y 825 páginas de Riot. Las builds consultan OP.GG por campeón y rol y requieren datos compatibles. Importación explícita de runas y spells con respaldo y restauración, probada localmente. Estrategia previa por reglas y modelo local opcional que selecciona hechos del motor. Se conserva el plan en partida. Se añaden ajustes contextuales acotados de runas, spells y botas, componentes de heridas graves, orden de habilidades 1–18 cuando es verificable y matchups publicados para posiciones confirmadas. Siguen pendientes la optimización conjunta completa, el contraste entre proveedores, la calibración y el registro ante Riot. Ver `RECOMMENDATIONS.md`, `CLIENT_INTEGRATION.md`, `LOCAL_MODEL.md` y `VALIDATION.md`.
 
 ## 1. Visión
 
@@ -123,7 +123,7 @@ Factores iniciales, con pesos configurables y sujetos a validación:
 
 Estos pesos son **hipótesis de producto**, no valores demostrados. Se deberán calibrar mediante evaluación sobre drafts reales y pruebas de consistencia. Si no hay datos personales, redistribuir el peso de familiaridad de forma explícita; si faltan estadísticas, indicar menor confianza y utilizar reglas documentadas, no completar con números falsos.
 
-En 0.4.0 el ranking conserva aportes de composición sin términos de matchup empírico. OP.GG se utiliza para compras, runas y spells del campeón elegido; no representa todavía el término estadístico del ranking. La tabla anterior sigue siendo un objetivo de investigación.
+En 0.5.0 el ranking conserva aportes de composición sin términos de matchup empírico. OP.GG se utiliza para compras, runas y spells del campeón elegido; no representa todavía el término estadístico del ranking. La tabla anterior sigue siendo un objetivo de investigación.
 
 Mostrar como mínimo:
 
@@ -229,7 +229,8 @@ Al salir del draft, la aplicación pasa a una vista compacta dedicada a la consu
 - Campeón y rol propios.
 - Plan elegido y dos alternativas accesibles sin ocupar pantalla permanentemente.
 - Ruta de compra ordenada, incluidos componentes.
-- Resumen estratégico de tres a cinco líneas, disponible bajo demanda.
+- Resumen estratégico breve: apertura, recursos y peleas, disponible bajo demanda.
+- Orden de habilidades de nivel 1 a 18, calculado antes de la partida y conservado con el plan.
 - Parche y aviso discreto si los datos no corresponden al parche actual.
 
 ### 7.2 Comportamiento

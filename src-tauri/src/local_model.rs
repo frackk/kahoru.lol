@@ -345,7 +345,7 @@ fn read_facts(context: &str) -> Result<Vec<Fact>, String> {
     Ok(facts)
 }
 fn selection_schema(facts: &[Fact]) -> Value {
-    let properties:serde_json::Map<String,Value>=["opening","objectives","fights"].into_iter().map(|phase|(phase.into(),json!({"type":"array","minItems":1,"maxItems":2,"items":{"type":"string","enum":facts.iter().filter(|f|f.phase==phase).map(|f|&f.id).collect::<Vec<_>>()}}))).collect();
+    let properties:serde_json::Map<String,Value>=["opening","objectives","fights"].into_iter().map(|phase|(phase.into(),json!({"type":"array","minItems":1,"maxItems":if phase == "fights" {2} else {1},"items":{"type":"string","enum":facts.iter().filter(|f|f.phase==phase).map(|f|&f.id).collect::<Vec<_>>()}}))).collect();
     json!({"type":"object","properties":properties,"required":["opening","objectives","fights"],"additionalProperties":false})
 }
 fn select_facts(facts: &[Fact], text: &str) -> Result<String, String> {
@@ -359,7 +359,7 @@ fn select_facts(facts: &[Fact], text: &str) -> Result<String, String> {
     for phase in ["opening", "objectives", "fights"] {
         let ids = value[phase]
             .as_array()
-            .filter(|a| !a.is_empty() && a.len() <= 2)
+            .filter(|a| !a.is_empty() && a.len() <= if phase == "fights" { 2 } else { 1 })
             .ok_or("Faltan prioridades de una fase")?;
         let mut lines = vec![];
         for id in ids {

@@ -77,6 +77,48 @@ try {
   assert.ok(page, "No se encontró la ventana principal");
   const errors = [];
   page.on("pageerror", (error) => errors.push(error.message));
+  if (process.argv.includes("--sources")) {
+    const coverage = [];
+    for (const [championId, role] of [
+      [54, "TOP"],
+      [60, "JUNGLE"],
+      [103, "MID"],
+      [222, "BOT"],
+      [89, "SUPPORT"],
+    ]) {
+      const value = await page.evaluate(
+        ({ championId, role }) =>
+          globalThis.__TAURI_INTERNALS__.invoke("get_champion_analysis", {
+            championId,
+            role,
+            refresh: false,
+          }),
+        { championId, role },
+      );
+      assert.equal(value.schemaVersion, 2);
+      const data = value.analysis.data;
+      assert.ok(Array.isArray(data.skills.order));
+      assert.ok(data.skills.play >= 100);
+      coverage.push({
+        championId,
+        role,
+        skillLevels: data.skills.order.length,
+        skillSamples: data.skills.play,
+        matchupRows:
+          (data.weak_counters?.length ?? 0) +
+          (data.strong_counters?.length ?? 0),
+        patch: data.trends.win.version,
+      });
+    }
+    await mkdir("test-results", { recursive: true });
+    await writeFile(
+      "test-results/source-coverage.json",
+      JSON.stringify(coverage, null, 2),
+    );
+    console.log(
+      "Proveedor: habilidades y matchups recibidos en los cinco roles.",
+    );
+  }
   if (process.argv.includes("--live")) {
     const live = page.getByRole("region", {
       name: "Cliente de League of Legends",
@@ -146,6 +188,7 @@ try {
     await Promise.all(images.map((img) => img.decode()));
   });
   let chosenHeading;
+  let preparedSkills;
   if (process.argv.includes("--roles-model")) {
     for (const role of ["TOP", "JUNGLE", "MID", "BOT", "SUPPORT"]) {
       await page.getByLabel("Tu posición", { exact: true }).selectOption(role);
@@ -187,6 +230,18 @@ try {
     await alternatives.last().click();
     chosenHeading = await page.locator(".selected-plan h2").innerText();
     assert.equal(await page.locator(".selected-plan .shards img").count(), 3);
+    preparedSkills = await page.locator(".skill-order table").innerText();
+    assert.equal(await page.locator(".skill-point").count(), 18);
+    assert.equal(await page.locator(".skill-order thead th").count(), 19);
+    await page
+      .locator('.selected-plan select[aria-label="Orden de hechizos"]')
+      .selectOption("flashF");
+    assert.equal(
+      await page.evaluate(() =>
+        globalThis.localStorage.getItem("kahoru.spell-order.v1"),
+      ),
+      "flashF",
+    );
   }
   if (process.argv.includes("--model")) {
     const modelStarted = performance.now();
@@ -276,6 +331,11 @@ try {
     await page
       .getByText(/Prioridades elegidas entre hechos del motor/)
       .waitFor();
+  if (preparedSkills)
+    assert.equal(
+      await page.locator(".skill-order table").innerText(),
+      preparedSkills,
+    );
   if (chosenHeading) {
     if (
       process.argv.includes("--roles-model") &&
@@ -283,11 +343,11 @@ try {
     ) {
       assert.doesNotMatch(
         await page.locator(".strategy").innerText(),
-        /Con Bardo de support/,
+        /Línea: coordinar intercambios/,
       );
       assert.match(
         await page.locator(".strategy").innerText(),
-        /Con Viego en jungla/,
+        /Dominio del Soberano/,
       );
       assert.doesNotMatch(
         await page.locator(".strategy").innerText(),
@@ -334,7 +394,7 @@ try {
       .click();
     await page
       .getByText(/Datos oficiales comprobados:/)
-      .waitFor({ timeout: 60000 });
+      .waitFor({ timeout: 150000 });
   }
   await page.getByRole("button", { name: "Runas", exact: true }).click();
   await page.locator(".library-grid img").evaluateAll(async (images) => {

@@ -21,6 +21,18 @@ pub struct Request {
     pub runes: Option<RunePage>,
     pub spells: Option<[u32; 2]>,
     pub replacement_page_id: Option<u64>,
+    #[serde(default)]
+    pub spell_order: SpellOrder,
+}
+#[derive(Clone, Copy, Default, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub enum SpellOrder {
+    #[default]
+    Preserve,
+    Recommended,
+    Reverse,
+    FlashD,
+    FlashF,
 }
 #[derive(Default, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -120,7 +132,18 @@ fn perk_ids(page: &RunePage) -> Vec<u32> {
         .copied()
         .collect()
 }
-fn spell_order(current: [u32; 2], recommended: [u32; 2]) -> [u32; 2] {
+fn spell_order(current: [u32; 2], recommended: [u32; 2], mode: SpellOrder) -> [u32; 2] {
+    match mode {
+        SpellOrder::Recommended => return recommended,
+        SpellOrder::Reverse => return [recommended[1], recommended[0]],
+        SpellOrder::FlashD if recommended.contains(&4) => {
+            return [4, *recommended.iter().find(|id| **id != 4).unwrap()]
+        }
+        SpellOrder::FlashF if recommended.contains(&4) => {
+            return [*recommended.iter().find(|id| **id != 4).unwrap(), 4]
+        }
+        _ => {}
+    }
     if recommended.contains(&current[0]) {
         [
             current[0],
@@ -311,6 +334,7 @@ pub fn apply(
                     current["spell2Id"].as_u64().unwrap_or(0) as u32,
                 ],
                 spells,
+                request.spell_order,
             );
             api.change(
                 "PATCH",
@@ -480,6 +504,7 @@ mod tests {
             runes: Some(serde_json::from_value(page).unwrap()),
             spells: Some([4, 11]),
             replacement_page_id: None,
+            spell_order: SpellOrder::Preserve,
         }
     }
     #[test]
@@ -547,8 +572,36 @@ mod tests {
     }
     #[test]
     fn keeps_flash_in_either_existing_slot() {
-        assert_eq!(spell_order([11, 4], [4, 11]), [11, 4]);
-        assert_eq!(spell_order([4, 11], [11, 4]), [4, 11]);
+        assert_eq!(spell_order([11, 4], [4, 11], SpellOrder::Preserve), [11, 4]);
+        assert_eq!(spell_order([4, 11], [11, 4], SpellOrder::Preserve), [4, 11]);
+        assert_eq!(
+            spell_order([11, 4], [4, 11], SpellOrder::Recommended),
+            [4, 11]
+        );
+        assert_eq!(spell_order([4, 11], [4, 11], SpellOrder::Reverse), [11, 4]);
+        assert_eq!(spell_order([11, 4], [11, 4], SpellOrder::FlashD), [4, 11]);
+        assert_eq!(spell_order([4, 21], [4, 21], SpellOrder::FlashF), [21, 4]);
+        assert_eq!(
+            spell_order([21, 12], [21, 12], SpellOrder::FlashD),
+            [21, 12]
+        );
+    }
+
+    #[test]
+    fn explicit_spell_preference_overrides_existing_slots_and_is_verified() {
+        let api = Mock::new();
+        let dir = tempfile::tempdir().unwrap();
+        let data = GameData::bundled().unwrap();
+        let mut r = request();
+        r.runes = None;
+        r.spell_order = SpellOrder::FlashD;
+        assert!(apply(&api, &data, &r, dir.path()).unwrap().spells_applied);
+        assert_eq!(api.selection.borrow()["spell1Id"], 4);
+        assert_eq!(api.selection.borrow()["spell2Id"], 11);
+        r.spell_order = SpellOrder::FlashF;
+        assert!(apply(&api, &data, &r, dir.path()).unwrap().spells_applied);
+        assert_eq!(api.selection.borrow()["spell1Id"], 11);
+        assert_eq!(api.selection.borrow()["spell2Id"], 4);
     }
 
     #[test]

@@ -33,7 +33,13 @@ export async function requestStatistics(
 ) {
   if (!isTauri()) return;
   const key = statisticsKey(championId, role);
-  if (entries.has(key) && !refresh) return;
+  const cached = entries.get(key);
+  if (
+    !refresh &&
+    cached?.data &&
+    Date.now() / 1000 - cached.data.retrievedAt < 43200
+  )
+    return;
   if (entries.get(key)?.pending) return;
   const previous = entries.get(key)?.data;
   entries.set(key, { data: previous, pending: true });
@@ -53,4 +59,15 @@ export async function requestStatistics(
     });
   }
   publish();
+}
+
+export async function refreshRecentStatistics() {
+  const recent = [...entries.keys()].reverse().slice(0, 5);
+  let completed = 0;
+  for (const key of recent) {
+    const [champion, role] = key.split(":");
+    await requestStatistics(Number(champion), role as Role, true);
+    if (!entries.get(key)?.error) completed++;
+  }
+  return { completed, total: recent.length };
 }

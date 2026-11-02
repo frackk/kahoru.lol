@@ -15,6 +15,7 @@ import { sessionPlans } from "../engine/sessionPlans";
 import { type DraftContext } from "../engine/recommendations";
 import { profileById, profiles } from "../engine/profiles";
 import shardData from "../../data/knowledge/shards.json";
+import { SkillOrder } from "./SkillOrder";
 
 export function Preparation({
   context,
@@ -103,6 +104,9 @@ export function Preparation({
           .join(", "),
       "Compras: " +
         selected.items.map((id) => item(id)?.name ?? id).join(" → "),
+      ...(selected.skills
+        ? ["Habilidades 1–18: " + selected.skills.order.join(" → ")]
+        : []),
       ...(selected.questUpgrade
         ? ["Mejora de misión: " + item(selected.questUpgrade)?.name]
         : []),
@@ -171,7 +175,7 @@ export function Preparation({
           </button>
           {statistics?.data && (
             <small>
-              Última consulta:{" "}
+              Compras, runas, spells, habilidades y matchups. Última consulta:{" "}
               {new Date(statistics.data.retrievedAt * 1000).toLocaleString(
                 "es-AR",
               )}
@@ -191,6 +195,14 @@ export function Preparation({
           Plan prepartida conservado. Durante la partida no se adapta a la
           sesión en vivo.
         </div>
+      )}
+      {!disabledReason && (
+        <LocalStrategy
+          data={data}
+          context={ctx}
+          plan={selected}
+          editable={editable}
+        />
       )}
       {editable && result && (
         <>
@@ -345,6 +357,12 @@ export function Preparation({
               <div className="rune-build-grid">
                 <section>
                   <h3>Runas completas</h3>
+                  <details>
+                    <summary>Ajustes para este draft</summary>
+                    {selected.adjustments.map((reason) => (
+                      <p key={reason}>{reason}</p>
+                    ))}
+                  </details>
                   <ImportButtons
                     championId={ctx.playerChampionId!}
                     sessionId={ctx.sessionId}
@@ -414,6 +432,22 @@ export function Preparation({
                     ))}
                   </div>
                   <h3>Ruta base</h3>
+                  {selected.checkpoints.map((point) => (
+                    <div className="notice" key={point.itemId}>
+                      <GameIcon
+                        path={item(point.itemId)?.icon}
+                        label={item(point.itemId)?.name ?? String(point.itemId)}
+                        size={32}
+                      />
+                      <p>
+                        <strong>
+                          {item(point.itemId)?.name} antes de completar{" "}
+                          {item(point.finishInto)?.name}.
+                        </strong>{" "}
+                        {point.reason}
+                      </p>
+                    </div>
+                  ))}
                   <div className="build-row">
                     {selected.items.map((id, i) => (
                       <div key={i}>
@@ -449,6 +483,10 @@ export function Preparation({
                   )}
                 </section>
               </div>
+              <SkillOrder
+                order={selected.skills}
+                championId={ctx.playerChampionId!}
+              />
               <details className="purchase-details">
                 <summary>
                   Compras, componentes y condiciones ({selected.steps.length}{" "}
@@ -498,14 +536,6 @@ export function Preparation({
             </section>
           )}
         </>
-      )}
-      {!disabledReason && (
-        <LocalStrategy
-          data={data}
-          context={ctx}
-          plan={selected}
-          editable={editable}
-        />
       )}
     </section>
   );

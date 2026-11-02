@@ -82,7 +82,8 @@ describe("recomendaciones con procedencia", () => {
     expect(r.errors).toEqual([]);
     expect(r.plans.length).toBeGreaterThan(0);
     for (const p of r.plans) {
-      expect(p.items.slice(0, 4)).toEqual([6672, 3047, 6676, 6673]);
+      expect(p.items.slice(0, 4)).toEqual([6672, 3111, 6676, 6673]);
+      expect(p.adjustments.join()).toContain("mágico");
       expect(p.items).toHaveLength(6);
       expect(p.runes.shards[0]).toBe(5005);
       expect(p.spells).toEqual([4, 11]);

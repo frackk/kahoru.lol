@@ -100,6 +100,16 @@ export function LocalStrategy({
           </button>
         )}
       </div>
+      {plan?.matchups.map((m) => (
+        <p className="small-note" key={m.championId}>
+          Frente a{" "}
+          {data.catalog.champions.find((c) => c.id === m.championId)?.name}:{" "}
+          {(m.winRate * 100).toFixed(1)} % observado en{" "}
+          {m.play.toLocaleString("es-AR")} partidas de OP.GG. Intervalo
+          orientativo {(m.lower * 100).toFixed(1)}–{(m.upper * 100).toFixed(1)}{" "}
+          %. Asociación estadística, no ventaja garantizada de línea.
+        </p>
+      ))}
       {text
         ? text
             .split(/\n+/)

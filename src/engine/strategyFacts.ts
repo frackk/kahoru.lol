@@ -1,6 +1,7 @@
 import type { GameData } from "../gameData";
 import type { DraftContext, Plan } from "./recommendations";
-import { profileById, kitById } from "./profiles";
+import { profileById } from "./profiles";
+import { controlAbility, draftSignals } from "./draftSignals";
 
 export function strategyFacts(data: GameData, ctx: DraftContext, plan?: Plan) {
   const facts: {
@@ -13,130 +14,102 @@ export function strategyFacts(data: GameData, ctx: DraftContext, plan?: Plan) {
   const name = (id: number) =>
     data.catalog.champions.find((c) => c.id === id)?.name ?? String(id);
   const own = profileById.get(ctx.playerChampionId!);
-  const ownName = name(ctx.playerChampionId!);
-  const allied = ctx.allies.filter(
-    (s) => s.championId && s.championId !== ctx.playerChampionId,
+  const s = draftSignals(ctx);
+  const setup = [...s.setup].sort(
+    (a, b) => Number(b.role === "MID") - Number(a.role === "MID"),
+  )[0];
+  const carry = s.carries[0];
+  const front = s.allies.find(
+    (a) => a.locked && a.profile.traits.includes("frontline"),
   );
-  const enemies = ctx.enemies.filter((s) => s.championId);
-  const names = (slots: typeof allied) =>
-    slots
-      .map((s) => name(s.championId!))
-      .slice(0, 3)
-      .join(", ");
-  const hasControl = (id: number) =>
-    kitById
-      .get(id)
-      ?.some((a) =>
-        /\b(aturde|aturden|inmoviliza|inmovilizan|derriba|derriban|empuja|empujan|atrae|encanta|encantan|suspende|suspenden)\b/iu.test(
-          a.description,
-        ),
-      );
-  const control = allied.filter((s) => hasControl(s.championId!));
-  const front = allied.filter((s) =>
-    profileById.get(s.championId!)?.traits.includes("frontline"),
+  const threat = s.control[0];
+  const ownControl = ctx.playerChampionId
+    ? controlAbility(ctx.playerChampionId)
+    : undefined;
+  const target = setup
+    ? `${name(setup.championId)} (${controlAbility(setup.championId)!.name})`
+    : null;
+  if (ctx.playerRole === "JUNGLE") {
+    add(
+      "opening",
+      target
+        ? `Apertura: buscar una salida hacia ${target}; su control facilita el gank si la línea permite acompañarlo. Sin ventana, completar campamentos y comprar.`
+        : "Apertura: priorizar campamentos y primera compra; no hay una línea con control aliado confirmado para justificar un desvío.",
+    );
+  } else if (ctx.playerRole === "SUPPORT") {
+    add(
+      "opening",
+      carry
+        ? `Línea: coordinar intercambios con ${name(carry.championId)}; salir al río cuando su oleada permita dejarlo acompañado o a salvo.`
+        : "Línea: confirmar la pareja de bot antes de fijar intercambios o movimientos al río.",
+    );
+  } else {
+    const opponent = s.enemies.find(
+      (e) => e.locked && e.role === ctx.playerRole,
+    );
+    add(
+      "opening",
+      opponent
+        ? `Línea contra ${name(opponent.championId)}: ${controlAbility(opponent.championId) ? `respetar ${controlAbility(opponent.championId)!.name} antes de comprometer el intercambio` : "preparar la oleada antes de salir a apoyar"}. No hay ventaja de línea demostrada.`
+        : "Línea: la posición rival sigue sin confirmar; preparar oleadas y la primera compra antes de comprometer movimientos.",
+    );
+  }
+  add(
+    "objectives",
+    carry
+      ? `Recursos: potenciar a ${name(carry.championId)} como fuente de daño sostenido; preparar objetivos con su llegada, sin suponer prioridad de línea.`
+      : target
+        ? `Objetivos: coordinar una captura con ${target} antes de disputar espacio.`
+        : "Objetivos: preparar la llegada conjunta; falta evidencia para elegir un aliado como condición de victoria.",
   );
-  const danger = enemies.filter((s) => hasControl(s.championId!));
-  const role = ctx.playerRole;
-  if (!role)
-    add(
-      "opening",
-      `Falta confirmar la posición de ${ownName}; no se fija un plan de línea hasta conocerla.`,
-    );
-  else if (role === "JUNGLE") {
-    add(
-      "opening",
-      `Con ${ownName} en jungla, la apertura prioriza conservar recursos propios y buscar jugadas con seguimiento de las líneas. El draft no basta para decidir una invasión ni una ruta de campamentos.`,
-    );
-    if (control.length)
-      add(
-        "opening",
-        `Herramientas de control aliadas en ${names(control)}: son puntos de coordinación para un gank, siempre que su oleada y su posición permitan acompañarlo.`,
-      );
-  } else if (role === "TOP")
-    add(
-      "opening",
-      `Con ${ownName} en top, el plan inicial se apoya en intercambios que permitan conservar recursos y controlar la oleada. La posición rival inferida no prueba una ventaja de matchup.`,
-    );
-  else if (role === "MID")
-    add(
-      "opening",
-      `Con ${ownName} en mid, el control de oleada conecta la fase de línea con las jugadas del jungla. Una salida que abandona una oleada importante puede costar más de lo que aporta.`,
-    );
-  else if (role === "BOT")
-    add(
-      "opening",
-      `Con ${ownName} en bot, la prioridad es coordinar los intercambios con el support y conservar acceso a las compras principales. El plan no presupone que la pareja aliada gane la línea.`,
-    );
-  else
-    add(
-      "opening",
-      `Con ${ownName} de support, el plan inicial combina la protección del bot con la posibilidad de disputar espacio junto a él. Un movimiento por el mapa depende de que la oleada permita abandonar la línea.`,
-    );
-  if (role === "JUNGLE" || role === "SUPPORT")
+  if (own?.traits.includes("side"))
     add(
       "objectives",
-      `En la transición a objetivos, ${ownName} necesita conectar sus movimientos con aliados que puedan acompañarlo. Llegar antes ayuda a preparar espacio; el plan no supone prioridad de línea ni visión ya conseguida.`,
-    );
-  else if (own?.traits.includes("side"))
-    add(
-      "objectives",
-      `${ownName} ofrece una alternativa de presión lateral. Esa presión necesita coordinarse con los objetivos y con la capacidad del equipo de sostener el resto del mapa; no exige separarse en todo momento.`,
-    );
-  else
-    add(
-      "objectives",
-      `Al pasar a objetivos, ${ownName} combina la recogida de oleadas con la preparación del equipo. Agruparse sin resolver una oleada puede ceder recursos; llegar tarde puede dejar al equipo sin su aporte.`,
-    );
-  if (front.length)
-    add(
-      "objectives",
-      `${names(front)} aporta opciones de primera línea. La composición permite preparar espacio alrededor de esos aliados sin obligar a ${ownName} a absorber por su cuenta toda la entrada rival.`,
-    );
-  if (plan)
-    add(
-      "objectives",
-      `La ruta elegida conserva ${plan.items
-        .slice(0, 3)
-        .map((id) => data.items.find((i) => i.id === id)?.name)
-        .filter(Boolean)
-        .join(
-          ", ",
-        )} como primeras compras. Es una referencia previa: sus muestras son independientes y no prueban una ventaja de la build completa.`,
+      "Alternativa: presión lateral coordinada con el objetivo; evitar separar al equipo cuando no pueda sostener el resto del mapa.",
     );
   if (own?.traits.includes("resets"))
     add(
       "fights",
-      `${ownName} busca convertir el primer derribo en continuidad de pelea con Dominio del Soberano. Para Viego, una entrada de seguimiento facilita acceder a una posesión; entrar primero contra toda la composición deja esa condición expuesta.`,
+      `Peleas: buscar el primer derribo tras ${front ? `la entrada de ${name(front.championId)}` : "el control aliado"}; Dominio del Soberano permite continuar. Evitar iniciar solo contra los cinco.`,
     );
-  else if (own?.traits.includes("peel") || role === "SUPPORT")
+  else if (own?.traits.includes("peel"))
     add(
       "fights",
-      `En peleas, ${ownName} puede orientar sus recursos a proteger el daño aliado o a facilitar una entrada. Reservar una respuesta a la amenaza rival evita comprometer todas sus herramientas a la vez.`,
+      `Peleas: reservar protección para ${carry ? name(carry.championId) : "el daño aliado"}; responder a la entrada rival antes de gastar todo para iniciar.`,
     );
   else if (own?.traits.includes("engage"))
     add(
       "fights",
-      `${ownName} aporta una posible apertura de pelea. Esa entrada necesita que el daño aliado pueda seguirla; iniciar y sobrevivir a todo el daño enemigo son tareas distintas.`,
+      `Peleas: abrir solo con seguimiento de ${carry ? name(carry.championId) : "los aliados"}; una entrada fuera de su alcance deja al equipo sin tu control.`,
     );
-  else if (role === "BOT" || own?.traits.includes("attacks"))
+  else if (
+    ownControl &&
+    ctx.playerRole !== "BOT" &&
+    !own?.traits.includes("attacks")
+  )
     add(
       "fights",
-      `En peleas, ${ownName} necesita espacio para mantener su daño. La preparación favorece una posición desde la que alcanzar objetivos disponibles sin atravesar por cuenta propia las herramientas de control enemigas.`,
+      `Peleas: buscar una captura con ${ownControl.name} para habilitar el daño de ${carry ? name(carry.championId) : "los aliados"}; si no conecta, conservar espacio antes de comprometer el resto del kit.`,
     );
   else
     add(
       "fights",
-      `En peleas, ${ownName} necesita coordinar el alcance de sus habilidades con el seguimiento del equipo. El acceso a un objetivo importa tanto como el daño disponible; el plan no presupone acceso libre a la retaguardia.`,
+      `Peleas: ${front ? `jugar detrás de ${name(front.championId)}` : "entrar después del control aliado"}; hacer daño al objetivo accesible sin cruzar toda la primera línea.`,
     );
-  if (danger.length)
+  if (threat)
     add(
       "fights",
-      `El control de ${names(danger)} condiciona la entrada y el espacio para hacer daño. Esta preparación no conoce sus enfriamientos ni su posición durante la partida.`,
+      `Amenaza: ${name(threat.championId)} con ${controlAbility(threat.championId)!.name}; conservar espacio para no comprometer toda la entrada en ese control.`,
     );
-  if (ctx.allies.concat(ctx.enemies).some((s) => !s.championId || !s.locked))
+  if (s.healing.length)
     add(
-      "opening",
-      "Hay selecciones sin revelar o provisionales: el planteamiento puede cambiar al confirmarse el draft.",
+      "objectives",
+      `Compra a valorar: heridas graves frente a ${s.healing
+        .slice(0, 2)
+        .map((e) => name(e.championId))
+        .join(" y ")}; comprobar quién puede aplicarlas de forma fiable.`,
     );
+  if (plan?.adjustments.length)
+    add("objectives", `Configuración: ${plan.adjustments[0]}`);
   return facts;
 }
