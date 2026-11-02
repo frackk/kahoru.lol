@@ -1,6 +1,6 @@
 # Modelo local
 
-Implementación opcional de 0.4.0. El programa funciona sin modelo; en ese caso conserva la preparación por reglas.
+Implementación opcional, ampliada en 0.6.0. El programa funciona sin modelo; en ese caso conserva la preparación por reglas.
 
 ## Uso
 
@@ -12,7 +12,7 @@ npm run model:prepare -- --activate
 
 El script descarga unos 2,5 GB, verifica SHA-256, extrae el runtime dentro de su carpeta y guarda licencias. `--activate` configura esa carpeta para la instalación local de kahoru.lol; sin ese argumento solo prepara los archivos. También se puede indicar la carpeta en Ajustes y verificarla allí. No es un descargador integrado en el instalador.
 
-En preparación, usar **Preparar con IA local**. El cálculo es a pedido, antes de entrar en partida. Se conserva su resultado en memoria para esa sesión. No se envía el draft a servicios de IA.
+En preparación, **Analizar configuración con IA** compara runas y compras; **Preparar con IA local** prioriza el planteamiento. El primero también admite ejecución automática al completar el draft, con preferencia persistente. Se conserva su resultado en memoria para esa sesión. No se envía el draft a servicios de IA.
 
 ## Diseño y límites
 
@@ -24,4 +24,12 @@ El proceso escucha solo en loopback, con una clave efímera, sin herramientas ni
 
 La GPU se usa durante la preparación, no durante la consulta del plan en partida. Vulkan permite usar GPU compatibles; no se garantiza el mismo tiempo en CPU o equipos modestos. El objetivo de menos de 200 MB de la app no incluye una inferencia opcional que carga varios GB temporalmente.
 
-La cobertura estratégica depende de los hechos del motor, todavía limitados. El modelo no consulta Internet, no aprende automáticamente de notas del parche y no calibra builds ni matchups.
+La cobertura estratégica depende de los hechos del motor, todavía limitados. El modelo recibe datos recopilados por la app; no navega por su cuenta ni se entrena con cada actualización. Sus elecciones no calibran tasas de victoria ni prueban superioridad competitiva.
+
+## Comparar configuraciones
+
+**Analizar configuración con IA** compara runas y compras completas, en lugar de limitarse a ordenar frases. También puede ejecutarse automáticamente al completar el draft, con el modelo configurado; la preferencia se puede desactivar. La configuración elegida se muestra con sus motivos antes de la importación explícita.
+
+El contrato de esta operación está separado del resumen estratégico: candidates contiene hasta doce configuraciones y sus motivos referenciados. La respuesta solo contiene planId y reasonIds. Se valida pertenencia y ausencia de duplicados, y se descartan resultados si cambió el draft, la elección manual o empezó la partida. El contexto máximo es 64 KB y el runtime dispone de 16.384 tokens de contexto.
+
+El modelo puede evaluar los compromisos de los candidatos. No crea IDs de runas u objetos ni modifica libremente el cliente; tampoco demuestra que haya encontrado una configuración óptima. La evaluación por campeón y matchup sigue siendo necesaria.

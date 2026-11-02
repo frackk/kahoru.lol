@@ -1,5 +1,6 @@
 mod catalog;
 mod client;
+mod configuration_model;
 mod game_data;
 mod knowledge;
 mod loadout;
@@ -49,6 +50,19 @@ async fn configure_local_model(
 #[tauri::command]
 fn cancel_strategy(request_id: String, state: State<'_, AppState>) {
     state.model.cancel(&request_id);
+}
+#[tauri::command]
+async fn analyze_configuration(
+    request_id: String,
+    session_id: String,
+    champion_id: u32,
+    context: String,
+    state: State<'_, AppState>,
+) -> Result<String, String> {
+    if configuration_model::read(&context)?.is_none() {
+        return Err("Falta el contexto de configuraciones".into());
+    }
+    generate_strategy(request_id, session_id, champion_id, context, state).await
 }
 #[tauri::command]
 async fn generate_strategy(
@@ -427,7 +441,8 @@ pub fn run() {
             get_local_model,
             configure_local_model,
             cancel_strategy,
-            generate_strategy
+            generate_strategy,
+            analyze_configuration
         ])
         .run(tauri::generate_context!())
         .expect("No se pudo iniciar kahoru.lol");

@@ -77,6 +77,9 @@ try {
   assert.ok(page, "No se encontró la ventana principal");
   const errors = [];
   page.on("pageerror", (error) => errors.push(error.message));
+  await page.evaluate(() =>
+    globalThis.localStorage.setItem("kahoru.configuration-auto.v1", "false"),
+  );
   if (process.argv.includes("--sources")) {
     const coverage = [];
     for (const [championId, role] of [
@@ -138,6 +141,7 @@ try {
   await page.getByRole("button", { name: "Agregar ban", exact: true }).click();
   await page.getByRole("textbox", { name: "Buscar campeón" }).fill(banned.name);
   await page.getByRole("button", { name: banned.name, exact: true }).click();
+  await page.locator(".ban-list button").first().waitFor();
   assert.equal(await page.locator(".ban-list button").count(), 1);
   assert.equal(await page.locator(".champion-grid button").count(), 0);
   await page
@@ -151,9 +155,10 @@ try {
   }
   const withProvider = process.argv.includes("--provider");
   const picks = withProvider
-    ? [82, 234, 80, 222, 432, 113, 141, 134, 21, 50].map((id) =>
-        catalog.champions.find((c) => c.id === id),
-      )
+    ? (process.argv.includes("--past-draft")
+        ? [133, 234, 30, 21, 161, 54, 31, 202, 115, 497]
+        : [82, 234, 80, 222, 432, 113, 141, 134, 21, 50]
+      ).map((id) => catalog.champions.find((c) => c.id === id))
     : catalog.champions.slice(0, 10);
   if (withProvider)
     await page
@@ -189,7 +194,10 @@ try {
   });
   let chosenHeading;
   let preparedSkills;
-  if (process.argv.includes("--roles-model")) {
+  if (
+    process.argv.includes("--roles-model") ||
+    process.argv.includes("--roles-configuration-model")
+  ) {
     for (const role of ["TOP", "JUNGLE", "MID", "BOT", "SUPPORT"]) {
       await page.getByLabel("Tu posición", { exact: true }).selectOption(role);
       await page.waitForTimeout(500);
@@ -198,6 +206,33 @@ try {
           exact: true,
         })
         .waitFor({ state: "hidden", timeout: 30000 });
+      if (process.argv.includes("--roles-configuration-model")) {
+        await page
+          .getByRole("button", {
+            name: "Analizar configuración con IA",
+            exact: true,
+          })
+          .click();
+        await page.waitForFunction(
+          () =>
+            !globalThis.document
+              .querySelector(".configuration-analysis button")
+              ?.textContent?.includes("Comparando"),
+          null,
+          { timeout: 120000 },
+        );
+        assert.match(
+          await page.locator(".configuration-analysis").innerText(),
+          /Configuración elegida con el análisis local/,
+        );
+        await mkdir("test-results", { recursive: true });
+        await writeFile(
+          "test-results/configuration-" + role + ".txt",
+          await page.locator(".configuration-analysis").innerText(),
+        );
+        console.log("Configuración local por rol:", role);
+        continue;
+      }
       await page
         .getByRole("button", { name: "Preparar con IA local", exact: true })
         .click();
@@ -242,6 +277,61 @@ try {
       ),
       "flashF",
     );
+  }
+  if (
+    process.argv.includes("--configuration-model") ||
+    process.argv.includes("--configuration-auto")
+  ) {
+    if (process.argv.includes("--configuration-auto")) {
+      await page
+        .getByRole("checkbox", {
+          name: "Analizar con IA al completar el draft",
+          exact: true,
+        })
+        .check();
+      await page
+        .getByRole("button", {
+          name: "Comparando configuraciones…",
+          exact: true,
+        })
+        .waitFor({ timeout: 10000 });
+    } else {
+      await page
+        .getByRole("button", {
+          name: "Analizar configuración con IA",
+          exact: true,
+        })
+        .click();
+    }
+    await page.waitForFunction(
+      () =>
+        !globalThis.document
+          .querySelector(".configuration-analysis button")
+          ?.textContent?.includes("Comparando"),
+      null,
+      { timeout: 120000 },
+    );
+    assert.match(
+      await page.locator(".configuration-analysis").innerText(),
+      /Configuración elegida con el análisis local/,
+    );
+    chosenHeading = await page.locator(".selected-plan h2").innerText();
+    await mkdir("test-results", { recursive: true });
+    await writeFile(
+      "test-results/configuration-model.txt",
+      await page.locator(".configuration-analysis").innerText(),
+    );
+    await page
+      .locator(".configuration-analysis")
+      .screenshot({ path: "test-results/configuration-model.png" });
+    console.log("IA local: configuración completa elegida y validada.");
+    if (process.argv.includes("--configuration-auto"))
+      await page
+        .getByRole("checkbox", {
+          name: "Analizar con IA al completar el draft",
+          exact: true,
+        })
+        .uncheck();
   }
   if (process.argv.includes("--model")) {
     const modelStarted = performance.now();

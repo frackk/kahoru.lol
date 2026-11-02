@@ -120,7 +120,7 @@ export function LocalStrategy({
           ))}
       <p className="small-note">
         {text
-          ? `${model?.model ?? "Modelo local"} · Prioridades elegidas entre hechos del motor. No cambia las compras ni las runas y no utiliza datos de la partida en curso.`
+          ? `${model?.model ?? "Modelo local"} · Prioridades elegidas entre hechos del motor. Este planteamiento conserva la configuración elegida.`
           : "Lectura por reglas del draft. La selección de prioridades con IA es opcional y necesita el modelo configurado en Ajustes."}
       </p>
       {error && <p role="status">{error}</p>}
@@ -161,7 +161,7 @@ export function LocalModelSettings() {
   }
   return (
     <section className="panel settings">
-      <h2>Estrategia con IA local</h2>
+      <h2>Análisis con IA local</h2>
       <p>
         {status?.model ?? "Qwen3 4B Instruct 2507"} ·{" "}
         {status?.installed ? "Configurado" : "Sin configurar"}

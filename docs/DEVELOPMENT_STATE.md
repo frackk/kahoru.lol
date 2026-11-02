@@ -1,6 +1,6 @@
 # Continuidad del desarrollo
 
-Punto de trabajo: 2 de noviembre de 2026, entrega 0.5.0.
+Punto de trabajo: 2 de noviembre de 2026, entrega 0.6.0.
 
 ## Repositorio y decisiones
 
@@ -55,3 +55,17 @@ Se comprobó además el modelo real en los cinco roles y se corrigió la reapari
 Ampliar candidatos e interacciones de campeón/runas/objetos con evidencia revisada. Evaluar pares de drafts del mismo campeón en los cinco roles y revisar los resultados estratégicos, además de invariantes. Integrar otra fuente estadística solo con acceso y contrato comprobados. Agregar conocimiento de aperturas y lado del mapa antes de fijar buff inicial. Ampliar validación de campeones con reglas especiales de habilidades. Todavía faltan la optimización conjunta profunda, el meta de varios proveedores, un agente experto y la evaluación competitiva de todo el catálogo.
 
 La instalación existente en E: se actualizó a 0.5.0 y pasó el recorrido nativo con proveedor y detección real. Los hashes y condiciones quedan en test-results/release-verification.json. La última revisión corrige candidatos incompatibles que desplazaban rutas válidas o dejaban al primer plan sin marca de recomendado.
+
+## Entrega 0.6.0: elección conjunta
+
+El usuario aclaró que quiere el mismo proceso para cualquier campeón y rol: usar fuentes como evidencia y analizar la configuración, sin copiar una página ni reproducir iTero como respuesta esperada. El draft aportado quedó anónimo en tests/fixtures/contrasting-drafts.ts; no se usan resultado, oro, compras finales ni identidades como entradas.
+
+- configurationSearch cruza páginas completas, claves alternativas y ajustes de filas con compras contextualizadas. Se reserva una referencia observada y hasta doce candidatos con motivos y referencias. Identidad de compra inferida de los objetos del campeón/rol; no hay reglas exclusivas para Viego o Elise.
+- Las variantes mantienen las dos primeras compras y sustituyen un objeto posterior. Los efectos se comprueban contra descripciones del paquete. El espacio sigue acotado; esto no equivale a optimizar todos los objetos posibles ni a criterio profesional validado.
+- configurationContext incluye kits conocidos, runas, objetos, spells, muestras y candidatos. La IA local ahora puede elegir una configuración completa mediante analyze_configuration, además de seleccionar frases del planteamiento.
+- configuration_model.rs valida plan y motivos; SessionPlans rechaza firmas obsoletas, elecciones manuales cambiadas o sesiones congeladas. Los candidatos elegidos explícitamente conservan lugar en el conjunto cuando siguen siendo válidos.
+- Preferencia de IA automática al completar el draft: activa por defecto si el modelo está configurado; puede desactivarse. Espera 1,5 s de estabilidad y cancela al cambiar contexto. Sin modelo o ante error quedan las propuestas por reglas. La importación sigue requiriendo clic.
+- 388 pruebas TypeScript por defecto; seis evaluaciones optativas con caché real y 27 pruebas Rust. La cobertura sintética de los 173 campeones comprueba estructura, no calidad competitiva.
+- La primera comprobación nativa con el draft aportado pasó: doce candidatos, elección con IA, motivos validados, fases y continuidad. Quedaron Conquistador y defensa mágica como alternativa seleccionada; Lluvia de Espadas también estaba disponible. No se toma esa elección como prueba de superioridad frente a iTero.
+
+Los siguientes criterios de calidad son ampliar candidatos coherentes de primera compra, modelar interacciones y revisar decisiones con pares de drafts, no solo sumar frases o reglas aisladas. Fuente estadística adicional, evaluación experta y modelos de matchup siguen pendientes. El usuario dejó la PC y pidió continuar sin esperar preguntas; registrar las dudas para la próxima sesión.

@@ -19,7 +19,7 @@ Carpeta de trabajo en este equipo: `E:\Cosas\kahoru.lol`.
 
 ## Estado
 
-La versión 0.5.0 lee el cliente local, detecta fases y completa picks, hovers aliados y bans. Incluye imágenes de campeones, runas, fragmentos, objetos y spells. El ranking por composición y el champion pool siguen disponibles.
+La versión 0.6.0 lee el cliente local, detecta fases y completa picks, hovers aliados y bans. Incluye imágenes de campeones, runas, fragmentos, objetos y spells. El ranking por composición y el champion pool siguen disponibles.
 
 Los 173 campeones tienen metadatos del kit y páginas recomendadas por Riot. Las builds usan análisis de OP.GG por campeón y posición, con parche y muestras; si faltan datos compatibles no se inventa una ruta. Se comparan hasta tres variantes construibles. El ranking todavía usa reglas cualitativas, con cobertura desigual de rasgos y sin matchups empíricos; no predice victoria. El simulador se identifica como entrada manual.
 
@@ -84,3 +84,5 @@ El workflow Windows repite las verificaciones y prepara el instalador como artef
 Antes de colaborar, leer [AGENTS.md](AGENTS.md) y la especificación. Las integraciones con Riot requieren verificación técnica y revisión de su uso antes de habilitarse.
 
 kahoru.lol isn't endorsed by Riot Games and doesn't reflect the views or opinions of Riot Games or anyone officially involved in producing or managing Riot Games properties. Riot Games, and all associated properties are trademarks or registered trademarks of Riot Games, Inc.
+
+En 0.6, Kahoru compara configuraciones completas de runas y compras para el campeón y rol, incluidas claves alternativas y sustituciones contextualizadas. El modelo local puede evaluar los kits del draft y elegir entre esas configuraciones. El espacio de búsqueda sigue acotado; no se afirma una optimización perfecta ni calidad competitiva validada para todo el catálogo.

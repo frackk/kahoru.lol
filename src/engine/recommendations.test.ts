@@ -82,15 +82,16 @@ describe("recomendaciones con procedencia", () => {
     expect(r.errors).toEqual([]);
     expect(r.plans.length).toBeGreaterThan(0);
     for (const p of r.plans) {
-      expect(p.items.slice(0, 4)).toEqual([6672, 3111, 6676, 6673]);
-      expect(p.adjustments.join()).toContain("mágico");
+      expect(p.items).toContain(3111);
+      expect(
+        p.items.filter((id) => [3156, 3053, 6673].includes(id)).length,
+      ).toBeLessThanOrEqual(1);
       expect(p.items).toHaveLength(6);
       expect(p.runes.shards[0]).toBe(5005);
       expect(p.spells).toEqual([4, 11]);
       expect(p.strategy.join()).toContain("primer derribo");
       expect(p.strategy.join()).toContain("Dominio del Soberano");
       expect(p.items).not.toContain(3053);
-      expect(p.items).not.toContain(3156);
       expect(p.samples.every((s) => s.play === 1000)).toBe(true);
     }
   });

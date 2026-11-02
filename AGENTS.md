@@ -34,4 +34,4 @@ Data Dragon aporta datos estáticos, no estadísticas del meta. Cada agregado de
 
 ## Etapa actual
 
-La versión 0.5.0 añade ajustes contextuales acotados, orden de habilidades, matchups observados y preferencia D/F a las integraciones de 0.4.0. Los límites y pruebas están en `docs/VALIDATION.md` y `docs/RECOMMENDATIONS.md`. Siguen pendientes la calibración, matchups empíricos, contraste entre proveedores estadísticos y registro ante Riot. No presentar cobertura del catálogo como calidad estratégica validada para todos los campeones.
+La versión 0.6.0 añade búsqueda conjunta de runas y objetos para el catálogo y elección opcional con IA local. La validez estructural está probada; la calidad estratégica completa sigue en evaluación. Los límites y pruebas están en `docs/VALIDATION.md` y `docs/RECOMMENDATIONS.md`. Siguen pendientes la calibración, matchups empíricos, contraste entre proveedores estadísticos y registro ante Riot. No presentar cobertura del catálogo como calidad estratégica validada para todos los campeones.

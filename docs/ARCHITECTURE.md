@@ -1,18 +1,18 @@
 # Arquitectura
 
-Versión 0.4.0. Tauri 2, Rust y WebView2 alojan React/TypeScript. No hay backend remoto propio ni claves de Riot empaquetadas.
+Versión 0.6.0. Tauri 2, Rust y WebView2 alojan React/TypeScript. No hay backend remoto propio ni claves de Riot empaquetadas.
 
-| Módulo                                 | Responsabilidad                                                         |
-| -------------------------------------- | ----------------------------------------------------------------------- |
-| `client.rs`                            | Descubrimiento de LCU, TLS y snapshots públicos sin identidades.        |
-| `session.rs`                           | Simulador, revisiones y transiciones.                                   |
-| `game_data.rs`                         | Paquete oficial, imágenes y activación con recuperación.                |
-| `knowledge.rs`                         | Kits, posiciones y páginas recomendadas; validación de caché.           |
-| `statistics.rs` / `provider_format.rs` | OP.GG, caché y decodificación sin ejecutar texto del proveedor.         |
-| `loadout.rs`                           | Importación explícita, respaldo, lectura posterior y restauración.      |
-| `local_model.rs`                       | Modelo opcional en proceso separado, selección de hechos y cancelación. |
-| `src/engine/`                          | Ranking, hipótesis de roles, candidatos, compras y estrategia.          |
-| `src/liveSession.ts`                   | Continuidad del cliente y preparación independiente de la pestaña.      |
+| Módulo                                 | Responsabilidad                                                           |
+| -------------------------------------- | ------------------------------------------------------------------------- |
+| `client.rs`                            | Descubrimiento de LCU, TLS y snapshots públicos sin identidades.          |
+| `session.rs`                           | Simulador, revisiones y transiciones.                                     |
+| `game_data.rs`                         | Paquete oficial, imágenes y activación con recuperación.                  |
+| `knowledge.rs`                         | Kits, posiciones y páginas recomendadas; validación de caché.             |
+| `statistics.rs` / `provider_format.rs` | OP.GG, caché y decodificación sin ejecutar texto del proveedor.           |
+| `loadout.rs`                           | Importación explícita, respaldo, lectura posterior y restauración.        |
+| `local_model.rs`                       | Modelo separado, prioridades y elección de configuración con cancelación. |
+| `src/engine/`                          | Ranking, hipótesis de roles, candidatos, compras y estrategia.            |
+| `src/liveSession.ts`                   | Continuidad del cliente y preparación independiente de la pestaña.        |
 
 El cálculo puro recibe datos tipados. Los efectos de red, disco y escritura al cliente pertenecen a adaptadores nativos. React presenta resultados y solicita acciones; no tiene acceso general a archivos, shell ni credenciales.
 
@@ -31,3 +31,7 @@ Data Dragon se descarga por HTTPS a staging, se valida y se activa mediante índ
 `sha2` verifica integridad, `tempfile` prepara escrituras y `time` registra fechas. `windows-sys` se usa para el Job Object que evita dejar el modelo ejecutándose tras cerrar la app. No se agrega un servicio persistente para IA.
 
 Los pesos y el runtime se descargan aparte, con revisión y hashes fijados. Playwright Core solo se usa en pruebas nativas; el puerto de depuración se habilita únicamente en ese proceso temporal. SQLite sigue sin incorporarse: las cachés actuales no requieren consultas relacionales.
+
+## Configuración conjunta
+
+configurationSearch genera y puntúa pares de página y ruta. configurationContext construye un paquete acotado de evidencia para el modelo. configuration_model.rs valida el contrato de elección; local_model.rs conserva el proceso y la cancelación compartidos. SessionPlans acepta el resultado solo si coinciden firma, elección previa y sesión editable. La comprobación de firma antes de recalcular evita repetir la búsqueda en cada snapshot idéntico del cliente.

@@ -50,3 +50,13 @@ No se repitió la importación real ni se validó una partida competitiva comple
 Se actualizó la instalación existente a 0.5.0 en E:. El ejecutable instalado pasó el recorrido nativo con proveedor y cliente abierto. La comparación binaria coincide con el contenido de distribución, salvo los tres bytes de la marca de empaquetado NSIS. En una muestra de reposo de 30,13 s, con ventana oculta y LoL en sala, se midieron 195,69 MB privados y 384,00 MB de working set sumado en siete procesos; no se detectó incremento de CPU con la precisión del contador. No es una medición durante partida ni un presupuesto garantizado. Registro: test-results/idle-performance-0.5.json.
 
 La revisión final descarta incompatibilidades antes de completar candidatos y continúa buscando hasta obtener tres rutas válidas. Una compra descartada no deja al primer plan válido sin marca de recomendado. Se añade regresión con Fauces de Malmortius frente a un núcleo con Arcoescudo.
+
+## Entrega 0.6.0
+
+388 pruebas TypeScript por defecto y seis casos optativos con caché real. La búsqueda se ejecuta con fixtures sintéticos para los 173 campeones, comprobando runas, objetos únicos, costes, referencias, tamaño de candidatos y contexto menor de 64 KB. Esto no comprueba que cada build tenga calidad estratégica. Se contrastan drafts del mismo campeón y se incluyen el caso anónimo aportado por el usuario, firmas obsoletas, selección manual y congelación de resultados.
+
+27 pruebas Rust por defecto y cuatro integraciones optativas. El nuevo contrato rechaza planes ajenos, motivos de otra configuración y duplicados. Formato, ESLint, tipos y Clippy se ejecutan antes de la entrega.
+
+Las seis evaluaciones optativas usan datos reales de OP.GG en caché para Malphite top, Elise jungle, Ahri mid, Jinx bot, Leona support y Viego jungle. Recorren dos composiciones contrastantes y el draft aportado para Viego. Registro: test-results/configuration-evaluation.json, sin dataset redistribuido. Para reproducir: definir KAHORU_STATISTICS_DIRECTORY con la carpeta de caché y ejecutar npm test -- src/engine/configurationEvaluation.test.ts.
+
+La prueba nativa inicial de configuración con IA pasó sobre el draft aportado. Los flags --configuration-model, --configuration-auto, --roles-configuration-model y --past-draft amplían el recorrido de distribución. Las pruebas no escriben en el cliente real. La comparación con iTero se limita a reconocer una opción distinta; no se cuenta coincidencia de runas como un acierto.

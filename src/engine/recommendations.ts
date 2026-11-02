@@ -10,6 +10,10 @@ import { contextualLoadout } from "./loadoutContext";
 import { skillOrder, type SkillOrder } from "./skillOrder";
 import { draftSignals } from "./draftSignals";
 import { matchupEvidence, type MatchupEvidence } from "./matchups";
+import {
+  searchConfigurations,
+  type Configuration,
+} from "./configurationSearch";
 import shards from "../../data/knowledge/shards.json";
 import type { DraftSlot, Role } from "../contracts";
 import type { GameData, Item } from "../gameData";
@@ -73,6 +77,7 @@ export interface RankEntry {
   tradeoff: string;
 }
 export interface Recommendation {
+  candidates?: Configuration[];
   plans: Plan[];
   ranking: RankEntry[];
   errors: string[];
@@ -418,6 +423,7 @@ export function recommend(
   ctx: DraftContext,
   pool?: number[],
   analysis?: Analysis,
+  preferredConfigurationId?: string,
 ): Recommendation {
   const signature = JSON.stringify([
     ctx,
@@ -593,7 +599,13 @@ export function recommend(
     candidates.push({ ids: base, samples: [], fit: 0 });
   candidates.sort((a, b) => b.fit - a.fit);
   for (const candidate of candidates) {
-    if (result.plans.length === 3) break;
+    if (
+      result.plans.length >= 3 &&
+      !preferredConfigurationId?.startsWith(
+        `config-${candidate.ids.join("-")}-`,
+      )
+    )
+      continue;
     const index = result.plans.length;
     try {
       const starter = a.starter_items.ids;
@@ -687,6 +699,17 @@ export function recommend(
     errors.push(
       "La fuente no ofrece una ruta completa compatible; no añadimos objetos de relleno.",
     );
+  const configurations = searchConfigurations(
+    data,
+    ctx,
+    result.plans,
+    providerRunes,
+    preferredConfigurationId,
+  );
+  if (configurations.length) {
+    result.candidates = configurations;
+    result.plans = configurations.slice(0, 3);
+  }
   return result;
 }
 

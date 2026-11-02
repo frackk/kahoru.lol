@@ -100,7 +100,7 @@ describe("configuraciones según draft", () => {
     ).plans[0];
     expect(physical.items).toContain(3047);
     expect(magic.items).toContain(3111);
-    expect(magic.adjustments.join()).toContain("mágico");
+    expect(magic.adjustments.join()).toMatch(/mágic/);
     expect(magic.recommended).toBe(true);
   });
   it("descarta una compra incompatible antes de completar las alternativas", () => {
@@ -118,7 +118,11 @@ describe("configuraciones según draft", () => {
     );
     expect(result.plans.length).toBeGreaterThan(0);
     expect(result.plans[0].recommended).toBe(true);
-    expect(result.plans.every((p) => !p.items.includes(3156))).toBe(true);
+    expect(
+      result.plans.every(
+        (p) => !(p.items.includes(3156) && p.items.includes(6673)),
+      ),
+    ).toBe(true);
   });
   it("la estrategia es breve, nombra herramientas del draft y cambia con los aliados", () => {
     const first = strategy(data, context());

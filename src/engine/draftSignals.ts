@@ -1,5 +1,5 @@
 import type { DraftSlot } from "../contracts";
-import { kitById, profileById } from "./profiles";
+import { getClientKnowledge, kitById, profileById } from "./profiles";
 import type { DraftContext } from "./recommendations";
 
 export const removableControl =
@@ -18,7 +18,28 @@ export function controlAbility(id: number) {
 export function draftSignals(ctx: DraftContext) {
   const entries = (slots: DraftSlot[]) =>
     slots.flatMap((slot) => {
-      const profile = profileById.get(slot.championId!);
+      const original = profileById.get(slot.championId!);
+      const metadata = getClientKnowledge().champions.find(
+        (c) => c.id === slot.championId,
+      );
+      const traits = new Set(original?.traits ?? []);
+      if (metadata?.classes.includes("tank")) traits.add("frontline");
+      if (
+        metadata?.classes.includes("tank") &&
+        controlAbility(slot.championId!)
+      )
+        traits.add("engage");
+      if (
+        metadata?.abilities.some((a) =>
+          /\b(?:se cura|lo cura|cura a|curando|se sana|recupera.{0,20}vida)/iu.test(
+            a.description,
+          ),
+        )
+      )
+        traits.add("healing");
+      const profile = original
+        ? { ...original, traits: [...traits] }
+        : undefined;
       return profile
         ? [
             {

@@ -135,7 +135,7 @@ export function App() {
             ))}
           </nav>
           <div className="sidebar-bottom">
-            <span className="version">DESARROLLO · v0.5.0</span>
+            <span className="version">DESARROLLO · v0.6.0</span>
             <span>
               made by <strong>frack.one</strong>
             </span>
@@ -321,7 +321,7 @@ export function App() {
             )}
             {page === "about" && (
               <>
-                <div className="eyebrow">KAHORU.LOL · 0.5.0</div>
+                <div className="eyebrow">KAHORU.LOL · 0.6.0</div>
                 <h1>Antes de entrar a la Grieta.</h1>
                 <section className="panel about">
                   <h2>made by frack.one</h2>

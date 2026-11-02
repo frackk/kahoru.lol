@@ -153,11 +153,24 @@ impl Service {
         context: String,
         allowed: impl Fn() -> bool,
     ) -> Result<String, String> {
-        if context.len() > 32_000 || context.len() < 30 || id.len() > 100 {
+        if context.len() > 64_000 || context.len() < 30 || id.len() > 100 {
             return Err("Contexto de preparación inválido".into());
         }
-        let facts = read_facts(&context)?;
-        let schema = selection_schema(&facts);
+        let configuration = crate::configuration_model::read(&context)?;
+        let facts = if configuration.is_none() {
+            read_facts(&context)?
+        } else {
+            vec![]
+        };
+        let schema = configuration
+            .as_ref()
+            .map(|c| crate::configuration_model::schema(c))
+            .unwrap_or_else(|| selection_schema(&facts));
+        let prompt = if configuration.is_some() {
+            include_str!("../../data/configuration-prompt.txt")
+        } else {
+            include_str!("../../data/strategy-prompt.txt")
+        };
         let _guard = self
             .lock
             .try_lock()
@@ -210,7 +223,7 @@ impl Service {
                     "-t",
                     "4",
                     "-c",
-                    "8192",
+                    "16384",
                     "-ngl",
                     "99",
                     "--timeout",
@@ -273,7 +286,7 @@ impl Service {
                         .timeout(Duration::from_secs(40))
                         .build()
                         .map_err(|_| "HTTP local no disponible")?;
-                    let response=client.post(format!("{base}/v1/chat/completions")).bearer_auth(key).json(&json!({"messages":[{"role":"system","content":include_str!("../../data/strategy-prompt.txt")},{"role":"user","content":context}],"temperature":0.2,"seed":42,"max_tokens":200,"stream":false,"response_format":{"type":"json_schema","json_schema":{"name":"priorities","strict":true,"schema":schema}}})).send().map_err(|_|"La generación local se interrumpió")?.error_for_status().map_err(|_|"El modelo rechazó el contexto")?;
+                    let response=client.post(format!("{base}/v1/chat/completions")).bearer_auth(key).json(&json!({"messages":[{"role":"system","content":prompt},{"role":"user","content":context}],"temperature":0.2,"seed":42,"max_tokens":200,"stream":false,"response_format":{"type":"json_schema","json_schema":{"name":"priorities","strict":true,"schema":schema}}})).send().map_err(|_|"La generación local se interrumpió")?.error_for_status().map_err(|_|"El modelo rechazó el contexto")?;
                     let mut bytes = vec![];
                     response
                         .take(64_001)
@@ -286,6 +299,12 @@ impl Service {
                         serde_json::from_slice(&bytes).map_err(|_| "Respuesta local inválida")?;
                     if value["choices"][0]["finish_reason"] != "stop" {
                         return Err("El modelo no terminó el texto dentro del límite".into());
+                    }
+                    let answer = value["choices"][0]["message"]["content"]
+                        .as_str()
+                        .unwrap_or_default();
+                    if let Some(candidates) = &configuration {
+                        return crate::configuration_model::select(candidates, answer);
                     }
                     select_facts(
                         &facts,

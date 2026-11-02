@@ -16,6 +16,7 @@ import { type DraftContext } from "../engine/recommendations";
 import { profileById, profiles } from "../engine/profiles";
 import shardData from "../../data/knowledge/shards.json";
 import { SkillOrder } from "./SkillOrder";
+import { ConfigurationAnalysis } from "./ConfigurationAnalysis";
 
 export function Preparation({
   context,
@@ -69,6 +70,9 @@ export function Preparation({
     : sessionPlans.prepare(data, ctx, editable, poolOnly ? pool : undefined);
   const result = prepared?.result;
   const selected = result?.plans.find((p) => p.id === prepared?.selected);
+  const decision = result?.candidates?.find(
+    (p) => p.id === prepared?.selected,
+  )?.decision;
   const statistics = readStatistics(ctx.playerChampionId, ctx.playerRole);
   const rune = (id: number) =>
     data.trees
@@ -202,6 +206,27 @@ export function Preparation({
           context={ctx}
           plan={selected}
           editable={editable}
+        />
+      )}
+      {result && prepared && (
+        <ConfigurationAnalysis
+          data={data}
+          context={ctx}
+          result={result}
+          selectedId={prepared.selected}
+          editable={editable}
+          choice={prepared.modelChoice}
+          onChoose={(id, reasons, previous) => {
+            const accepted = sessionPlans.applyModelChoice(
+              ctx.sessionId,
+              result.signature,
+              id,
+              reasons,
+              previous,
+            );
+            if (accepted) render((n) => n + 1);
+            return accepted;
+          }}
         />
       )}
       {editable && result && (
@@ -342,9 +367,23 @@ export function Preparation({
                 <button onClick={() => void copy()}>Copiar plan</button>
               </div>
               <p>{selected.reason}</p>
-              <p className="small-note">{selected.source}</p>
+              {prepared?.modelChoice?.planId === selected.id && (
+                <span className="badge accent">Elegida con IA local</span>
+              )}
+              {decision && (
+                <details>
+                  <summary>Decisiones de esta configuración</summary>
+                  {decision.changes.map((line) => (
+                    <p key={line}>{line}</p>
+                  ))}
+                  {decision.reasons.map((reason) => (
+                    <p key={reason.id}>{reason.text}</p>
+                  ))}
+                </details>
+              )}
               <details>
-                <summary>Muestras de la fuente</summary>
+                <summary>Fuentes y muestras</summary>
+                <p className="small-note">{selected.source}</p>
                 {selected.samples.map((sample, i) => (
                   <p key={i}>
                     {sample.label}: {sample.play.toLocaleString("es-AR")}{" "}

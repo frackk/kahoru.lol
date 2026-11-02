@@ -1,6 +1,6 @@
 # kahoru.lol — Especificación del producto
 
-**Estado:** desarrollo de Fases 3 y 4 · **Versión del documento:** 0.5 · **Última revisión:** 2026-11-02
+**Estado:** desarrollo de Fases 3 y 4 · **Versión del documento:** 0.6 · **Última revisión:** 2026-11-02
 **Repositorio:** https://github.com/frackk/kahoru.lol  
 **Autor:** frack.one  
 **Plataforma inicial:** Windows 10/11, escritorio  
@@ -8,7 +8,7 @@
 
 > Documento de referencia para el desarrollo. Describe el producto que se quiere construir, no funciones que ya estén implementadas. Ante una discrepancia entre este documento y el código, registrar la diferencia y decidir explícitamente cuál debe actualizarse.
 
-**Estado actual (0.5.0):** lector experimental del cliente, simulador e imágenes oficiales; 173 campeones con kits, posiciones y 825 páginas de Riot. Las builds consultan OP.GG por campeón y rol y requieren datos compatibles. Importación explícita de runas y spells con respaldo y restauración, probada localmente. Estrategia previa por reglas y modelo local opcional que selecciona hechos del motor. Se conserva el plan en partida. Se añaden ajustes contextuales acotados de runas, spells y botas, componentes de heridas graves, orden de habilidades 1–18 cuando es verificable y matchups publicados para posiciones confirmadas. Siguen pendientes la optimización conjunta completa, el contraste entre proveedores, la calibración y el registro ante Riot. Ver `RECOMMENDATIONS.md`, `CLIENT_INTEGRATION.md`, `LOCAL_MODEL.md` y `VALIDATION.md`.
+**Estado actual (0.6.0):** lector experimental del cliente, simulador e imágenes oficiales; 173 campeones con kits, posiciones y 825 páginas de Riot. Las builds consultan OP.GG por campeón y rol y requieren datos compatibles. Importación explícita de runas y spells con respaldo y restauración, probada localmente. Estrategia previa por reglas y modelo local opcional que selecciona hechos del motor. Se conserva el plan en partida. Se añaden ajustes contextuales acotados de runas, spells y botas, componentes de heridas graves, orden de habilidades 1–18 cuando es verificable y matchups publicados para posiciones confirmadas. La búsqueda conjunta compara páginas completas, claves alternativas y sustituciones de objetos; la IA local puede elegir una configuración con motivos validados. La búsqueda sigue acotada y requiere evaluación estratégica. Siguen pendientes la optimización completa, el contraste entre proveedores, la calibración y el registro ante Riot. Ver `RECOMMENDATIONS.md`, `CLIENT_INTEGRATION.md`, `LOCAL_MODEL.md` y `VALIDATION.md`.
 
 ## 1. Visión
 
