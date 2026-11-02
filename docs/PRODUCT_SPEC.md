@@ -648,9 +648,9 @@ No crear todas estas carpetas vacías desde el inicio. Añadirlas progresivament
 
 Las decisiones nuevas se documentarán en `docs/decisions/` con contexto, opciones, elección y consecuencias.
 
-## 18. Reglas para agentes de programación
+## 18. Pautas de desarrollo
 
-Codex, Sol, Astra o cualquier colaborador deben leer **este documento y `AGENTS.md` antes de modificar código**.
+Los colaboradores deben leer **este documento y `AGENTS.md` antes de modificar código**.
 
 - Trabajar por fases y tareas pequeñas. No implementar funcionalidades futuras sin una petición explícita.
 - Identificar primero archivos y contratos afectados; proponer cambios concretos, no reestructuraciones automáticas masivas.
@@ -664,7 +664,7 @@ Codex, Sol, Astra o cualquier colaborador deben leer **este documento y `AGENTS.
 
 ## 19. Primer trabajo de implementación
 
-**Primer encargo para Codex:** investigar y construir el esqueleto de la Fase 1, no el motor de recomendaciones definitivo. Entregar una aplicación Tauri ejecutable con navegación entre estados, simulador de draft, componentes de interfaz iniciales, tests, instrucciones de instalación y un README preciso. Mantener intactos los contratos públicos de la especificación o proponer cambios documentados antes de escribirlos.
+**Primera implementación:** investigar y construir el esqueleto de la Fase 1, no el motor de recomendaciones definitivo. Entregar una aplicación Tauri ejecutable con navegación entre estados, simulador de draft, componentes de interfaz iniciales, tests, instrucciones de instalación y un README preciso. Mantener intactos los contratos públicos de la especificación o proponer cambios documentados antes de escribirlos.
 
 **Antes de integrar datos reales:** confirmar que el proyecto arranca en Windows, soporta el simulador de los diez picks, actualiza el estado sin duplicados y pasa pruebas de tipos y tests. El siguiente trabajo será la investigación de la Fase 0 que todavía no esté resuelta y la validación del adaptador real.
 
