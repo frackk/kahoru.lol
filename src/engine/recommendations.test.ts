@@ -23,6 +23,56 @@ function context(championId: number | null = 103): DraftContext {
   };
 }
 describe("planes revisados", () => {
+  it("prioriza una defensa según el draft conocido y explica la elección", () => {
+    const enemy = (id: number) => ({
+      championId: id,
+      locked: true,
+      role: null,
+    });
+    const physical = recommend(data, {
+      ...context(),
+      enemies: [enemy(51), enemy(122), enemy(238)],
+    });
+    expect(physical.plans[0].id).toBe("armor");
+    expect(physical.plans[0].recommended).toBe(true);
+    expect(physical.plans[0].reason).toContain("perfiles físicos");
+    const magic = recommend(data, {
+      ...context(),
+      enemies: [enemy(99), enemy(134), enemy(32)],
+    });
+    expect(magic.plans[0].id).toBe("magic");
+  });
+  for (const role of ["TOP", "JUNGLE", "MID", "BOT", "SUPPORT"] as const)
+    for (let sample = 0; sample < 10; sample++)
+      it(`${role}: draft reproducible ${sample + 1}`, () => {
+        const own = profiles.filter((p) => p.roles.includes(role))[
+          sample % profiles.filter((p) => p.roles.includes(role)).length
+        ];
+        const others = profiles.filter((p) => p.championId !== own.championId);
+        const start = (sample * 7) % others.length;
+        const picked = Array.from(
+          { length: 11 },
+          (_, i) => others[(start + i) % others.length].championId,
+        );
+        const slot = (championId: number) => ({
+          championId,
+          locked: true,
+          role: null,
+        });
+        const ctx = {
+          ...context(own.championId),
+          playerRole: role,
+          allies: [slot(own.championId), ...picked.slice(0, 4).map(slot)],
+          enemies: picked.slice(4, 9).map(slot),
+          bans: picked.slice(9),
+        };
+        const r = recommend(data, ctx);
+        expect(r.plans.length).toBeGreaterThan(0);
+        expect(r.errors).toEqual([]);
+        expect(r.plans.filter((p) => p.recommended)).toHaveLength(1);
+        const excluded = new Set([own.championId, ...picked]);
+        expect(r.ranking.every((c) => !excluded.has(c.championId))).toBe(true);
+      });
   for (const p of profiles)
     for (const role of p.roles)
       it(`${p.slug} ${role}: páginas y rutas construibles`, () => {

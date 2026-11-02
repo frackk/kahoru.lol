@@ -1,9 +1,12 @@
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile, mkdtemp } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { chromium } from "playwright-core";
 
 const port = 19223;
+const userData = await mkdtemp(join(tmpdir(), "kahoru-test-"));
 const executable = new URL(
   process.argv[2] === "--release"
     ? "../src-tauri/target/release/kahoru-lol.exe"
@@ -15,7 +18,8 @@ const child = spawn(fileURLToPath(executable), [], {
   windowsHide: true,
   env: {
     ...process.env,
-    WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS: `--remote-debugging-port=${port}`,
+    WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS: `--remote-debugging-port=${port} --disable-gpu`,
+    WEBVIEW2_USER_DATA_FOLDER: userData,
   },
   stdio: ["ignore", "pipe", "pipe"],
 });
@@ -116,6 +120,13 @@ try {
       .click();
   }
   await page.getByRole("heading", { name: "Draft confirmado" }).waitFor();
+  await page.getByRole("heading", { name: "Runas completas" }).waitFor();
+  await page.getByRole("button", { name: /^Resistir ataques físicos/ }).click();
+  await page
+    .locator(".selected-plan")
+    .getByRole("heading", { name: "Resistir ataques físicos", exact: true })
+    .waitFor();
+  assert.equal(await page.locator(".selected-plan .rune-row img").count(), 9);
   const firstSlot = page.locator(".allies .slot").first();
   await firstSlot.locator(".slot-main").click();
   await page.getByRole("button", { name: "Intercambiar", exact: true }).click();
@@ -146,6 +157,10 @@ try {
     .getByRole("button", { name: "Iniciar partida", exact: true })
     .click();
   await page.getByRole("heading", { name: "Partida", exact: true }).waitFor();
+  await page
+    .locator(".selected-plan")
+    .getByRole("heading", { name: "Resistir ataques físicos", exact: true })
+    .waitFor();
   await page.getByRole("button", { name: "Desconectar", exact: true }).click();
   await page
     .getByText("Conexión simulada interrumpida.", { exact: false })
@@ -166,6 +181,26 @@ try {
   await page.getByRole("button", { name: "Ajustes", exact: true }).click();
   assert.equal(await page.getByRole("checkbox").isChecked(), true);
   await page.getByRole("checkbox").uncheck();
+  await page
+    .getByRole("button", { name: "Datos del juego", exact: true })
+    .click();
+  await page.locator(".library-grid img").first().waitFor();
+  await page.locator(".library-grid img").evaluateAll(async (images) => {
+    for (const img of images) img.loading = "eager";
+    await Promise.all(images.map((img) => img.decode()));
+  });
+  await page.screenshot({ path: "test-results/native-items.png" });
+  if (process.argv.includes("--update")) {
+    await page
+      .getByRole("button", { name: "Comprobar datos", exact: true })
+      .click();
+    await page.getByText(/Datos oficiales .* comprobados/).waitFor();
+  }
+  await page.getByRole("button", { name: "Runas", exact: true }).click();
+  await page.locator(".library-grid img").evaluateAll(async (images) => {
+    for (const img of images) img.loading = "eager";
+    await Promise.all(images.map((img) => img.decode()));
+  });
   await page.getByRole("button", { name: "Acerca de", exact: true }).click();
   await page.getByRole("heading", { name: "made by frack.one" }).waitFor();
   assert.equal(await page.getByRole("alert").count(), 0);
