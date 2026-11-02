@@ -22,3 +22,7 @@ La prueba nativa usa comandos reales del ejecutable mediante la interfaz de WebV
 No se probaron conexión LCU, importación de runas, estadísticas, partidas reales, overlay ni compatibilidad con Vanguard: esas integraciones no forman parte de esta entrega. Tampoco se midieron FPS, CPU o memoria con LoL abierto. No se afirma haber cumplido los presupuestos de rendimiento del producto completo.
 
 El instalador se generó en Windows; queda pendiente probar instalación y desinstalación en una máquina limpia, además de Windows 10 y equipos de menor capacidad. La compilación CI debe evaluarse por separado del resultado local.
+
+## GitHub Actions
+
+El 1 de noviembre la compilación y las pruebas unitarias pasaron en GitHub; el recorrido nativo falló porque WebView2 no abrió el puerto de prueba. El workflow ahora comprueba e instala el runtime antes de abrir la aplicación. El script registra la salida del proceso y detecta cierres anticipados. La ejecución remota debe confirmar esta corrección.

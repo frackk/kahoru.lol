@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
-import { mkdir, readFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { chromium } from "playwright-core";
 
 const port = 19223;
@@ -17,8 +17,14 @@ const child = spawn(fileURLToPath(executable), [], {
     ...process.env,
     WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS: `--remote-debugging-port=${port}`,
   },
-  stdio: "ignore",
+  stdio: ["ignore", "pipe", "pipe"],
 });
+let processOutput = "";
+for (const stream of [child.stdout, child.stderr]) {
+  stream.on("data", (chunk) => {
+    processOutput = (processOutput + chunk.toString()).slice(-16_384);
+  });
+}
 let launchError;
 child.on("error", (error) => {
   launchError = error;
@@ -26,10 +32,16 @@ child.on("error", (error) => {
 let browser;
 try {
   let ready = false;
-  for (let attempt = 0; attempt < 100; attempt++) {
+  for (let attempt = 0; attempt < 200; attempt++) {
     if (launchError) throw launchError;
+    if (child.exitCode !== null)
+      throw new Error(
+        `La aplicación terminó con código ${child.exitCode}.\n${processOutput}`,
+      );
     try {
-      const response = await fetch(`http://127.0.0.1:${port}/json/version`);
+      const response = await fetch(`http://127.0.0.1:${port}/json/version`, {
+        signal: AbortSignal.timeout(1_000),
+      });
       if (response.ok) {
         ready = true;
         break;
@@ -39,7 +51,7 @@ try {
     }
     await new Promise((resolve) => setTimeout(resolve, 200));
   }
-  assert.ok(ready, "WebView2 no inició el puerto de prueba");
+  assert.ok(ready, `WebView2 no inició el puerto de prueba.\n${processOutput}`);
   browser = await chromium.connectOverCDP(`http://127.0.0.1:${port}`);
   const context = browser.contexts()[0];
   let page;
@@ -151,6 +163,8 @@ try {
     "Windows: diez picks, fases, desconexión, limpieza, ajustes y avisos verificados.",
   );
 } finally {
+  await mkdir("test-results", { recursive: true });
+  await writeFile("test-results/native-process.log", processOutput);
   if (browser) await browser.close();
   child.kill();
 }
