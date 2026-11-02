@@ -146,6 +146,41 @@ try {
     await Promise.all(images.map((img) => img.decode()));
   });
   let chosenHeading;
+  if (process.argv.includes("--roles-model")) {
+    for (const role of ["TOP", "JUNGLE", "MID", "BOT", "SUPPORT"]) {
+      await page.getByLabel("Tu posición", { exact: true }).selectOption(role);
+      await page.waitForTimeout(500);
+      await page
+        .getByText("Consultando análisis por campeón y posición…", {
+          exact: true,
+        })
+        .waitFor({ state: "hidden", timeout: 30000 });
+      await page
+        .getByRole("button", { name: "Preparar con IA local", exact: true })
+        .click();
+      await page.waitForFunction(
+        () =>
+          !globalThis.document
+            .querySelector(".strategy button")
+            ?.textContent?.includes("Preparando"),
+        null,
+        { timeout: 120000 },
+      );
+      assert.match(
+        await page.locator(".strategy").innerText(),
+        /Prioridades elegidas entre hechos del motor/,
+      );
+      await mkdir("test-results", { recursive: true });
+      await writeFile(
+        `test-results/strategy-${role}.txt`,
+        await page.locator(".strategy").innerText(),
+      );
+      console.log("Modelo local por rol:", role);
+    }
+    await page
+      .getByLabel("Tu posición", { exact: true })
+      .selectOption("JUNGLE");
+  }
   if (withProvider) {
     await page.locator(".selected-plan").waitFor({ timeout: 30000 });
     const alternatives = page.locator(".preparation > .plan-tabs button");
@@ -241,11 +276,29 @@ try {
     await page
       .getByText(/Prioridades elegidas entre hechos del motor/)
       .waitFor();
-  if (chosenHeading)
+  if (chosenHeading) {
+    if (
+      process.argv.includes("--roles-model") &&
+      !process.argv.includes("--model")
+    ) {
+      assert.doesNotMatch(
+        await page.locator(".strategy").innerText(),
+        /Con Bardo de support/,
+      );
+      assert.match(
+        await page.locator(".strategy").innerText(),
+        /Con Viego en jungla/,
+      );
+      assert.doesNotMatch(
+        await page.locator(".strategy").innerText(),
+        /Prioridades elegidas entre hechos del motor/,
+      );
+    }
     await page
       .locator(".selected-plan")
       .getByRole("heading", { name: chosenHeading, exact: true })
       .waitFor();
+  }
   await page.getByRole("button", { name: "Desconectar", exact: true }).click();
   await page
     .getByText("Conexión simulada interrumpida.", { exact: false })

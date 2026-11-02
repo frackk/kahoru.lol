@@ -67,7 +67,7 @@ La prueba nativa abre una ventana temporal, selecciona diez campeones, comprueba
 
 El workflow Windows repite las verificaciones y prepara el instalador como artefacto de compilación. Los resultados locales y límites están en [VALIDATION.md](docs/VALIDATION.md).
 
-`--provider` añade la consulta estadística real y el caso de Viego; `--model` prueba el modelo instalado. Ambos son optativos y no sustituyen la prueba offline. El modelo se descarga separado del instalador; preparación y límites en [LOCAL_MODEL.md](docs/LOCAL_MODEL.md).
+`--provider` añade la consulta estadística real y el caso de Viego; `--model` prueba el modelo instalado; `--roles-model`, sus cinco posiciones y el descarte de estrategias obsoletas. Ambos son optativos y no sustituyen la prueba offline. El modelo se descarga separado del instalador; preparación y límites en [LOCAL_MODEL.md](docs/LOCAL_MODEL.md).
 
 ## Documentación
 

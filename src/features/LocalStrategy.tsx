@@ -47,10 +47,7 @@ export function LocalStrategy({
     [payload, editable],
   );
   const previous = saved.get(context.sessionId);
-  const text =
-    previous && (!editable || previous.context === payload)
-      ? previous.text
-      : null;
+  const text = previous?.context === payload ? previous.text : null;
   async function generate() {
     if (
       pending ||
@@ -108,7 +105,9 @@ export function LocalStrategy({
             .split(/\n+/)
             .filter(Boolean)
             .map((p, i) => <p key={i}>{p}</p>)
-        : strategy(data, context).map((p) => <p key={p}>{p}</p>)}
+        : (plan?.strategy ?? strategy(data, context)).map((p) => (
+            <p key={p}>{p}</p>
+          ))}
       <p className="small-note">
         {text
           ? `${model?.model ?? "Modelo local"} · Prioridades elegidas entre hechos del motor. No cambia las compras ni las runas y no utiliza datos de la partida en curso.`

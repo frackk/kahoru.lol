@@ -34,3 +34,5 @@ Leer `AGENTS.md` y `PRODUCT_SPEC.md` antes de modificar código. No confundir la
 `f83e511` pasó GitHub Actions completo. El ejecutable 0.4.0 pasó proveedor real, modelo y actualización oficial desde sala; metadatos comprobados: 173 campeones y 825 páginas. Se preparó y activó el modelo opcional en este equipo. El instalador queda en `src-tauri/target/release/bundle/nsis/kahoru.lol_0.4.0_x64-setup.exe`.
 
 La revisión final refuerza la validación de estructuras del proveedor y la caché para rechazar datos incompatibles sin romper la interfaz. Los registros de rendimiento, capturas y pruebas locales quedan en `test-results/`, excluidos de Git. Los resultados y sus condiciones están en `VALIDATION.md`.
+
+Se comprobó además el modelo real en los cinco roles y se corrigió la reaparición de estrategias obsoletas al salir del draft. La vigencia exige que coincidan draft y plan; si cambiaron, se consulta la estrategia por reglas conservada. Recorrido reproducible: `npm run test:native -- --release --provider --roles-model --update --live`.
