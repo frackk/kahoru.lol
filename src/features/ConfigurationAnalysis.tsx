@@ -183,7 +183,7 @@ export function ConfigurationAnalysis({
         </p>
       )}
       <small>
-        {result.candidates.length} configuraciones verificadas para esta
+        {result.candidates.length} configuraciones válidas para esta
         comparación. El análisis no importa cambios al cliente por su cuenta.
       </small>
     </section>

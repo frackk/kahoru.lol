@@ -494,6 +494,10 @@ export function searchConfigurations(
     .slice(0, 12)
     .map((p, i) => ({
       ...p,
+      decision: {
+        ...p.decision,
+        reasons: p.decision.reasons.map((r, j) => ({ ...r, id: `r${i}e${j}` })),
+      },
       recommended: i === 0,
       title: i === 0 ? "Plan contextual" : `Alternativa contextual ${i + 1}`,
     }));

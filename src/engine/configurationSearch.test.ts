@@ -22,6 +22,10 @@ it("el draft aportado compara la alternativa de Lluvia de Espadas sin imponerla"
   expect(result.candidates?.every((p) => p.decision.reasons.length > 0)).toBe(
     true,
   );
+  const reasonIds = result.candidates!.flatMap((p) =>
+    p.decision.reasons.map((r) => r.id),
+  );
+  expect(new Set(reasonIds).size).toBe(reasonIds.length);
 });
 it("el mismo Viego cambia la evaluación conjunta ante primera línea o rivales frágiles", () => {
   const front = recommend(data, frontlineDraft, undefined, syntheticAnalysis());
