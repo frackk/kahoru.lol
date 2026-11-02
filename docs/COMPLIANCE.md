@@ -19,7 +19,7 @@ Registrar el producto y mantener descripción y funciones actualizadas ante Riot
 
 LCU carece de soporte garantizado para terceros. La aplicación debe conservar un modo manual cuando cambie o deje de estar disponible. Las funciones sin validación permanecen ausentes del producto; no existe un ajuste que permita habilitarlas.
 
-No se recopilan identidades, historial, credenciales ni telemetría. No se leen procesos o archivos de Riot. La interfaz no recibe permisos de archivos, shell ni red remota. El ejecutable incluye datos y recursos locales. El aviso de no afiliación está en Acerca de y README.
+No se recopilan identidades, historial, credenciales ni telemetría. El lector 0.2.0 consulta el lockfile y los metadatos de instalación locales; no accede a memoria de procesos. La interfaz no recibe permisos de archivos, shell ni red remota. El ejecutable incluye datos y recursos locales. El aviso de no afiliación está en Acerca de y README.
 
 ## Fuentes oficiales
 

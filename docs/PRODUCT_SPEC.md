@@ -8,7 +8,7 @@
 
 > Documento de referencia para el desarrollo. Describe el producto que se quiere construir, no funciones que ya estén implementadas. Ante una discrepancia entre este documento y el código, registrar la diferencia y decidir explícitamente cuál debe actualizarse.
 
-**Primera entrega:** aplicación base, simulador manual y catálogo de campeones. La conexión con LoL y los motores de recomendación siguen pendientes. Los contratos concretos y la separación entre fase y conectividad están documentados en `ARCHITECTURE.md` y `decisions/0001-desktop-foundation.md`.
+**Estado actual:** aplicación base, simulador y lector experimental del cliente local. Inicio completa equipos, picks y bans desde LoL. Los motores de recomendaciones, runas y builds siguen pendientes. Ver `CLIENT_INTEGRATION.md` para pruebas y límites.
 
 ## 1. Visión
 

@@ -1,6 +1,6 @@
 # Arquitectura
 
-La primera entrega usa Tauri 2, Rust, React y TypeScript. Es una aplicación de una sola ventana. No ejecuta servicios auxiliares ni consultas periódicas.
+La primera entrega usa Tauri 2, Rust, React y TypeScript. Es una aplicación de una sola ventana. No ejecuta servicios auxiliares. Un lector nativo consulta periódicamente la API local del cliente.
 
 ## Responsabilidades
 
