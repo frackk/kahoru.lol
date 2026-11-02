@@ -288,6 +288,13 @@ function teamProfiles(slots: DraftSlot[]): Profile[] {
       : [],
   );
 }
+function compatibleItems(ids: number[]) {
+  return [
+    [3053, 3156, 6673],
+    [3033, 3036, 6694],
+    [3135, 3137],
+  ].every((group) => ids.filter((id) => group.includes(id)).length <= 1);
+}
 export function rankChampions(
   data: GameData,
   ctx: DraftContext,
@@ -550,6 +557,7 @@ export function recommend(
     magic = signals.magic;
   for (const first of rows) {
     const ids = [...base, ...first.ids];
+    if (!compatibleItems(ids)) continue;
     const samples = [first];
     for (const row of [
       ...(a.fifth_items ?? []),
@@ -559,7 +567,8 @@ export function recommend(
       if (ids.length >= limit) break;
       if (
         row.ids.some((id) => ids.includes(id) || id === upgrade) ||
-        ids.length + row.ids.length > limit
+        ids.length + row.ids.length > limit ||
+        !compatibleItems([...ids, ...row.ids])
       )
         continue;
       ids.push(...row.ids);
@@ -583,7 +592,9 @@ export function recommend(
   if (base.length === limit)
     candidates.push({ ids: base, samples: [], fit: 0 });
   candidates.sort((a, b) => b.fit - a.fit);
-  for (const [index, candidate] of candidates.slice(0, 3).entries()) {
+  for (const candidate of candidates) {
+    if (result.plans.length === 3) break;
+    const index = result.plans.length;
     try {
       const starter = a.starter_items.ids;
       const routeProfile = {
@@ -591,17 +602,7 @@ export function recommend(
         roles: [ctx.playerRole],
         starter: starter[0],
       };
-      if (
-        ![
-          [3053, 3156, 6673],
-          [3033, 3036, 6694],
-          [3135, 3137],
-        ].every(
-          (group) =>
-            candidate.ids.filter((id) => group.includes(id)).length <= 1,
-        )
-      )
-        continue;
+      if (!compatibleItems(candidate.ids)) continue;
       const checkpoints: Plan["checkpoints"] = [];
       if (signals.healing.length >= 2) {
         for (const finishInto of candidate.ids.slice(2)) {

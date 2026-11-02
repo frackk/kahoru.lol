@@ -39,10 +39,14 @@ El recorrido `--release --provider --roles-model --update --live` también pasó
 
 ## Entrega 0.5.0
 
-211 pruebas TypeScript y 26 Rust; cuatro integraciones Rust optativas siguen excluidas por defecto. Se añaden drafts contrastantes de Elise, efectos de hovers, Limpiar frente a control removible y supresión, botas por daño, secuencias legales de habilidades, falta de muestra, matchups confirmados y compra intermedia de Orbe del Olvido sin duplicación. La preferencia Flash D/F pasa por aplicación y lectura posterior en el adaptador simulado.
+212 pruebas TypeScript y 26 Rust; cuatro integraciones Rust optativas siguen excluidas por defecto. Se añaden drafts contrastantes de Elise, efectos de hovers, Limpiar frente a control removible y supresión, botas por daño, secuencias legales de habilidades, falta de muestra, matchups confirmados y compra intermedia de Orbe del Olvido sin duplicación. La preferencia Flash D/F pasa por aplicación y lectura posterior en el adaptador simulado.
 
 El recorrido nativo de distribución pasó con proveedor, modelo, actualización y cliente en sala. Comprueba 18 puntos de habilidad, tabla de niveles, preferencia de hechizos y conservación del orden en partida. No escribe páginas del usuario. El recorrido adicional comprueba el modelo en cinco roles y recopila cobertura de los campos publicados para Malphite top, Elise jungle, Ahri mid, Jinx bot y Leona support. Todos devolvieron secuencias de 15 niveles y seis filas de matchup; esto verifica el contrato, no la calidad de cada recomendación.
 
 Comandos: `node scripts/test-native.mjs --release --provider --model --update --live` y `node scripts/test-native.mjs --release --provider --roles-model --sources --update --live`. Registros locales en test-results/source-coverage.json, strategy-*.txt y capturas. La primera generación de esta sesión tardó 44.522 ms mientras también compilaba Rust; no es un benchmark comparable ni una garantía de tiempo dentro del draft.
 
 No se repitió la importación real ni se validó una partida competitiva completa en esta entrega. Siguen pendientes la segunda fuente estadística, las reglas especiales no cubiertas de habilidades y la revisión estratégica del catálogo completo. Los cambios no demuestran superioridad frente a otras aplicaciones.
+
+Se actualizó la instalación existente a 0.5.0 en E:. El ejecutable instalado pasó el recorrido nativo con proveedor y cliente abierto. La comparación binaria coincide con el contenido de distribución, salvo los tres bytes de la marca de empaquetado NSIS. En una muestra de reposo de 30,13 s, con ventana oculta y LoL en sala, se midieron 195,69 MB privados y 384,00 MB de working set sumado en siete procesos; no se detectó incremento de CPU con la precisión del contador. No es una medición durante partida ni un presupuesto garantizado. Registro: test-results/idle-performance-0.5.json.
+
+La revisión final descarta incompatibilidades antes de completar candidatos y continúa buscando hasta obtener tres rutas válidas. Una compra descartada no deja al primer plan válido sin marca de recomendado. Se añade regresión con Fauces de Malmortius frente a un núcleo con Arcoescudo.

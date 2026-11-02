@@ -48,8 +48,10 @@ Se comprobó además el modelo real en los cinco roles y se corrigió la reapari
 - Matchups visibles solo para un rival de la misma posición confirmada y muestra de 300. No aplicados al ranking ni a posiciones inciertas.
 - Resumen de apertura, recursos y peleas, colocado antes de las alternativas. El selector local elige un hecho para las dos primeras fases y hasta dos para peleas. No es un modelo experto en configuraciones.
 - Comprobar datos revisa también hasta cinco análisis de la sesión. La memoria de la interfaz respeta las 12 horas de caché. No incorpora consejos de búsquedas de Google automáticamente.
-- Validación: 211 pruebas TypeScript y 26 Rust, formato/lint/tipos/Clippy; recorridos nativos con proveedor, modelo, actualización y cliente abierto. Fuente y modelo comprobados en cinco roles. Ver VALIDATION.md para alcance y registros locales.
+- Validación: 212 pruebas TypeScript y 26 Rust, formato/lint/tipos/Clippy; recorridos nativos con proveedor, modelo, actualización y cliente abierto. Fuente y modelo comprobados en cinco roles. Ver VALIDATION.md para alcance y registros locales.
 
 ## Próxima etapa concreta
 
 Ampliar candidatos e interacciones de campeón/runas/objetos con evidencia revisada. Evaluar pares de drafts del mismo campeón en los cinco roles y revisar los resultados estratégicos, además de invariantes. Integrar otra fuente estadística solo con acceso y contrato comprobados. Agregar conocimiento de aperturas y lado del mapa antes de fijar buff inicial. Ampliar validación de campeones con reglas especiales de habilidades. Todavía faltan la optimización conjunta profunda, el meta de varios proveedores, un agente experto y la evaluación competitiva de todo el catálogo.
+
+La instalación existente en E: se actualizó a 0.5.0 y pasó el recorrido nativo con proveedor y detección real. Los hashes y condiciones quedan en test-results/release-verification.json. La última revisión corrige candidatos incompatibles que desplazaban rutas válidas o dejaban al primer plan sin marca de recomendado.

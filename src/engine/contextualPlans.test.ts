@@ -101,6 +101,24 @@ describe("configuraciones según draft", () => {
     expect(physical.items).toContain(3047);
     expect(magic.items).toContain(3111);
     expect(magic.adjustments.join()).toContain("mágico");
+    expect(magic.recommended).toBe(true);
+  });
+  it("descarta una compra incompatible antes de completar las alternativas", () => {
+    const a = syntheticAnalysis();
+    a.analysis.data.fifth_items.unshift({ ids: [3156], play: 1000, win: 500 });
+    const result = recommend(
+      data,
+      {
+        ...context(),
+        playerChampionId: 234,
+        enemies: [slot(1), slot(99), slot(134)],
+      },
+      undefined,
+      a,
+    );
+    expect(result.plans.length).toBeGreaterThan(0);
+    expect(result.plans[0].recommended).toBe(true);
+    expect(result.plans.every((p) => !p.items.includes(3156))).toBe(true);
   });
   it("la estrategia es breve, nombra herramientas del draft y cambia con los aliados", () => {
     const first = strategy(data, context());
