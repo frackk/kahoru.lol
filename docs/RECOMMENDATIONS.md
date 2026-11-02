@@ -18,6 +18,8 @@ El cálculo está aislado de React en `src/engine/`. Usa un valor base de 50 y c
 
 El máximo visible es 95. La escala no depende del conjunto de candidatos mostrado y no representa probabilidad de victoria. Se excluyen picks ocupados y bans; el pool declarado restringe las alternativas. No se conoce todavía qué campeones tiene disponibles la cuenta.
 
+Al comparar alternativas para el jugador se excluye el aporte de su campeón actual de la composición aliada. Reemplazarlo no conserva su primera línea o perfil de daño.
+
 La asignación rival recorre combinaciones de roles sin repetir posiciones. Muestra posibilidades cualitativas; si los perfiles no permiten una combinación consistente, conserva el rol desconocido. No hay porcentajes inferidos sin calibración.
 
 ## Planes

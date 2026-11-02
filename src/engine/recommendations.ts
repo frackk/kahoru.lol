@@ -358,7 +358,9 @@ export function rankChampions(
       .concat(ctx.enemies)
       .flatMap((s) => (s.championId ? [s.championId] : [])),
   ]);
-  const allies = teamProfiles(ctx.allies),
+  const allies = teamProfiles(
+      ctx.allies.filter((s) => s.championId !== ctx.playerChampionId),
+    ),
     enemies = teamProfiles(ctx.enemies);
   return profiles
     .filter(

@@ -23,6 +23,19 @@ function context(championId: number | null = 103): DraftContext {
   };
 }
 describe("planes revisados", () => {
+  it("evalúa reemplazos sin conservar el aporte del campeón propio", () => {
+    const base = { ...context(null), playerRole: "JUNGLE" as const };
+    const empty = recommend(data, base).ranking;
+    const selected = recommend(data, {
+      ...base,
+      playerChampionId: 32,
+      allies: [{ championId: 32, locked: true, role: "JUNGLE" }],
+    }).ranking;
+    expect(selected.find((c) => c.championId === 113)?.score).toBe(
+      empty.find((c) => c.championId === 113)?.score,
+    );
+    expect(selected.some((c) => c.championId === 32)).toBe(false);
+  });
   it("el pool vacío filtra todas las alternativas y el pool declarado limita el ranking", () => {
     expect(
       recommend(data, { ...context(null), playerRole: "JUNGLE" }, []).ranking,

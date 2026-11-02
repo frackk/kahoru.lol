@@ -7,7 +7,7 @@ Fecha: 2026-11-02. Versión 0.3.0. Entorno local: Windows 11 Home x64, compilaci
 | Comprobación                               | Resultado                                                                              |
 | ------------------------------------------ | -------------------------------------------------------------------------------------- |
 | TypeScript, build Vite y ESLint            | Correctos.                                                                             |
-| Pruebas TypeScript                         | 150 correctas.                                                                         |
+| Pruebas TypeScript                         | 151 correctas.                                                                         |
 | Pruebas Rust                               | 13 correctas; dos integraciones con red/cliente se ejecutan expresamente.              |
 | Rustfmt y Clippy con warnings como errores | Correctos.                                                                             |
 | Catálogo e imágenes                        | Paquete validado: 173 campeones, 272 objetos, 62 runas y 512 PNG.                      |
