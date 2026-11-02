@@ -1,12 +1,49 @@
 import { readFile, writeFile } from "node:fs/promises";
 import https from "node:https";
-import {join,dirname} from "node:path";
+import { join, dirname } from "node:path";
 const root = new URL("../", import.meta.url);
-const files=[process.env.LEAGUE_LOCKFILE,"C:/Riot Games/League of Legends/lockfile","C:/Program Files (x86)/Riot Games/League of Legends/lockfile"].filter(Boolean);
-if(process.env.PROGRAMDATA){try{const installations=JSON.parse(await readFile(join(process.env.PROGRAMDATA,"Riot Games/RiotClientInstalls.json"),"utf8"));for(const path of Object.keys(installations.associated_client??{}))files.push(join(path.toLowerCase().endsWith(".exe")?dirname(path):path,"lockfile"));}catch{ /* Se conservan las ubicaciones habituales. */ }}
+const files = [
+  process.env.LEAGUE_LOCKFILE,
+  "C:/Riot Games/League of Legends/lockfile",
+  "C:/Program Files (x86)/Riot Games/League of Legends/lockfile",
+].filter(Boolean);
+if (process.env.PROGRAMDATA) {
+  try {
+    const installations = JSON.parse(
+      await readFile(
+        join(process.env.PROGRAMDATA, "Riot Games/RiotClientInstalls.json"),
+        "utf8",
+      ),
+    );
+    for (const path of Object.keys(installations.associated_client ?? {}))
+      files.push(
+        join(
+          path.toLowerCase().endsWith(".exe") ? dirname(path) : path,
+          "lockfile",
+        ),
+      );
+  } catch {
+    /* Se conservan las ubicaciones habituales. */
+  }
+}
 let credentials;
-for(const path of files){try{credentials=(await readFile(path,"utf8")).trim().split(":");break;}catch{ /* Probar la instalación siguiente. */ }}
-if(!credentials||credentials.length!==5||credentials[4]!=="https"||!/^\d+$/.test(credentials[2]))throw Error("No se encontró una conexión HTTPS válida. Abrí LoL o indicá LEAGUE_LOCKFILE.");
+for (const path of files) {
+  try {
+    credentials = (await readFile(path, "utf8")).trim().split(":");
+    break;
+  } catch {
+    /* Probar la instalación siguiente. */
+  }
+}
+if (
+  !credentials ||
+  credentials.length !== 5 ||
+  credentials[4] !== "https" ||
+  !/^\d+$/.test(credentials[2])
+)
+  throw Error(
+    "No se encontró una conexión HTTPS válida. Abrí LoL o indicá LEAGUE_LOCKFILE.",
+  );
 const ca = await readFile(
   new URL("src-tauri/certificates/riotgames.pem", root),
 );
@@ -55,11 +92,13 @@ for (const c of catalog.champions) {
   const pages = [];
   for (const role of roles) {
     const recommendations = await get(
-      `/lol-perks/v1/recommended-pages/champion/${c.id}/position/${role.toLowerCase()}/map/11`,
+      `/lol-perks/v1/recommended-pages/champion/${c.id}/position/${role}/map/11`,
     );
     for (const p of recommendations) {
+      if (p.position !== role) continue;
       pages.push({
         role: map[role],
+        sourcePosition: p.position,
         recommendationId: p.recommendationId,
         primary: p.primaryPerkStyleId,
         secondary: p.secondaryPerkStyleId,
@@ -96,7 +135,7 @@ for (const c of catalog.champions) {
   });
 }
 const out = {
-  schemaVersion: 1,
+  schemaVersion: 2,
   clientVersion: version,
   retrievedAt: new Date().toISOString(),
   source:

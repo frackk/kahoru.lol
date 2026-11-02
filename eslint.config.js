@@ -3,7 +3,15 @@ import tseslint from "typescript-eslint";
 import hooks from "eslint-plugin-react-hooks";
 
 export default tseslint.config(
-  { ignores: ["dist/**", "src-tauri/**", "node_modules/**"] },
+  {
+    ignores: [
+      "dist/**",
+      "src-tauri/**",
+      "node_modules/**",
+      ".local/**",
+      "test-results/**",
+    ],
+  },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {

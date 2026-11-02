@@ -1,35 +1,28 @@
 # Verificación
 
-Fecha: 2026-11-02. Versión 0.3.0. Entorno local: Windows 11 Home x64, compilación 26300; Node 24.22.1; Rust 1.99.1; WebView2 instalado. Carpeta de trabajo: `E:\Cosas\kahoru.lol`.
+Fecha: 2026-11-02. Versión 0.4.0. Equipo local: Windows 11 x64, Ryzen 7 5700X, RTX 3060 de 12 GB, Node 24.22.1, Rust 1.99.1 y WebView2. Fuente: `E:\Cosas\kahoru.lol`.
 
-## Pruebas locales
+## Núcleo e interfaz
 
-| Comprobación                               | Resultado                                                                              |
-| ------------------------------------------ | -------------------------------------------------------------------------------------- |
-| TypeScript, build Vite y ESLint            | Correctos.                                                                             |
-| Pruebas TypeScript                         | 151 correctas.                                                                         |
-| Pruebas Rust                               | 13 correctas; dos integraciones con red/cliente se ejecutan expresamente.              |
-| Rustfmt y Clippy con warnings como errores | Correctos.                                                                             |
-| Catálogo e imágenes                        | Paquete validado: 173 campeones, 272 objetos, 62 runas y 512 PNG.                      |
-| Planes                                     | Todos los perfiles y 50 drafts sintéticos, diez por rol.                               |
-| Caché                                      | Activación, carga íntegra y recuperación del paquete incluido al corromper una imagen. |
+- TypeScript: 198 pruebas de contratos, catálogo, páginas, compras, hovers, pool, hipótesis y continuidad. Incluyen regresión de Viego, Calzado Mágico, objetos incompatibles y contextos estratégicos para los cinco roles.
+- Rust: 24 pruebas automáticas; cuatro integraciones optativas con cliente, descargas, proveedor o modelo. Parser del proveedor sin evaluación, validación de importación, resultados parciales, respaldo/restauración y selección de hechos.
+- Formato, ESLint, tipos, Rustfmt y Clippy se ejecutan con las comprobaciones del repositorio. El CI anterior de `91318f9` falló por formato del script de recomendaciones; ese archivo se corrigió en esta entrega.
+- Recorrido nativo offline: diez picks, runas e imágenes decodificadas, bans, cinco roles, swaps, fases, reconexión y preferencias. Usa IPC y WebView2 reales.
+- `--provider`: consulta real de OP.GG para la composición de Viego, construye planes y conserva la elección manual al entrar en partida. Las consultas de Viego y Lee Sin también pasaron en el adaptador Rust.
+- `--model`: generación nativa con Qwen3 4B instalado, tres fases formadas solo con hechos validados. Comprobado en depuración. Captura y texto en `test-results/strategy-model.*`, fuera de Git. No confundir selección de prioridades con demostración de calidad estratégica.
 
-Las pruebas de planes comprueban exclusión de picks/bans, cambios de composición, roles conjuntos, páginas completas, recetas, seis ranuras y mejora de misión de support. También verifican la conservación de la elección manual y la congelación del plan al entrar a partida. Son comprobaciones de consistencia; no demuestran una mejora de rendimiento competitivo.
+## Cliente y actualizaciones
 
-## Recorrido nativo
+Conexión real con TLS validado en una personalizada, cliente 16.21.8342754. Se detectaron fase, equipo y campeón. La importación autorizada reutilizó la página activa con respaldo: runas y spells leídos después de aplicar, Flash en su tecla, otra página preservada, restauración y reimportación correctas. No se inició una partida desde la app.
 
-`npm run test:native` controla el ejecutable real mediante WebView2, sin reemplazar IPC por mocks. Selecciona diez campeones, prueba roles, bans, swaps, fases, reconexión y preferencias. Comprueba runas, planes conservados e imágenes decodificadas en la biblioteca. `--update` añade una consulta real del manifiesto oficial; `--release` utiliza el ejecutable de distribución. Las capturas y logs quedan en `test-results/`, fuera de Git.
+El paquete incluido se valida contra catálogo, recetas e imágenes. La integración de descarga completa de Data Dragon pasó en la etapa anterior. En 0.4 se prueba además la recuperación de metadatos inválidos y la coincidencia entre rol pedido y devuelto; no se afirma haber probado un parche futuro real.
 
-La conexión LCU se verificó en una personalizada con el cliente 16.21.8342754: fase, versión, equipo y campeón seleccionado. La prueba TLS real se ejecutó expresamente y pasó. No se realizaron acciones de juego desde kahoru.lol. Ver [CLIENT_INTEGRATION.md](CLIENT_INTEGRATION.md).
+Las integraciones optativas no corren por defecto en CI. El cliente real no se modifica automáticamente durante los tests. Las muestras estadísticas de fixtures son sintéticas, no datos redistribuidos del proveedor.
 
-La integración de descarga completa también pasó: obtuvo JSON y las 512 imágenes oficiales, activó el paquete y lo recuperó con verificación de hashes desde una caché temporal. Se ejecuta aparte para evitar descargas en cada comprobación:
+## Distribución y pendientes
 
-```powershell
-cargo test --locked --manifest-path src-tauri/Cargo.toml downloaded_pack_can_be_activated_and_reloaded -- --ignored
-```
+El instalador NSIS se genera en `src-tauri/target/release/bundle/nsis/`. No incluye los pesos ni el runtime del modelo, que son opcionales y se preparan aparte con hashes fijados. No está firmado como editor.
 
-## Límites
+Faltan instalación limpia, Windows 10, equipos modestos, una partida completa con medición de FPS/CPU/memoria, swaps entre diez jugadores, reinicios durante carga y evaluación estratégica de todos los campeones. No hay una comparación estadística independiente con iTero ni evidencia de mejora de win rate.
 
-Quedan pendientes una partida completa, swaps entre diez jugadores, reinicios durante carga y evaluación estratégica con partidas de prueba. No se probaron importación de runas, proveedor estadístico u overlay, porque no están implementados. Tampoco se midieron FPS, CPU o memoria con LoL en partida.
-
-El instalador debe probarse en una máquina limpia, Windows 10 y un equipo de menor capacidad. El resultado de GitHub Actions es independiente de las pruebas locales; los primeros recorridos remotos fallaron al iniciar el puerto de WebView2. El workflow usa ahora Windows Server 2022 y un perfil temporal aislado. La ejecución 41397457173 pasó el 2 de noviembre, incluido el recorrido de interfaz y el instalador. Repetirla para cambios posteriores.
+El workflow Windows comprueba formato, lint, pruebas, ejecutables de depuración/release, recorridos nativos offline e instalador. Su resultado debe consultarse por commit; las pruebas locales no sustituyen el CI.

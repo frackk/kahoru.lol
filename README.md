@@ -19,17 +19,17 @@ Carpeta de trabajo en este equipo: `E:\Cosas\kahoru.lol`.
 
 ## Estado
 
-La versión 0.3.0 lee el cliente local, detecta fases y completa equipos, picks y bans. Incorpora imágenes oficiales, una biblioteca de campeones, objetos y runas, ranking por composición y tres planes previos con runas completas, componentes y condiciones de compra. El champion pool se guarda localmente.
+La versión 0.4.0 lee el cliente local, detecta fases y completa picks, hovers aliados y bans. Incluye imágenes de campeones, runas, fragmentos, objetos y spells. El ranking por composición y el champion pool siguen disponibles.
 
-El catálogo cubre 173 campeones; el motor tiene 85 perfiles iniciales para los cinco roles. Sus reglas son hipótesis estratégicas documentadas, con confianza baja y sin win rates o estadísticas de meta. Los campeones sin perfil conservan sus datos e imágenes, sin planes de relleno. La inferencia rival muestra posibilidades cualitativas. El simulador sigue disponible para pruebas y se identifica como entrada manual.
+Los 173 campeones tienen metadatos del kit y páginas recomendadas por Riot. Las builds usan análisis de OP.GG por campeón y posición, con parche y muestras; si faltan datos compatibles no se inventa una ruta. Se comparan hasta tres variantes construibles. El ranking todavía usa reglas cualitativas, con cobertura desigual de rasgos y sin matchups empíricos; no predice victoria. El simulador se identifica como entrada manual.
 
-Durante una partida se conserva el último plan preparado. No se adapta a acontecimientos en vivo ni automatiza gameplay. La importación de runas no está implementada. La integración LCU es experimental y el registro del producto ante Riot sigue pendiente; no se afirma aprobación particular.
+La importación experimental aplica runas y spells mediante una acción explícita, conserva la tecla de Flash y permite reutilizar una página elegida con respaldo y restauración. La estrategia previa usa reglas y, opcionalmente, un modelo local para elegir prioridades entre hechos del motor. Durante partida se conserva lo preparado, sin adaptación en vivo ni automatización de gameplay. El registro del producto ante Riot sigue pendiente; no se afirma aprobación particular.
 
 ## Actualización de datos
 
 En **Datos del juego → Comprobar datos**, la aplicación consulta Data Dragon y descarga otra revisión del parche del cliente si está disponible. Valida el paquete antes de activarlo y conserva los datos anteriores ante fallos. No cambia datos durante selección o partida.
 
-El paquete incluido funciona sin conexión. Actualizar datos oficiales no recalibra el meta: un parche distinto requiere revisar los perfiles estratégicos antes de habilitar sus planes. Las actualizaciones del ejecutable siguen siendo mediante instalador.
+El paquete incluido funciona sin conexión. Con LoL abierto, el botón comprueba también kits, posiciones y páginas del cliente. OP.GG se consulta por campeón y rol, con caché de doce horas y botón de actualización propio. Las reglas de fragmentos y spells requieren revisión al cambiar. Las actualizaciones del ejecutable siguen siendo mediante instalador.
 
 ## Ejecutar desde el código
 
@@ -67,6 +67,8 @@ La prueba nativa abre una ventana temporal, selecciona diez campeones, comprueba
 
 El workflow Windows repite las verificaciones y prepara el instalador como artefacto de compilación. Los resultados locales y límites están en [VALIDATION.md](docs/VALIDATION.md).
 
+`--provider` añade la consulta estadística real y el caso de Viego; `--model` prueba el modelo instalado. Ambos son optativos y no sustituyen la prueba offline. El modelo se descarga separado del instalador; preparación y límites en [LOCAL_MODEL.md](docs/LOCAL_MODEL.md).
+
 ## Documentación
 
 - [Especificación y roadmap](docs/PRODUCT_SPEC.md).
@@ -75,6 +77,7 @@ El workflow Windows repite las verificaciones y prepara el instalador como artef
 - [Fuentes y actualización del catálogo](docs/DATA_SOURCES.md).
 - [Reglas, planes y cobertura del motor](docs/RECOMMENDATIONS.md).
 - [Integraciones y revisión de políticas](docs/COMPLIANCE.md).
+- [Punto de continuidad del desarrollo](docs/DEVELOPMENT_STATE.md).
 - [Decisión de la primera entrega](docs/decisions/0001-desktop-foundation.md).
 - [Paquetes oficiales y motor local](docs/decisions/0002-data-and-rules.md).
 

@@ -3,6 +3,7 @@ import { invoke, isTauri } from "@tauri-apps/api/core";
 import type { DraftSlot, Role } from "./contracts";
 import type { GameData } from "./gameData";
 import { sessionPlans } from "./engine/sessionPlans";
+import { requestStatistics } from "./statistics";
 
 export interface LiveSnapshot {
   sessionId: string | null;
@@ -31,6 +32,14 @@ export function useLiveSession(data: GameData | null) {
         const next = await invoke<LiveSnapshot>("get_live_session");
         if (!active) return;
         if (next.sessionId && next.mapId === 11) {
+          const role = sessionPlans.role(next.sessionId) ?? next.playerRole;
+          if (
+            next.connected &&
+            next.phase === "ChampSelect" &&
+            next.playerChampionId &&
+            role
+          )
+            void requestStatistics(next.playerChampionId, role);
           sessionPlans.prepare(
             data,
             {

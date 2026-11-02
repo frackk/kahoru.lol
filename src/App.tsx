@@ -1,3 +1,7 @@
+import {
+  installClientKnowledge,
+  type ClientKnowledge,
+} from "./engine/profiles";
 import { useEffect, useRef, useState } from "react";
 import { invoke, isTauri } from "@tauri-apps/api/core";
 import {
@@ -12,6 +16,7 @@ import { GameDataContext, type GameData } from "./gameData";
 import { DataLibrary } from "./features/DataLibrary";
 import { readPreferences } from "./preferences";
 import { useLiveSession } from "./liveSession";
+import { LocalModelSettings } from "./features/LocalStrategy";
 
 type Page = "home" | "draft" | "data" | "settings" | "about";
 const pages: { id: Page; label: string; icon: string }[] = [
@@ -45,9 +50,16 @@ export function App() {
     Promise.all([
       invoke<GameData>("get_game_data"),
       invoke<Session>("get_session"),
+      invoke<ClientKnowledge>("get_client_knowledge"),
     ])
-      .then(([data, state]) => {
+      .then(([data, state, knowledge]) => {
         if (active) {
+          installClientKnowledge(
+            knowledge,
+            data.catalog.champions as Parameters<
+              typeof installClientKnowledge
+            >[1],
+          );
           setCatalog(data.catalog);
           setGameData(data);
           setSession(state);
@@ -123,7 +135,7 @@ export function App() {
             ))}
           </nav>
           <div className="sidebar-bottom">
-            <span className="version">DESARROLLO · v0.3.0</span>
+            <span className="version">DESARROLLO · v0.4.0</span>
             <span>
               made by <strong>frack.one</strong>
             </span>
@@ -240,7 +252,13 @@ export function App() {
             )}
             {page === "data" && (
               <DataLibrary
-                onUpdate={(data) => {
+                onUpdate={async (data) => {
+                  installClientKnowledge(
+                    await invoke<ClientKnowledge>("get_client_knowledge"),
+                    data.catalog.champions as Parameters<
+                      typeof installClientKnowledge
+                    >[1],
+                  );
                   setGameData(data);
                   setCatalog(data.catalog);
                 }}
@@ -287,28 +305,33 @@ export function App() {
                 <section className="panel settings">
                   <h2>Datos y privacidad</h2>
                   <p>
-                    La conexión con LoL es local y de solo lectura. No se
-                    recopilan cuentas, historial de partidas ni telemetría.
+                    La conexión con LoL es local. La importación de runas y
+                    spells requiere una acción explícita. Los respaldos de
+                    páginas se guardan en este equipo.
                   </p>
                   <p>
-                    Comprobá el paquete oficial desde Datos del juego. Las
-                    reglas estratégicas tienen su propia revisión por parche;
-                    actualizar imágenes no equivale a actualizar el meta.
+                    OP.GG recibe únicamente el campeón y la posición
+                    consultados, sin identidades ni el draft completo. No se
+                    incorpora telemetría. Comprobá el paquete oficial desde
+                    Datos del juego.
                   </p>
                 </section>
+                <LocalModelSettings />
               </>
             )}
             {page === "about" && (
               <>
-                <div className="eyebrow">KAHORU.LOL · 0.3.0</div>
+                <div className="eyebrow">KAHORU.LOL · 0.4.0</div>
                 <h1>Antes de entrar a la Grieta.</h1>
                 <section className="panel about">
                   <h2>made by frack.one</h2>
                   <p>
                     Detección del cliente local y lectura automática del draft.
-                    Ranking por composición, runas y rutas de compra para los
-                    perfiles cubiertos. La importación de runas y las
-                    estadísticas de meta siguen pendientes.
+                    Ranking por composición, páginas recomendadas de Riot y
+                    compras con datos de OP.GG. Importación experimental de
+                    runas y spells con respaldo; estrategia previa por reglas o
+                    modelo local opcional. El registro del producto ante Riot
+                    sigue pendiente.
                   </p>
                   <dl>
                     <div>

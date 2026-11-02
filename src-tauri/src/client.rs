@@ -132,7 +132,7 @@ pub fn poll(client: &Client, previous: &ClientSnapshot) -> ClientSnapshot {
         let mut next = carry_session(previous, phase, metadata.as_ref());
         next.connected = true;
         next.phase = phase.into();
-        next.message = "Cliente conectado · Solo lectura".into();
+        next.message = "Cliente conectado".into();
         next.version = read(client, &credentials, "/lol-patch/v1/game-version")
             .ok()
             .and_then(|v| v.as_str().map(String::from));

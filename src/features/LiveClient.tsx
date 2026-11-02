@@ -116,6 +116,7 @@ export function LiveClient({
             bans: snapshot.bans,
             gameVersion: snapshot.version,
           }}
+          importable
           editable={snapshot.connected && snapshot.phase === "ChampSelect"}
           disabledReason={
             snapshot.mapId !== 11

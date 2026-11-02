@@ -1,5 +1,6 @@
 import type { GameData } from "../gameData";
 import type { Role } from "../contracts";
+import { readStatistics } from "../statistics";
 import {
   recommend,
   type DraftContext,
@@ -13,6 +14,7 @@ interface Prepared {
   userSelected: boolean;
 }
 export class SessionPlans {
+  constructor(private lookup: typeof readStatistics = readStatistics) {}
   private sessions = new Map<string, Prepared>();
   private roles = new Map<string, Role>();
   role(sessionId: string) {
@@ -34,7 +36,12 @@ export class SessionPlans {
       ...context,
       playerRole: this.role(context.sessionId) ?? context.playerRole,
     };
-    const result = recommend(data, context, pool);
+    const result = recommend(
+      data,
+      context,
+      pool,
+      this.lookup(context.playerChampionId, context.playerRole)?.data,
+    );
     if (previous?.result.signature === result.signature) return previous;
     const next = {
       result,

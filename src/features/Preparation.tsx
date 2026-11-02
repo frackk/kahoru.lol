@@ -1,4 +1,14 @@
-import { useContext, useState } from "react";
+import { ImportButtons } from "./ImportButtons";
+import { LocalStrategy, savedStrategy } from "./LocalStrategy";
+import { strategyContext } from "../engine/strategyContext";
+import { useContext, useState, useEffect, useSyncExternalStore } from "react";
+import {
+  requestStatistics,
+  readStatistics,
+  subscribeStatistics,
+  statisticsRevision,
+} from "../statistics";
+import { ClientPages, SpellIcons } from "./ClientPages";
 import { GameDataContext, GameIcon, ChampionIcon } from "../gameData";
 import { roleNames, roles, type Role } from "../contracts";
 import { sessionPlans } from "../engine/sessionPlans";
@@ -11,11 +21,13 @@ export function Preparation({
   editable,
   onChoose,
   disabledReason,
+  importable = false,
 }: {
   context: DraftContext;
   editable: boolean;
   onChoose?: (id: number) => void;
   disabledReason?: string;
+  importable?: boolean;
 }) {
   const data = useContext(GameDataContext);
   const [manualRole, setManualRole] = useState<Role | null>(() =>
@@ -38,6 +50,17 @@ export function Preparation({
   const [poolOnly, setPoolOnly] = useState(false);
   const [, render] = useState(0);
   const [message, setMessage] = useState("");
+  useSyncExternalStore(subscribeStatistics, statisticsRevision);
+  const effectiveRole = manualRole ?? context.playerRole;
+  useEffect(() => {
+    if (
+      editable &&
+      !disabledReason &&
+      context.playerChampionId &&
+      effectiveRole
+    )
+      void requestStatistics(context.playerChampionId, effectiveRole);
+  }, [context.playerChampionId, effectiveRole, editable, disabledReason]);
   if (!data) return null;
   const ctx = { ...context, playerRole: manualRole ?? context.playerRole };
   const prepared = disabledReason
@@ -45,6 +68,7 @@ export function Preparation({
     : sessionPlans.prepare(data, ctx, editable, poolOnly ? pool : undefined);
   const result = prepared?.result;
   const selected = result?.plans.find((p) => p.id === prepared?.selected);
+  const statistics = readStatistics(ctx.playerChampionId, ctx.playerRole);
   const rune = (id: number) =>
     data.trees
       .flatMap((t) => t.slots.flatMap((s) => s.runes))
@@ -66,7 +90,8 @@ export function Preparation({
     const text = [
       data.catalog.champions.find((c) => c.id === ctx.playerChampionId)?.name,
       selected.title,
-      ...selected.strategy,
+      savedStrategy(ctx.sessionId, strategyContext(data, ctx, selected)) ??
+        selected.strategy.join("\n"),
       "Runas: " +
         selected.runes.primaryRunes
           .concat(selected.runes.secondaryRunes)
@@ -124,6 +149,43 @@ export function Preparation({
         Los puntajes son relativos, sin probabilidad de victoria. Confianza
         orientativa: baja.
       </p>
+      {editable && ctx.playerChampionId && ctx.playerRole && (
+        <div className="notice">
+          <p>
+            {statistics?.pending
+              ? "Consultando análisis por campeón y posición…"
+              : (statistics?.error ??
+                "Análisis de compras: OP.GG. Consulta por campeón y posición.")}
+          </p>
+          <button
+            disabled={statistics?.pending}
+            onClick={() =>
+              void requestStatistics(
+                ctx.playerChampionId!,
+                ctx.playerRole!,
+                true,
+              )
+            }
+          >
+            Actualizar análisis
+          </button>
+          {statistics?.data && (
+            <small>
+              Última consulta:{" "}
+              {new Date(statistics.data.retrievedAt * 1000).toLocaleString(
+                "es-AR",
+              )}
+              .
+            </small>
+          )}
+        </div>
+      )}
+      <ClientPages
+        championId={ctx.playerChampionId}
+        role={ctx.playerRole}
+        sessionId={ctx.sessionId}
+        enabled={importable && editable && !disabledReason}
+      />
       {!editable && prepared && (
         <div className="notice">
           Plan prepartida conservado. Durante la partida no se adapta a la
@@ -268,10 +330,30 @@ export function Preparation({
                 <button onClick={() => void copy()}>Copiar plan</button>
               </div>
               <p>{selected.reason}</p>
+              <p className="small-note">{selected.source}</p>
+              <details>
+                <summary>Muestras de la fuente</summary>
+                {selected.samples.map((sample, i) => (
+                  <p key={i}>
+                    {sample.label}: {sample.play.toLocaleString("es-AR")}{" "}
+                    partidas, {sample.win.toLocaleString("es-AR")} victorias.
+                    Muestra observacional; no demuestra causalidad.
+                  </p>
+                ))}
+              </details>
               <p className="small-note">{selected.tradeoff}</p>
               <div className="rune-build-grid">
                 <section>
                   <h3>Runas completas</h3>
+                  <ImportButtons
+                    championId={ctx.playerChampionId!}
+                    sessionId={ctx.sessionId}
+                    runes={selected.runes}
+                    spells={selected.spells}
+                    enabled={importable && editable && !disabledReason}
+                  />
+                  <h4>Hechizos de invocador</h4>
+                  <SpellIcons ids={selected.spells} />
                   <div className="rune-row">
                     {selected.runes.primaryRunes.map((id) => (
                       <div key={id}>
@@ -314,8 +396,8 @@ export function Preparation({
                     })}
                   </div>
                   <p className="small-note">
-                    Selección manual. La importación al cliente requiere
-                    validación técnica y revisión de su uso.
+                    Importación experimental durante la selección. El registro
+                    del producto ante Riot sigue pendiente.
                   </p>
                 </section>
                 <section>
@@ -381,15 +463,17 @@ export function Preparation({
                         size={24}
                       />
                       <span>
-                        {step.kind === "sell"
-                          ? "Vender"
-                          : step.kind === "consume"
-                            ? "Consumir"
-                            : step.kind === "quest"
-                              ? "Completar misión"
-                              : step.kind === "combine"
-                                ? "Completar"
-                                : "Comprar"}{" "}
+                        {step.kind === "grant"
+                          ? "Recibir de la runa"
+                          : step.kind === "sell"
+                            ? "Vender"
+                            : step.kind === "consume"
+                              ? "Consumir"
+                              : step.kind === "quest"
+                                ? "Completar misión"
+                                : step.kind === "combine"
+                                  ? "Completar"
+                                  : "Comprar"}{" "}
                         {item(step.itemId)?.name}{" "}
                         {step.cost > 0 ? `· ${step.cost} oro` : ""}
                         <small>{step.condition}</small>
@@ -403,11 +487,7 @@ export function Preparation({
                   detectadas ni automatizadas.
                 </p>
               </details>
-              <section className="strategy">
-                <h3>Planteamiento previo</h3>
-                {selected.strategy.map((line) => (
-                  <p key={line}>{line}</p>
-                ))}
+              <section>
                 {selected.branches.map((line) => (
                   <p className="small-note" key={line}>
                     {line}
@@ -418,6 +498,14 @@ export function Preparation({
             </section>
           )}
         </>
+      )}
+      {!disabledReason && (
+        <LocalStrategy
+          data={data}
+          context={ctx}
+          plan={selected}
+          editable={editable}
+        />
       )}
     </section>
   );

@@ -1,45 +1,36 @@
-# Motor de recomendaciones
+# Recomendaciones
 
-Versión de reglas: 16.21, revisión 1. Cobertura: 85 campeones, repartidos entre los cinco roles. La lista está en `data/knowledge/profiles.json`.
+Versión 0.4.0, parche incluido 16.21. Se retiraron los núcleos y páginas genéricas de la versión anterior. El caso de Viego mostró que agruparlo con otros luchadores producía una build sin fundamento suficiente.
 
-Los perfiles son reglas estratégicas del proyecto, no estadísticas de rendimiento. Describen posiciones habituales, tipo de daño esperado, funciones generales y un núcleo de compras. Son hipótesis de producto: no se presentan como una clasificación del meta ni como resultados calibrados.
+## Draft y posiciones
 
-## Ranking
+El catálogo contiene 173 campeones con posiciones y datos del kit obtenidos del cliente. Los 85 perfiles cualitativos anteriores aportan rasgos de composición; los demás tienen información más limitada. Cubrir el catálogo no significa haber evaluado estratégicamente todos los matchups.
 
-El cálculo está aislado de React en `src/engine/`. Usa un valor base de 50 y contribuciones explícitas:
+El ranking usa reglas explícitas de composición, daño, iniciación, protección y rol. Parte de 50 y limita el resultado a 95. No incorpora todavía tasas de matchup ni un ranking estadístico del meta. Las selecciones confirmadas pesan 1 y los hovers aliados 0,35; son pesos de producto. Se excluyen bans y picks ocupados; un hover aliado reserva provisionalmente la opción con una penalización explicada. Al comparar reemplazos se retira el aporte del campeón propio actual.
 
-| Condición del draft conocido                                       | Aporte |
-| ------------------------------------------------------------------ | -----: |
-| Falta primera línea y el candidato la aporta                       |    +18 |
-| Falta iniciación y el candidato la aporta                          |    +12 |
-| El candidato diversifica dos o más perfiles del mismo tipo de daño |    +15 |
-| Dos rivales de primera línea favorecen daño sostenido              |    +10 |
-| Varias fuentes de iniciación rivales favorecen protección          |    +10 |
+Las hipótesis de rol rival se calculan conjuntamente, sin repetir posiciones. No son probabilidades calibradas. La posición asignada propia y la corrección manual tienen prioridad. No se consulta el inventario de campeones de la cuenta.
 
-El máximo visible es 95. La escala no depende del conjunto de candidatos mostrado y no representa probabilidad de victoria. Se excluyen picks ocupados y bans; el pool declarado restringe las alternativas. No se conoce todavía qué campeones tiene disponibles la cuenta.
+## Runas y compras
 
-Al comparar alternativas para el jugador se excluye el aporte de su campeón actual de la composición aliada. Reemplazarlo no conserva su primera línea o perfil de daño.
+Hay dos fuentes distintas:
 
-La asignación rival recorre combinaciones de roles sin repetir posiciones. Muestra posibilidades cualitativas; si los perfiles no permiten una combinación consistente, conserva el rol desconocido. No hay porcentajes inferidos sin calibración.
+- Riot: 825 páginas por campeón y posición, sin muestras publicadas ni ajuste contra los cinco rivales. Se comprueba la posición devuelta por el endpoint; una respuesta de mid no se acepta como support.
+- OP.GG: análisis agregado por campeón y rol mediante su interfaz MCP pública. Aporta núcleo, botas, inicio, opciones tardías, runas, fragmentos y spells con partidas y victorias observadas.
 
-## Planes
+El proveedor no expone un selector de región o parche en el contrato utilizado. Se informa la versión de tendencias que devuelve, todos los rangos y región no informada. No se afirma una ventana temporal completa que la fuente no identifica. La página de Riot permite contrastar runas; no constituye una segunda muestra estadística independiente.
 
-Cada perfil admite una opción equilibrada, otra contra ataques físicos y otra contra daño mágico. Cada opción reúne runas, objetos, componentes, condiciones y planteamiento previo. Tres o más perfiles físicos o mágicos conocidos priorizan la respuesta correspondiente; los perfiles mixtos o desconocidos no se cuentan como daño puro. La elección manual permanece estable mientras cambia el draft.
+Se exige parche compatible, campos válidos y al menos 100 partidas por compra utilizada. Este umbral es conservador y no está calibrado. Si falta evidencia, no se fabrica una build. Los candidatos conservan el núcleo observado y comparan opciones tardías publicadas según los perfiles de daño y resistencias. Se muestran hasta tres rutas válidas; sus muestras separadas no equivalen a una tasa conjunta de victoria.
 
-La página se valida contra los árboles de Data Dragon: una runa por fila principal y dos filas secundarias diferentes. Los fragmentos se contrastaron con `/lol-perks/v1/styles` y `/lol-perks/v1/perks` del cliente 16.21. Solo se guardaron reglas e iconos públicos; `data/knowledge/shards.json` identifica la fuente.
+Las rutas comprueban recetas, ciclos, seis ranuras, restricciones por campeón e incompatibilidades conocidas. Calzado Mágico recibe las botas como condición de la runa, sin comprarlas antes; las mascotas y la misión de support conservan sus condiciones propias. Los costes son de referencia: no se observa oro real ni se compran objetos automáticamente.
 
-Las compras usan las recetas y costes del paquete. La ruta comprueba componentes repetidos, ciclos, disponibilidad y seis ranuras. Una compra tardía puede hacerse directamente cuando no hay espacio para todos los componentes; la biblioteca conserva su receta. Consumir pociones, completar la mascota o vender un objeto inicial son condiciones del plan, no acciones observadas ni automatizadas. No se estima el oro real.
+La elección manual se conserva mediante IDs de objetos estables. Al entrar a partida se congela el último plan. Si el draft no se observó, no se inventa una preparación anterior.
 
-Support conserva Mapamundi y su ranura de misión. La mejora propuesta se muestra por separado de las cinco compras; requiere completar la evolución hasta Recompensa Mundial. No se trata como un séptimo objeto ni se vende para hacer espacio.
+## Estrategia
 
-Al entrar a partida se conserva la última preparación. Cambiar de pestaña o perder brevemente la conexión no recalcula consejos en vivo. Un identificador de partida distinto invalida la continuidad anterior. Si la app se abre durante una partida sin haber preparado el draft, no inventa un plan previo.
+La lectura por reglas separa apertura, objetivos y peleas, con campeón, rol, aliados y amenazas conocidos. Los rasgos cualitativos necesitan evaluación con partidas; no demuestran ventaja de línea.
 
-La lectura y la preparación no dependen de tener Inicio abierto. Durante el draft se siguen los picks aunque el usuario consulte otra sección.
+El modelo local opcional selecciona prioridades entre hechos preparados por el motor. Recibe el draft, kits y plan validado; devuelve IDs de hechos, nunca texto libre para mostrar. Rust rechaza IDs desconocidos, repetidos o de otra fase. No puede cambiar runas, objetos ni acciones del cliente. Esta restricción se eligió después de observar mecánicas falsas en pruebas de redacción libre. Ver [LOCAL_MODEL.md](LOCAL_MODEL.md).
 
-## Actualizaciones y límites
+## Pendientes
 
-Actualizar Data Dragon vuelve a validar las configuraciones. Si cambia el parche mayor/menor respecto de la revisión de reglas, el motor se desactiva hasta revisar los perfiles y fragmentos. Actualizar el catálogo no certifica que una estrategia siga siendo buena después de un balance.
-
-No hay proveedor estadístico conectado, tasas de matchup ni historial personal incorporado. Los campeones sin perfil siguen disponibles con sus imágenes en el catálogo, pero no reciben planes genéricos de relleno. La importación de runas y la aprobación del uso concreto ante Riot continúan pendientes.
-
-Las pruebas cubren todos los perfiles y 50 drafts sintéticos —diez por rol—. Comprueban invariantes y cambios de contexto; no demuestran una mejora de win rate. Antes de ampliar la confianza del modelo falta revisión estratégica con partidas de prueba.
+Matchups empíricos, comparación entre proveedores estadísticos independientes, calibración por población y revisión estratégica de todos los campeones. Las pruebas de estructura no demuestran que una recomendación sea competitivamente mejor.

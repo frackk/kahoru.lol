@@ -1,7 +1,7 @@
 {
   "name": "kahoru-lol",
   "private": true,
-  "version": "0.3.0",
+  "version": "0.4.0",
   "type": "module",
   "author": "frack.one",
   "scripts": {
@@ -13,7 +13,8 @@
     "format:check": "prettier --check .",
     "tauri": "tauri",
     "data:update": "node scripts/prepare-game-data.mjs",
-    "test:native": "node scripts/test-native.mjs"
+    "test:native": "node scripts/test-native.mjs",
+    "model:prepare": "node scripts/prepare-local-model.mjs"
   },
   "dependencies": {
     "@tauri-apps/api": "^2.0.0",

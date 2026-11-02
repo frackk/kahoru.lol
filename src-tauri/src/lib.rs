@@ -1,7 +1,9 @@
 mod catalog;
 mod client;
 mod game_data;
+mod knowledge;
 mod loadout;
+mod local_model;
 mod provider_format;
 mod session;
 mod statistics;
@@ -17,14 +19,94 @@ use tauri::{Manager, State};
 
 struct AppState {
     game: Mutex<GameData>,
-    session: Mutex<Session>,
+    session: Arc<Mutex<Session>>,
     live: Arc<Mutex<client::ClientSnapshot>>,
     update: Arc<Mutex<UpdateStatus>>,
     cache: PathBuf,
     statistics: Arc<statistics::Statistics>,
     import_lock: Arc<Mutex<()>>,
+    knowledge: Mutex<serde_json::Value>,
+    model: Arc<local_model::Service>,
 }
 
+#[tauri::command]
+fn get_local_model(state: State<'_, AppState>) -> local_model::Status {
+    state.model.status()
+}
+#[tauri::command]
+async fn configure_local_model(
+    directory: String,
+    state: State<'_, AppState>,
+) -> Result<local_model::Status, String> {
+    if busy(&state.live.lock().map_err(|_| "Sesión no disponible")?.phase) {
+        return Err("Configurá el modelo fuera del draft y de la partida".into());
+    }
+    let model = state.model.clone();
+    tauri::async_runtime::spawn_blocking(move || model.configure(&directory))
+        .await
+        .map_err(|_| "Verificación interrumpida")?
+}
+#[tauri::command]
+fn cancel_strategy(request_id: String, state: State<'_, AppState>) {
+    state.model.cancel(&request_id);
+}
+#[tauri::command]
+async fn generate_strategy(
+    request_id: String,
+    session_id: String,
+    champion_id: u32,
+    context: String,
+    state: State<'_, AppState>,
+) -> Result<String, String> {
+    let manual = {
+        let s = state.session.lock().map_err(|_| "Sesión no disponible")?;
+        format!("sim-{}", s.draft.session_id) == session_id
+            && matches!(
+                s.phase,
+                session::Phase::ChampSelect | session::Phase::DraftFinalizing
+            )
+            && s.draft
+                .allies
+                .iter()
+                .any(|slot| slot.champion_id == Some(champion_id))
+    };
+    let live = state.live.clone();
+    let model = state.model.clone();
+    let simulator = state.session.clone();
+    tauri::async_runtime::spawn_blocking(move || {
+        model.generate(request_id, context, || {
+            live.lock().is_ok_and(|s| {
+                if manual {
+                    !matches!(s.phase.as_str(), "GameStart" | "InProgress" | "Reconnect")
+                        && simulator.lock().is_ok_and(|s| {
+                            format!("sim-{}", s.draft.session_id) == session_id
+                                && matches!(
+                                    s.phase,
+                                    session::Phase::ChampSelect | session::Phase::DraftFinalizing
+                                )
+                        })
+                } else {
+                    s.connected
+                        && s.phase == "ChampSelect"
+                        && s.session_id.as_deref() == Some(&session_id)
+                        && s.player_champion_id == Some(champion_id)
+                        && s.map_id == Some(11)
+                }
+            })
+        })
+    })
+    .await
+    .map_err(|_| "La estrategia se interrumpió")?
+}
+
+#[tauri::command]
+fn get_client_knowledge(state: State<'_, AppState>) -> Result<serde_json::Value, String> {
+    state
+        .knowledge
+        .lock()
+        .map(|k| k.clone())
+        .map_err(|_| "Recomendaciones no disponibles".into())
+}
 #[tauri::command]
 async fn get_import_targets(state: State<'_, AppState>) -> Result<serde_json::Value, String> {
     let directory = state.cache.with_file_name("imports");
@@ -47,7 +129,9 @@ async fn restore_import(
     tauri::async_runtime::spawn_blocking(move || {
         let _guard = guard.try_lock().map_err(|_| "Ya hay un cambio en curso")?;
         let snapshot = live.lock().map_err(|_| "Sesión no disponible")?;
-        if snapshot.phase != "ChampSelect"
+        if !snapshot.connected
+            || snapshot.map_id != Some(11)
+            || snapshot.phase != "ChampSelect"
             || snapshot.session_id.as_deref() != Some(&session_id)
             || snapshot.player_champion_id != Some(champion_id)
         {
@@ -193,11 +277,15 @@ async fn update_game_data(state: State<'_, AppState>) -> Result<GameData, String
     let cache = state.cache.clone();
     let progress = state.update.clone();
     let prepared = tauri::async_runtime::spawn_blocking(move || {
-        game_data::prepare(&current, live.version.as_deref(), &cache, progress)
+        let data = game_data::prepare(&current, live.version.as_deref(), &cache, progress)?;
+        let knowledge = knowledge::refresh(&data);
+        Ok::<_, String>((data, knowledge))
     })
     .await;
+    let mut knowledge_message = String::new();
     let result: Result<GameData, String> = (|| {
-        let data = prepared.map_err(|_| "La actualización se interrumpió.")??;
+        let (data, recommendations) =
+            prepared.map_err(|_| "La actualización se interrumpió.")??;
         let live = state.live.lock().map_err(|_| "Sesión no disponible")?;
         let mut session = state.session.lock().map_err(|_| "Sesión no disponible")?;
         if busy(&live.phase)
@@ -208,7 +296,26 @@ async fn update_game_data(state: State<'_, AppState>) -> Result<GameData, String
         {
             return Err("La sesión empezó. Conservamos los datos que estabas usando.".into());
         }
+        let mut next_knowledge = None;
+        match recommendations {
+            Ok(Some(value)) => {
+                knowledge::save(&state.cache.with_file_name("knowledge.json"), &value)?;
+                next_knowledge = Some(value);
+                knowledge_message = "Runas, posiciones y kits del cliente comprobados.".into();
+            }
+            Ok(None) => {
+                knowledge_message =
+                    "Abrí LoL para comprobar también sus páginas recomendadas.".into()
+            }
+            Err(error) => knowledge_message = format!("Metadatos del cliente pendientes: {error}"),
+        }
         game_data::activate(&data, &state.cache)?;
+        if let Some(value) = next_knowledge {
+            *state
+                .knowledge
+                .lock()
+                .map_err(|_| "Recomendaciones no disponibles")? = value;
+        }
         *state.game.lock().map_err(|_| "Datos no disponibles")? = data.clone();
         session.draft.patch = data.catalog.version.clone();
         Ok(data)
@@ -217,8 +324,8 @@ async fn update_game_data(state: State<'_, AppState>) -> Result<GameData, String
         s.running = false;
         s.message = match &result {
             Ok(data) => format!(
-                "Datos oficiales comprobados: {}. Estadísticas de meta sin proveedor conectado.",
-                data.catalog.version
+                "Datos oficiales comprobados: {}. {} El análisis estadístico se consulta por campeón y posición.",
+                data.catalog.version,knowledge_message
             ),
             Err(e) => e.clone(),
         };
@@ -257,7 +364,11 @@ pub fn run() {
         .setup(|app| {
             let cache = app.path().app_cache_dir()?.join("game");
             let game = GameData::load(&cache);
-            let session = Mutex::new(Session::new(game.catalog.version.clone()));
+            let knowledge = Mutex::new(knowledge::load(
+                &cache.with_file_name("knowledge.json"),
+                &game,
+            ));
+            let session = Arc::new(Mutex::new(Session::new(game.catalog.version.clone())));
             let live = Arc::new(Mutex::new(client::ClientSnapshot::default()));
             let worker = live.clone();
             std::thread::spawn(move || {
@@ -284,6 +395,10 @@ pub fn run() {
                 }
             });
             app.manage(AppState {
+                model: Arc::new(local_model::Service::new(
+                    cache.with_file_name("local-model.json"),
+                )),
+                knowledge,
                 import_lock: Arc::new(Mutex::new(())),
                 statistics: Arc::new(statistics::Statistics::new(
                     cache.with_file_name("statistics"),
@@ -307,7 +422,12 @@ pub fn run() {
             get_champion_analysis,
             import_loadout,
             get_import_targets,
-            restore_import
+            get_client_knowledge,
+            restore_import,
+            get_local_model,
+            configure_local_model,
+            cancel_strategy,
+            generate_strategy
         ])
         .run(tauri::generate_context!())
         .expect("No se pudo iniciar kahoru.lol");

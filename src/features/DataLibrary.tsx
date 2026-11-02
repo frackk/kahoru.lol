@@ -16,7 +16,7 @@ interface LibraryEntry {
 export function DataLibrary({
   onUpdate,
 }: {
-  onUpdate: (data: GameData) => void;
+  onUpdate: (data: GameData) => void | Promise<void>;
 }) {
   const data = useContext(GameDataContext);
   const [query, setQuery] = useState("");
@@ -43,9 +43,9 @@ export function DataLibrary({
     setMessage("Comprobando Data Dragon…");
     try {
       const next = await invoke<GameData>("update_game_data");
-      onUpdate(next);
+      await onUpdate(next);
       setMessage(
-        `Datos oficiales ${next.catalog.version} comprobados. Meta estadístico: sin proveedor conectado.`,
+        (await invoke<{ message: string }>("get_update_status")).message,
       );
     } catch (e) {
       setMessage(String(e));
@@ -84,9 +84,10 @@ export function DataLibrary({
         </button>
         <p role="status">{message}</p>
         <p className="small-note">
-          Las estadísticas de meta requieren una fuente adicional. Cambiar el
-          catálogo vuelve a validar runas, recetas y planes; las reglas
-          estratégicas tienen su propia revisión.
+          Con LoL abierto se comprueban también sus páginas recomendadas,
+          posiciones y kits. El análisis de OP.GG se actualiza por campeón y rol
+          desde la preparación. Cambiar el catálogo vuelve a validar runas y
+          recetas.
         </p>
       </section>
       <div className="library-toolbar">

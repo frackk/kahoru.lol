@@ -1,3 +1,11 @@
+import {
+  hasSample,
+  officialPages,
+  clientPatch,
+  type Analysis,
+  type Sample,
+} from "./analysis";
+import { strategy } from "./strategy";
 import shards from "../../data/knowledge/shards.json";
 import type { DraftSlot, Role } from "../contracts";
 import type { GameData, Item } from "../gameData";
@@ -28,7 +36,7 @@ export interface RunePage {
 export interface PurchaseStep {
   id: string;
   itemId: number;
-  kind: "buy" | "combine" | "sell" | "consume" | "quest";
+  kind: "buy" | "combine" | "sell" | "consume" | "quest" | "grant";
   cost: number;
   consumes: number[];
   condition?: string;
@@ -42,6 +50,9 @@ export interface Plan {
   starter: number[];
   items: number[];
   questUpgrade: number | null;
+  spells: number[];
+  source: string;
+  samples: { label: string; play: number; win: number }[];
   runes: RunePage;
   steps: PurchaseStep[];
   branches: string[];
@@ -60,19 +71,6 @@ export interface Recommendation {
   coverage: string;
   signature: string;
 }
-
-const runeTemplates: Record<string, [number, number[], number, number[]]> = {
-  fighter: [8000, [8010, 9111, 9105, 8299], 8400, [8473, 8451]],
-  attacks: [8000, [8008, 8009, 9103, 8014], 8200, [8233, 8236]],
-  fleet: [8000, [8021, 8009, 9103, 8014], 8200, [8233, 8236]],
-  tank: [8400, [8439, 8463, 8429, 8451], 8000, [9111, 9105]],
-  grasp: [8400, [8437, 8446, 8444, 8451], 8000, [9111, 9105]],
-  guardian: [8400, [8465, 8463, 8444, 8453], 8000, [8009, 9105]],
-  mage: [8200, [8229, 8226, 8210, 8237], 8300, [8345, 8347]],
-  ahri: [8100, [8112, 8143, 8140, 8106], 8200, [8226, 8210]],
-  assassin: [8100, [8112, 8143, 8140, 8106], 8000, [9111, 8014]],
-  aery: [8200, [8214, 8226, 8210, 8237], 8400, [8463, 8453]],
-};
 
 export function validateRunes(data: GameData, page: RunePage): string[] {
   const errors: string[] = [];
@@ -106,24 +104,6 @@ export function validateRunes(data: GameData, page: RunePage): string[] {
   return errors;
 }
 
-function runePage(p: Profile, variant: string): RunePage {
-  const [primary, main, secondary, sub] = runeTemplates[p.runes];
-  let secondaryTree = secondary,
-    secondaryRunes = [...sub];
-  if (variant !== "principal" && primary !== 8400) {
-    secondaryTree = 8400;
-    secondaryRunes = variant === "armor" ? [8473, 8451] : [8444, 8451];
-  }
-  const attack = p.traits.includes("attacks");
-  return {
-    primary,
-    primaryRunes: [...main],
-    secondary: secondaryTree,
-    secondaryRunes,
-    shards: [attack ? 5005 : 5008, 5008, variant === "principal" ? 5001 : 5011],
-  };
-}
-
 function availableItem(data: GameData, id: number, p: Profile): Item {
   const item = data.items.find((i) => i.id === id);
   if (
@@ -143,6 +123,7 @@ export function purchaseRoute(
   p: Profile,
   starter: number[],
   targets: number[],
+  runes?: RunePage,
 ): PurchaseStep[] {
   let inventory: number[] = [];
   let steps: PurchaseStep[] = [];
@@ -177,11 +158,11 @@ export function purchaseRoute(
     );
   }
   if (p.roles.includes("JUNGLE")) {
-    const index = inventory.indexOf(1103);
+    const index = inventory.findIndex((id) => [1101, 1102, 1103].includes(id));
     if (index >= 0) {
-      inventory.splice(index, 1);
+      const pet = inventory.splice(index, 1)[0];
       add(
-        1103,
+        pet,
         "quest",
         0,
         [],
@@ -191,12 +172,30 @@ export function purchaseRoute(
   }
   const build = (id: number, path: number[]) => {
     if (path.includes(id)) throw new Error("La receta contiene un ciclo.");
+    if (
+      id === 1001 &&
+      runes &&
+      [...runes.primaryRunes, ...runes.secondaryRunes].includes(8304)
+    ) {
+      inventory.push(2422);
+      add(
+        2422,
+        "grant",
+        0,
+        [],
+        "Recibir el Calzado Mágico de la runa antes de mejorar botas; no se compra la bota básica.",
+      );
+      return;
+    }
     const item = availableItem(data, id, p);
     for (const part of item.from) build(part, [...path, id]);
+    const consumed: number[] = [];
     for (const part of item.from) {
-      const i = inventory.indexOf(part);
+      const actual = part === 1001 && inventory.includes(2422) ? 2422 : part;
+      const i = inventory.indexOf(actual);
       if (i < 0) throw new Error("Falta un componente de la receta.");
       inventory.splice(i, 1);
+      consumed.push(actual);
     }
     if (inventory.length >= 6)
       throw new InventoryFull("No hay ranuras para los componentes.");
@@ -205,7 +204,7 @@ export function purchaseRoute(
       id,
       item.from.length ? "combine" : "buy",
       item.from.length ? item.combineCost : item.cost,
-      item.from,
+      consumed,
     );
   };
   for (const id of targets) {
@@ -245,39 +244,6 @@ export function purchaseRoute(
   return steps;
 }
 
-function finalItems(p: Profile, variant: string): number[] {
-  const armor = variant === "armor",
-    magic = variant === "magic";
-  const boots = armor ? 3047 : magic ? 3111 : p.boots;
-  const support = p.roles.includes("SUPPORT");
-  let rest: number[];
-  if (support) {
-    rest =
-      p.group === "pyke"
-        ? [6694, armor ? 3026 : magic ? 3156 : 6696]
-        : p.group === "enchanter"
-          ? [3107, armor ? 3190 : magic ? 3222 : 2065]
-          : [3050, armor ? 3110 : magic ? 3065 : 3107];
-  } else if (p.group.includes("tank")) {
-    rest = [3075, 3065, armor ? 3143 : magic ? 2504 : 3083];
-  } else if (p.group === "critmelee") {
-    rest = [3072, 3036, armor ? 6333 : magic ? 3156 : 3026];
-  } else if (p.damage === "magic") {
-    rest = [3089, 3135, armor ? 3157 : magic ? 3102 : 3157];
-  } else if (["marksman", "jhin"].includes(p.group)) {
-    rest = [3094, 3036, armor ? 3143 : magic ? 3156 : 3026];
-  } else if (p.group === "onhit" || p.group === "jungleattacks") {
-    rest = [3091, 3302, armor ? 3143 : magic ? 3156 : 3026];
-  } else if (p.group === "adassassin" || p.group === "junglead") {
-    rest = [6696, armor ? 3026 : magic ? 3156 : 6695, 3161];
-  } else if (p.group === "ezreal") {
-    rest = [6694, 3161, armor ? 3026 : magic ? 3156 : 3072];
-  } else {
-    rest = [3161, 6333, armor ? 3143 : 3065];
-  }
-  return [p.core[0], boots, p.core[1], ...rest];
-}
-
 function teamProfiles(slots: DraftSlot[]): Profile[] {
   return slots.flatMap((s) =>
     s.championId && profileById.has(s.championId)
@@ -285,67 +251,6 @@ function teamProfiles(slots: DraftSlot[]): Profile[] {
       : [],
   );
 }
-function named(data: GameData, ps: Profile[]): string {
-  return ps
-    .map(
-      (p) =>
-        data.catalog.champions.find((c) => c.id === p.championId)?.name ??
-        p.slug,
-    )
-    .join(", ");
-}
-
-function strategy(data: GameData, p: Profile, ctx: DraftContext): string[] {
-  const allies = teamProfiles(ctx.allies),
-    enemies = teamProfiles(ctx.enemies);
-  const champion = named(data, [p]);
-  const front = enemies.filter((e) => e.traits.includes("frontline")),
-    engage = enemies.filter((e) => e.traits.includes("engage"));
-  const lines: string[] = [];
-  if (p.traits.includes("side"))
-    lines.push(
-      `${champion} ofrece presión lateral. Ese plan necesita que el equipo pueda sostener el mapa sin agruparse siempre.`,
-    );
-  else if (p.traits.includes("peel"))
-    lines.push(
-      `${champion} aporta protección. Acompañar al daño sostenido aliado es una alternativa a buscar la iniciación.`,
-    );
-  else if (p.traits.includes("poke"))
-    lines.push(
-      `${champion} puede desgastar antes de una pelea. La composición aprovecha menos ese alcance si busca contacto inmediato.`,
-    );
-  else if (p.traits.includes("engage"))
-    lines.push(
-      `${champion} puede abrir peleas; necesita seguimiento aliado para aprovechar el control inicial.`,
-    );
-  else if (p.traits.includes("burst"))
-    lines.push(
-      `${champion} concentra daño en ventanas cortas. Su plan pierde fuerza en intercambios prolongados contra primera línea.`,
-    );
-  else
-    lines.push(
-      `${champion} busca daño sostenido. La protección aliada y el espacio para atacar condicionan su aporte en peleas.`,
-    );
-  if (front.length)
-    lines.push(
-      `La primera línea de ${named(data, front)} hace razonable preparar penetración o daño sostenido, sujeto a sus compras.`,
-    );
-  if (engage.length)
-    lines.push(
-      `${named(data, engage)} aporta iniciación: el posicionamiento previo y conservar una respuesta defensiva son factores del draft.`,
-    );
-  const scaling = allies.filter((a) => a.traits.includes("scaling"));
-  if (scaling.length >= 2)
-    lines.push(
-      `${named(data, scaling)} aporta opciones de escalado; la composición no necesita resolver todas las peleas en los primeros niveles.`,
-    );
-  if (ctx.enemies.some((e) => e.championId === null) || ctx.enemies.length < 5)
-    lines.push(
-      "El equipo rival está incompleto. El plan queda provisional hasta conocer el resto de los picks.",
-    );
-  return lines.slice(0, 4);
-}
-
 export function rankChampions(
   data: GameData,
   ctx: DraftContext,
@@ -355,13 +260,18 @@ export function rankChampions(
   const occupied = new Set([
     ...ctx.bans,
     ...ctx.allies
+      .filter((s) => s.locked || s.championId === ctx.playerChampionId)
       .concat(ctx.enemies)
       .flatMap((s) => (s.championId ? [s.championId] : [])),
   ]);
-  const allies = teamProfiles(
-      ctx.allies.filter((s) => s.championId !== ctx.playerChampionId),
-    ),
-    enemies = teamProfiles(ctx.enemies);
+  const enemies = teamProfiles(ctx.enemies);
+  const allyMass = (test: (p: Profile) => boolean) =>
+    ctx.allies
+      .filter((s) => s.championId !== ctx.playerChampionId)
+      .reduce((n, s) => {
+        const p = s.championId ? profileById.get(s.championId) : undefined;
+        return n + (p && test(p) ? (s.locked ? 1 : 0.35) : 0);
+      }, 0);
   return profiles
     .filter(
       (p) =>
@@ -374,30 +284,42 @@ export function rankChampions(
       let score = 50;
       const reasons: string[] = [];
       if (
-        !allies.some((a) => a.traits.includes("frontline")) &&
+        allyMass((a) => a.traits.includes("frontline")) < 1 &&
         p.traits.includes("frontline")
       ) {
-        score += 18;
+        score +=
+          18 *
+          (1 -
+            Math.min(
+              1,
+              allyMass((a) => a.traits.includes("frontline")),
+            ));
         reasons.push("Añade primera línea a los aliados conocidos.");
       }
       if (
-        !allies.some((a) => a.traits.includes("engage")) &&
+        allyMass((a) => a.traits.includes("engage")) < 1 &&
         p.traits.includes("engage")
       ) {
-        score += 12;
+        score +=
+          12 *
+          (1 -
+            Math.min(
+              1,
+              allyMass((a) => a.traits.includes("engage")),
+            ));
         reasons.push("Aporta una opción de iniciación.");
       }
       if (
-        allies.filter((a) => a.damage === "physical").length >= 2 &&
+        allyMass((a) => a.damage === "physical") > 1 &&
         p.damage === "magic"
       ) {
-        score += 15;
+        score += 15 * Math.min(1, allyMass((a) => a.damage === "physical") - 1);
         reasons.push(
           "Diversifica el daño frente a la concentración física aliada.",
         );
       }
       if (
-        allies.filter((a) => a.damage === "magic").length >= 2 &&
+        allyMass((a) => a.damage === "magic") > 1 &&
         p.damage === "physical"
       ) {
         score += 15;
@@ -427,9 +349,15 @@ export function rankChampions(
         reasons.push(
           "Encaja en el rol; el draft conocido todavía no establece una ventaja estratégica clara.",
         );
+      if (ctx.allies.some((s) => s.championId === p.championId && !s.locked)) {
+        score -= 10;
+        reasons.push(
+          "Está en hover de un aliado: confirmar la disponibilidad antes de elegirlo.",
+        );
+      }
       return {
         championId: p.championId,
-        score: Math.min(95, score),
+        score: Math.max(0, Math.min(95, Math.round(score))),
         reasons,
         tradeoff: p.traits.includes("frontline")
           ? "Entrar requiere seguimiento; la resistencia no garantiza ganar el intercambio."
@@ -445,137 +373,223 @@ export function recommend(
   data: GameData,
   ctx: DraftContext,
   pool?: number[],
+  analysis?: Analysis,
 ): Recommendation {
   const signature = JSON.stringify([
     ctx,
     data.catalog.version,
     rulesRevision,
     pool,
+    analysis,
   ]);
   const errors: string[] = [];
-  const plans: Plan[] = [];
-  const known = ctx.allies.concat(ctx.enemies).filter((s) => s.championId),
-    covered = teamProfiles(known).length;
-  const result = {
-    plans,
-    ranking: [] as RankEntry[],
+  const result: Recommendation = {
+    plans: [],
+    ranking: [],
     errors,
-    coverage: `${covered}/${known.length} picks conocidos con perfil estratégico. Reglas ${rulesPatch}, revisión ${rulesRevision}; sin estadísticas de meta.`,
+    coverage: `${profiles.length} campeones con posiciones del cliente. Composición por reglas; builds con fuente y muestra.`,
     signature,
   };
+  const patch = data.catalog.version.split(".").slice(0, 2).join(".");
   if (
-    !data.catalog.version.startsWith(rulesPatch + ".") ||
-    (ctx.gameVersion && !ctx.gameVersion.startsWith(rulesPatch + "."))
+    patch !== rulesPatch ||
+    (ctx.gameVersion && !ctx.gameVersion.startsWith(patch + "."))
   ) {
     errors.push(
-      "Las reglas estratégicas necesitan revisión para el parche activo. El catálogo se puede actualizar de forma independiente.",
+      "Los datos y el cliente pertenecen a parches distintos. Actualizá el paquete antes de preparar la partida.",
     );
     return result;
   }
   result.ranking = rankChampions(data, ctx, pool);
-  if (!ctx.playerChampionId) {
-    errors.push("Elegí tu campeón para preparar runas y compras.");
+  if (!ctx.playerChampionId || !ctx.playerRole) {
+    errors.push("Elegí campeón y posición para preparar la partida.");
     return result;
   }
   const p = profileById.get(ctx.playerChampionId);
   if (!p) {
+    errors.push("El campeón no figura en el paquete activo.");
+    return result;
+  }
+  if (!analysis) {
     errors.push(
-      "Este campeón todavía no tiene un perfil estratégico revisado. Sus datos e imágenes están disponibles en la biblioteca.",
+      "La build necesita un análisis por campeón y posición. No se completa con una plantilla genérica.",
     );
     return result;
   }
-  if (!ctx.playerRole || !p.roles.includes(ctx.playerRole)) {
-    errors.push("Este campeón no tiene un plan revisado para el rol indicado.");
+  const a = analysis.analysis?.data;
+  if (!a || a.trends?.win?.version !== patch) {
+    errors.push(
+      "El proveedor no informa tendencias para el parche activo. No usamos esa build como actual.",
+    );
     return result;
   }
+  if (
+    analysis.analysis.position.toUpperCase() !==
+    {
+      MID: "MID",
+      BOT: "ADC",
+      SUPPORT: "SUPPORT",
+      TOP: "TOP",
+      JUNGLE: "JUNGLE",
+    }[ctx.playerRole]
+  ) {
+    errors.push("El análisis corresponde a otra posición.");
+    return result;
+  }
+  if (!hasSample(a.core_items) || !hasSample(a.starter_items)) {
+    errors.push(
+      "No hay muestra suficiente para el núcleo o el inicio de esta posición.",
+    );
+    return result;
+  }
+  const runes: RunePage = {
+    primary: a.runes?.primary_page_id,
+    secondary: a.runes?.secondary_page_id,
+    primaryRunes: a.runes?.primary_rune_ids ?? [],
+    secondaryRunes: a.runes?.secondary_rune_ids ?? [],
+    shards: a.runes?.stat_mod_ids ?? [],
+  };
+  if (validateRunes(data, runes).length) {
+    errors.push("Las runas del proveedor no son compatibles con el paquete.");
+    return result;
+  }
+  const official =
+    patch === clientPatch ? officialPages(p.championId, ctx.playerRole) : [];
+  const agrees = official.some(
+    (page) =>
+      JSON.stringify([...page.primaryRunes, ...page.secondaryRunes].sort()) ===
+      JSON.stringify([...runes.primaryRunes, ...runes.secondaryRunes].sort()),
+  );
+  const item = (id: number) => data.items.find((i) => i.id === id);
+  const upgrade =
+    a.core_items.ids.find((id) =>
+      [3869, 3870, 3871, 3876, 3877].includes(id),
+    ) ?? null;
+  const core = a.core_items.ids.filter((id) => id !== upgrade);
+  const boots = hasSample(a.boots) ? a.boots.ids : [];
+  const base = [...core.slice(0, 1), ...boots, ...core.slice(1)];
+  const limit =
+    ctx.playerRole === "SUPPORT" && a.starter_items.ids.includes(3865) ? 5 : 6;
+  const rows = [
+    ...(a.fourth_items ?? []),
+    ...(a.fifth_items ?? []),
+    ...(a.sixth_items ?? []),
+  ]
+    .filter(hasSample)
+    .filter((row) =>
+      row.ids.every((id) => !base.includes(id) && id !== upgrade),
+    );
+  const candidates: { ids: number[]; samples: Sample[]; fit: number }[] = [];
   const enemies = teamProfiles(ctx.enemies);
-  const physical = enemies.filter((e) => e.damage === "physical"),
-    magic = enemies.filter((e) => e.damage === "magic");
-  const preferred =
-    physical.length >= 3 && physical.length > magic.length
-      ? "armor"
-      : magic.length >= 3 && magic.length > physical.length
-        ? "magic"
-        : "principal";
-  for (const variant of ["principal", "armor", "magic"]) {
+  const physical = enemies.filter((e) => e.damage === "physical").length,
+    magic = enemies.filter((e) => e.damage === "magic").length;
+  for (const first of rows) {
+    const ids = [...base, ...first.ids];
+    const samples = [first];
+    for (const row of [
+      ...(a.fifth_items ?? []),
+      ...(a.sixth_items ?? []),
+      ...rows,
+    ].filter(hasSample)) {
+      if (ids.length >= limit) break;
+      if (
+        row.ids.some((id) => ids.includes(id) || id === upgrade) ||
+        ids.length + row.ids.length > limit
+      )
+        continue;
+      ids.push(...row.ids);
+      samples.push(row);
+    }
+    if (
+      ids.length !== limit ||
+      new Set(ids).size !== ids.length ||
+      candidates.some((c) => c.ids.join() === ids.join())
+    )
+      continue;
+    const fit = ids.reduce(
+      (n, id) =>
+        n +
+        (item(id)?.tags.includes("Armor") ? physical : 0) +
+        (item(id)?.tags.includes("SpellBlock") ? magic : 0),
+      0,
+    );
+    candidates.push({ ids, samples, fit });
+  }
+  if (base.length === limit)
+    candidates.push({ ids: base, samples: [], fit: 0 });
+  candidates.sort((a, b) => b.fit - a.fit);
+  for (const [index, candidate] of candidates.slice(0, 3).entries()) {
     try {
-      const runes = runePage(p, variant);
-      const invalid = validateRunes(data, runes);
-      if (invalid.length) throw new Error(invalid.join(" "));
-      const items = finalItems(p, variant);
-      const questUpgrade = p.roles.includes("SUPPORT")
-        ? p.group === "enchanter"
-          ? 3870
-          : p.group === "pyke"
-            ? 3877
-            : 3869
-        : null;
-      if (questUpgrade) {
-        const upgrade = availableItem(data, questUpgrade, p);
-        if (!upgrade.from.includes(3867))
-          throw new Error("La mejora de misión requiere revisar su evolución.");
-      }
-      if (new Set(items).size !== items.length)
-        throw new Error("El plan repite objetos completos.");
-      if ([3053, 3156].every((id) => items.includes(id)))
-        throw new Error(
-          "El plan combina opciones incompatibles de salvavidas.",
-        );
-      const starter = p.roles.includes("SUPPORT")
-        ? [3865, 2003, 2003]
-        : [p.starter, 2003];
-      const steps = purchaseRoute(data, p, starter, items);
-      plans.push({
-        id: variant,
-        recommended: variant === preferred,
-        title:
-          variant === "principal"
-            ? "Plan equilibrado"
-            : variant === "armor"
-              ? "Resistir ataques físicos"
-              : "Resistir daño mágico",
-        reason:
-          variant === "principal"
-            ? "Mantiene el núcleo del perfil y una respuesta defensiva general."
-            : variant === "armor"
-              ? "Prioriza botas defensivas y una respuesta a ataques físicos, preparada antes de jugar."
-              : "Añade resistencia mágica; cobra valor si el daño mágico rival condiciona tu acceso a las peleas.",
-        tradeoff:
-          variant === "principal"
-            ? "No maximiza resistencia contra un único tipo de amenaza."
-            : "Dedicar oro a defensa retrasa daño, penetración o utilidad del plan base.",
+      const starter = a.starter_items.ids;
+      const routeProfile = {
+        ...p,
+        roles: [ctx.playerRole],
+        starter: starter[0],
+      };
+      if (
+        ![
+          [3053, 3156, 6673],
+          [3033, 3036, 6694],
+          [3135, 3137],
+        ].every(
+          (group) =>
+            candidate.ids.filter((id) => group.includes(id)).length <= 1,
+        )
+      )
+        continue;
+      const steps = purchaseRoute(
+        data,
+        routeProfile,
         starter,
-        items,
-        questUpgrade,
+        candidate.ids,
         runes,
+      );
+      result.plans.push({
+        id: `items-${candidate.ids.join("-")}`,
+        recommended: index === 0,
+        title:
+          index === 0 ? "Plan por composición" : `Alternativa ${index + 1}`,
+        reason: `Núcleo observado por OP.GG. ${candidate.ids
+          .slice(base.length)
+          .map((id) => item(id)?.name)
+          .join(
+            " y ",
+          )} completa la ruta entre opciones publicadas por esa fuente.`,
+        tradeoff:
+          "Las muestras de cada compra se observan por separado: no representan la probabilidad de ganar con este plan completo.",
+        starter,
+        items: candidate.ids,
+        questUpgrade: upgrade,
+        runes,
+        spells: hasSample(a.summoner_spells) ? a.summoner_spells.ids : [],
+        source: `OP.GG MCP · tendencias ${a.trends.win.version} · región no informada · todos los rangos. ${agrees ? "La página coincide con una recomendación del cliente de Riot." : "La página difiere de las recomendaciones del cliente; no hay consenso demostrado."}`,
+        samples: [
+          { label: "Núcleo", play: a.core_items.play, win: a.core_items.win },
+          ...candidate.samples.map((row, i) => ({
+            label: `Compra alternativa ${i + 1}`,
+            play: row.play,
+            win: row.win,
+          })),
+        ],
         steps,
         branches: [
-          "Si cambia tu rol o el campeón, preparar un plan nuevo antes de entrar a partida.",
-          ...(questUpgrade
+          ...([...runes.primaryRunes, ...runes.secondaryRunes].includes(8304)
             ? [
-                "Conservar Mapamundi y completar su misión hasta Recompensa Mundial. Elegir la mejora indicada en esa misma ranura; no se compra como un séptimo objeto.",
+                "Calzado Mágico impide comprar botas antes de recibir las gratuitas. La ruta de componentes requiere esa condición; no da por cumplido su momento de obtención.",
               ]
             : []),
-          ...(teamProfiles(ctx.enemies).filter((e) =>
-            e.traits.includes("healing"),
-          ).length >= 2
-            ? [
-                "El draft contiene varias fuentes de curación. Evaluar reducción de curaciones con el equipo; no se incorpora automáticamente una compra incompatible.",
-              ]
-            : []),
+          "Las variantes completas se construyen a partir de compras observadas por separado. Necesitan evaluación estratégica; no son combinaciones con una tasa conjunta medida.",
         ],
-        strategy: strategy(data, p, ctx),
+        strategy: strategy(data, ctx),
       });
     } catch (e) {
-      errors.push(
-        `${variant}: ${e instanceof Error ? e.message : "Plan incompatible"}`,
-      );
+      errors.push(e instanceof Error ? e.message : "Ruta no compatible");
     }
   }
-  const preferredPlan = plans.find((p) => p.recommended);
-  if (preferredPlan && preferred !== "principal")
-    preferredPlan.reason += ` ${named(data, preferred === "armor" ? physical : magic)} concentra ${preferred === "armor" ? "perfiles físicos" : "perfiles mágicos"} en el draft conocido. Es una previsión por campeón, no daño observado en partida.`;
-  plans.sort((a, b) => Number(b.recommended) - Number(a.recommended));
+  if (!result.plans.length && !errors.length)
+    errors.push(
+      "La fuente no ofrece una ruta completa compatible; no añadimos objetos de relleno.",
+    );
   return result;
 }
 

@@ -1,36 +1,50 @@
 # Cliente local
 
-Verificación: 2026-11-02. La conexión se probó en el cliente instalado, versión 16.21.8342754, con certificado de Riot validado. Es una integración experimental de solo lectura; no acredita aprobación particular de Riot. Su registro y declaración de usos siguen pendientes.
+Verificado el 2 de noviembre de 2026 con el cliente 16.21.8342754. LCU es una integración experimental sin garantía de soporte. El registro del producto y la declaración de usos siguen pendientes.
 
-## Lecturas utilizadas
+## Lecturas
 
-| Método y ruta                         | Comprobación local                        | Uso                                                                                          |
-| ------------------------------------- | ----------------------------------------- | -------------------------------------------------------------------------------------------- |
-| `GET /lol-gameflow/v1/gameflow-phase` | HTTP 200 en inicio y selección            | Fase de la sesión.                                                                           |
-| `GET /lol-patch/v1/game-version`      | HTTP 200                                  | Versión del cliente, separada del catálogo.                                                  |
-| `GET /lol-gameflow/v1/session`        | HTTP 200                                  | Mapa e identidad interna de partida para continuidad; sin publicar el resto de la respuesta. |
-| `GET /lol-champ-select/v1/session`    | HTTP 404 sin draft y 200 en personalizada | Equipos, picks, bans y posición propia.                                                      |
-| `GET /help`                           | HTTP 200 durante la investigación         | Inspección de la interfaz disponible; no se consulta en ejecución.                           |
+| Ruta GET                                                                      | Uso                                                           |
+| ----------------------------------------------------------------------------- | ------------------------------------------------------------- |
+| `/lol-gameflow/v1/gameflow-phase`                                             | Fase.                                                         |
+| `/lol-gameflow/v1/session`                                                    | Mapa y continuidad interna de partida.                        |
+| `/lol-patch/v1/game-version`                                                  | Compatibilidad de parche.                                     |
+| `/lol-champ-select/v1/session`                                                | Picks, hovers aliados, bans y posición propia.                |
+| `/lol-perks/v1/recommended-champion-positions`                                | Posiciones recomendadas públicas.                             |
+| `/lol-perks/v1/recommended-pages/champion/{id}/position/{position}/map/11`    | Páginas públicas por campeón y posición.                      |
+| `/lol-game-data/assets/v1/champions/{id}.json`                                | Kit y metadatos públicos.                                     |
+| `/lol-perks/v1/pages`, `/lol-perks/v1/currentpage`, `/lol-perks/v1/inventory` | Destinos de importación y ranuras.                            |
+| `/lol-summoner/v1/current-summoner`                                           | Nivel para spells y separación local de respaldos por cuenta. |
+| `/lol-champ-select/v1/session/my-selection`                                   | Spells propios y lectura posterior.                           |
 
-La ruta Swagger consultada respondió 404. El adaptador no depende de ella. LCU no dispone de garantías de soporte para terceros: estas pruebas confirman disponibilidad técnica en esta versión, no estabilidad futura.
+`/lol-perks/v1/styles` y `/lol-perks/v1/perks` se consultaron para revisar fragmentos. `/help` se utilizó en investigación; la aplicación no depende de Swagger.
+
+Las posiciones de las páginas deben ser `TOP`, `JUNGLE`, `MIDDLE`, `BOTTOM` o `UTILITY`. Una posición en minúsculas puede devolver silenciosamente una página de otra línea; se comprueba el campo devuelto.
+
+## Escrituras explícitas
+
+| Método y ruta                                     | Uso                                                                          |
+| ------------------------------------------------- | ---------------------------------------------------------------------------- |
+| `POST /lol-perks/v1/pages`                        | Crear página de kahoru.lol si hay ranura.                                    |
+| `PUT /lol-perks/v1/pages/{id}`                    | Actualizar página propia o destino elegido con respaldo; restaurar respaldo. |
+| `PATCH /lol-champ-select/v1/session/my-selection` | Aplicar únicamente los dos IDs de spells.                                    |
+
+No se borran páginas. La importación exige selección real vigente, mapa 11, campeón propio y sesión coincidentes. Se validan árboles, filas, fragmentos, parche y spells. La fase y el campeón se comprueban otra vez antes de escribir.
+
+Si las ranuras están llenas, el usuario elige el destino. La copia se guarda antes del PUT y se puede restaurar desde la misma sección. Una página propia se reconoce por su registro local e identidad; no se reemplaza otra página por nombre parecido.
+
+Los spells conservan la tecla actual de Flash. La lectura posterior verifica página activa, IDs y spells; los errores parciales se informan sin afirmar éxito total. La app no refleja como cambios propios las ediciones posteriores realizadas manualmente en el cliente.
 
 ## Conexión y privacidad
 
-La aplicación busca el lockfile en las ubicaciones habituales y en las instalaciones registradas en `RiotClientInstalls.json`. Lee puerto y contraseña temporal en memoria; no los devuelve al frontend ni los escribe en logs. Solo consulta `127.0.0.1` mediante HTTPS. El certificado raíz se obtuvo del [enlace publicado por Riot](https://static.developer.riotgames.com/docs/lol/riotgames.pem). No se deshabilitan la validación TLS o del nombre del servidor. No se siguen redirecciones ni proxies.
+Se descubren lockfiles mediante ubicaciones habituales y `RiotClientInstalls.json`. Credenciales temporales solo en memoria nativa; nunca en frontend, logs o Git. HTTPS únicamente a loopback, sin proxy ni redirecciones, con la raíz publicada por Riot. No se deshabilita la validación TLS.
 
-El lector publica únicamente fase, versión, mapa, campeón y posición propios, campeones, bans y posiciones visibles. Usa la identidad de partida internamente para conservar la preparación entre carga y reconexión. No devuelve nombres, PUUID, historial ni credenciales. Ignora intenciones y posiciones asignadas del equipo rival. Distingue picks provisionales de acciones de selección completadas.
+Los snapshots descartan identidades e información rival no revelada. La cuenta utilizada para separar respaldos se convierte en hash local; no se envía al proveedor. Se sondea cada segundo en draft, tres fuera de partida y diez en partida, con timeouts.
 
-Se consulta cada segundo durante el draft, cada tres segundos fuera de partida y cada diez durante la partida. Los requests tienen timeout de dos segundos. Se vuelve a leer el lockfile para recuperar reinicios. El sondeo reemplaza provisionalmente la suscripción de eventos; debe medirse antes de optimizarlo.
+La pérdida de conexión conserva la vista y la marca como desconectada. Inicio/sala limpia el draft; una partida distinta invalida la continuidad. La fase se revisa antes y después de leer la selección.
 
-Una desconexión conserva la última vista y la marca como desconectada. Al recuperar una partida sin continuidad comprobable se descarta el draft anterior. Una fase de inicio o sala limpia la selección. La fase se verifica antes y después de leer el draft para evitar publicar una transición incompleta.
+## Verificación real
 
-## Pruebas
+En una personalizada, el usuario autorizó reutilizar la página activa con respaldo. Se aplicaron runas y spells de Viego, se conservó la tecla de Flash y la otra página del usuario, se restauró la configuración anterior y se volvió a importar. Quedó activa la página de kahoru.lol. No se inició una partida ni se eligió un campeón desde la app.
 
-`tests/fixtures/client-draft.json` conserva solo campos de selección de una personalizada real, sin identidades. Las pruebas comprueban equipos incompletos, rol desconocido, picks tentativos y credenciales inválidas. La conexión real se comprueba expresamente con:
-
-```powershell
-cargo test --manifest-path src-tauri/Cargo.toml local_client_answers_with_valid_tls -- --ignored
-npm run test:native -- --live
-```
-
-No se inició ninguna partida desde la aplicación. Falta verificar una partida completa, swaps de diez jugadores y reinicios durante carga. No se implementan selección automática de campeones en LoL, escritura de runas, recomendaciones en vivo ni seguimiento de información oculta.
+Faltan una partida completa, swaps entre diez jugadores y reinicios durante carga. Las pruebas de escritura del núcleo usan primero un adaptador de memoria. La prueba real no se repite automáticamente en CI.

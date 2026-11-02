@@ -1,200 +1,193 @@
 import { describe, it, expect } from "vitest";
 import raw from "../../data/game-data.json";
+import client from "../../data/client-recommendations.json";
+import spells from "../../data/knowledge/spells.json";
 import type { GameData } from "../gameData";
-import { profiles } from "./profiles";
+import { profileById, profiles } from "./profiles";
 import {
-  possibleRoles,
-  purchaseRoute,
   recommend,
+  rankChampions,
+  purchaseRoute,
   validateRunes,
+  possibleRoles,
   type DraftContext,
 } from "./recommendations";
-
+import { syntheticAnalysis } from "../../tests/fixtures/analysis";
 const data = raw as GameData;
-function context(championId: number | null = 103): DraftContext {
-  return {
-    sessionId: "test",
-    playerRole: "MID",
-    playerChampionId: championId,
-    allies: [],
-    enemies: [],
-    bans: [],
-    gameVersion: data.catalog.version,
-  };
-}
-describe("planes revisados", () => {
-  it("evalúa reemplazos sin conservar el aporte del campeón propio", () => {
-    const base = { ...context(null), playerRole: "JUNGLE" as const };
-    const empty = recommend(data, base).ranking;
-    const selected = recommend(data, {
-      ...base,
-      playerChampionId: 32,
-      allies: [{ championId: 32, locked: true, role: "JUNGLE" }],
-    }).ranking;
-    expect(selected.find((c) => c.championId === 113)?.score).toBe(
-      empty.find((c) => c.championId === 113)?.score,
-    );
-    expect(selected.some((c) => c.championId === 32)).toBe(false);
+const slot = (championId: number, locked = true) => ({
+  championId,
+  locked,
+  role: null,
+});
+const context = (championId: number | null = 234): DraftContext => ({
+  sessionId: "test",
+  playerRole: "JUNGLE",
+  playerChampionId: championId,
+  allies: [],
+  enemies: [],
+  bans: [],
+  gameVersion: data.catalog.version,
+});
+describe("recomendaciones con procedencia", () => {
+  it("Jinx y Miss Fortune no se clasifican como iniciación primaria", () => {
+    expect(profileById.get(222)?.traits).not.toContain("engage");
+    expect(profileById.get(21)?.traits).not.toContain("engage");
   });
-  it("el pool vacío filtra todas las alternativas y el pool declarado limita el ranking", () => {
+  for (const c of client.champions) {
+    it(`${c.id}: posiciones, páginas y spells del cliente válidos`, () => {
+      expect(c.pages.length).toBeGreaterThan(0);
+      for (const page of c.pages) {
+        expect(page.sourcePosition).toBe(
+          (
+            {
+              TOP: "TOP",
+              JUNGLE: "JUNGLE",
+              MID: "MIDDLE",
+              BOT: "BOTTOM",
+              SUPPORT: "UTILITY",
+            } as Record<string, string>
+          )[page.role],
+        );
+        expect(validateRunes(data, page)).toEqual([]);
+        expect(page.spells).toHaveLength(2);
+        expect(
+          page.spells.every((id) => spells.spells.some((s) => s.id === id)),
+        ).toBe(true);
+      }
+    });
+  }
+  it("cubre el catálogo completo sin núcleos genéricos", () => {
+    expect(profiles.map((p) => p.championId).sort()).toEqual(
+      data.catalog.champions.map((c) => c.id).sort(),
+    );
+    expect(profiles.every((p) => p.core.length === 0)).toBe(true);
+    expect(new Set(profileById.get(234)!.traits).size).toBe(
+      profileById.get(234)!.traits.length,
+    );
+    expect(profileById.get(234)!.traits).not.toContain("frontline");
+  });
+  it("sin fuente conserva ranking pero no inventa una build", () => {
+    const r = recommend(data, context());
+    expect(r.plans).toEqual([]);
+    expect(r.ranking.length).toBeGreaterThan(0);
+    expect(r.errors.join()).toContain("análisis");
+  });
+  it("la partida de Viego produce planes trazables y un planteamiento de seguimiento", () => {
+    const ctx = {
+      ...context(),
+      allies: [82, 234, 80, 222, 432].map((id) => slot(id)),
+      enemies: [113, 141, 134, 21, 50].map((id) => slot(id)),
+    };
+    const r = recommend(data, ctx, undefined, syntheticAnalysis());
+    expect(r.errors).toEqual([]);
+    expect(r.plans.length).toBeGreaterThan(0);
+    for (const p of r.plans) {
+      expect(p.items.slice(0, 4)).toEqual([6672, 3047, 6676, 6673]);
+      expect(p.items).toHaveLength(6);
+      expect(p.runes.shards[0]).toBe(5005);
+      expect(p.spells).toEqual([4, 11]);
+      expect(p.strategy.join()).toContain("primer derribo");
+      expect(p.strategy.join()).toContain("Dominio del Soberano");
+      expect(p.items).not.toContain(3053);
+      expect(p.items).not.toContain(3156);
+      expect(p.samples.every((s) => s.play === 1000)).toBe(true);
+    }
+  });
+  it("respeta recetas, inventario y calzado gratuito", () => {
+    const r = recommend(data, context(), undefined, syntheticAnalysis());
+    for (const plan of r.plans) {
+      const inventory: number[] = [];
+      for (const step of plan.steps) {
+        if (["sell", "consume", "quest"].includes(step.kind)) {
+          const index = inventory.indexOf(step.itemId);
+          expect(index).toBeGreaterThanOrEqual(0);
+          inventory.splice(index, 1);
+        } else {
+          for (const id of step.consumes) {
+            const index = inventory.indexOf(id);
+            expect(index).toBeGreaterThanOrEqual(0);
+            inventory.splice(index, 1);
+          }
+          inventory.push(step.itemId);
+          expect(inventory.length).toBeLessThanOrEqual(6);
+        }
+      }
+      expect([...inventory].sort()).toEqual([...plan.items].sort());
+      expect(
+        plan.steps.some((s) => s.itemId === 2422 && s.kind === "grant"),
+      ).toBe(true);
+      expect(
+        plan.steps.some((s) => s.itemId === 1001 && s.kind === "buy"),
+      ).toBe(false);
+    }
+  });
+  it("rechaza datos sin muestra o de otro parche", () => {
+    const a = syntheticAnalysis();
+    a.analysis.data.core_items.play = 12;
+    expect(recommend(data, context(), undefined, a).plans).toEqual([]);
+    a.analysis.data.core_items.play = 1000;
+    a.analysis.data.trends.win.version = "16.20";
+    expect(recommend(data, context(), undefined, a).plans).toEqual([]);
+  });
+  it("rechaza runas y objetos inválidos sin rellenar el plan", () => {
+    const a = syntheticAnalysis();
+    a.analysis.data.runes.primary_rune_ids = [999, 1, 2, 3];
+    expect(recommend(data, context(), undefined, a).plans).toEqual([]);
+    const b = syntheticAnalysis();
+    b.analysis.data.core_items.ids = [999999, 6676, 6673];
+    expect(recommend(data, context(), undefined, b).plans).toEqual([]);
+  });
+  it("pondera un hover de frontline menos que una confirmación", () => {
+    const score = (allies: DraftContext["allies"]) =>
+      rankChampions(data, { ...context(null), allies }).find(
+        (c) => c.championId === 113,
+      )!.score;
+    expect(score([])).toBeGreaterThan(score([slot(32, false)]));
+    expect(score([slot(32, false)])).toBeGreaterThan(score([slot(32, true)]));
+  });
+  it("distingue una reserva provisional de un pick ocupado", () => {
+    const hovered = rankChampions(data, {
+      ...context(null),
+      allies: [slot(32, false)],
+    }).find((p) => p.championId === 32);
+    expect(hovered?.reasons.join()).toContain("hover");
     expect(
-      recommend(data, { ...context(null), playerRole: "JUNGLE" }, []).ranking,
-    ).toEqual([]);
+      rankChampions(data, { ...context(null), allies: [slot(32, true)] }).some(
+        (p) => p.championId === 32,
+      ),
+    ).toBe(false);
+  });
+  it("excluye bans y filtra el pool vacío", () => {
     expect(
-      recommend(
-        data,
-        { ...context(null), playerRole: "JUNGLE" },
-        [64],
-      ).ranking.map((c) => c.championId),
+      rankChampions(data, { ...context(null), bans: [32] }).some(
+        (p) => p.championId === 32,
+      ),
+    ).toBe(false);
+    expect(rankChampions(data, context(null), [])).toEqual([]);
+    expect(
+      rankChampions(data, context(null), [64]).map((p) => p.championId),
     ).toEqual([64]);
   });
-  it("prioriza una defensa según el draft conocido y explica la elección", () => {
-    const enemy = (id: number) => ({
-      championId: id,
-      locked: true,
-      role: null,
-    });
-    const physical = recommend(data, {
+  it("no conserva el aporte del campeón reemplazado", () => {
+    const base = rankChampions(data, context(null));
+    const replacement = rankChampions(data, {
       ...context(),
-      enemies: [enemy(51), enemy(122), enemy(238)],
+      playerChampionId: 32,
+      allies: [slot(32)],
     });
-    expect(physical.plans[0].id).toBe("armor");
-    expect(physical.plans[0].recommended).toBe(true);
-    expect(physical.plans[0].reason).toContain("perfiles físicos");
-    const magic = recommend(data, {
-      ...context(),
-      enemies: [enemy(99), enemy(134), enemy(32)],
-    });
-    expect(magic.plans[0].id).toBe("magic");
+    expect(base.find((c) => c.championId === 113)!.score).toBe(
+      replacement.find((c) => c.championId === 113)!.score,
+    );
   });
-  for (const role of ["TOP", "JUNGLE", "MID", "BOT", "SUPPORT"] as const)
-    for (let sample = 0; sample < 10; sample++)
-      it(`${role}: draft reproducible ${sample + 1}`, () => {
-        const own = profiles.filter((p) => p.roles.includes(role))[
-          sample % profiles.filter((p) => p.roles.includes(role)).length
-        ];
-        const others = profiles.filter((p) => p.championId !== own.championId);
-        const start = (sample * 7) % others.length;
-        const picked = Array.from(
-          { length: 11 },
-          (_, i) => others[(start + i) % others.length].championId,
-        );
-        const slot = (championId: number) => ({
-          championId,
-          locked: true,
-          role: null,
-        });
-        const ctx = {
-          ...context(own.championId),
-          playerRole: role,
-          allies: [slot(own.championId), ...picked.slice(0, 4).map(slot)],
-          enemies: picked.slice(4, 9).map(slot),
-          bans: picked.slice(9),
-        };
-        const r = recommend(data, ctx);
-        expect(r.plans.length).toBeGreaterThan(0);
-        expect(r.errors).toEqual([]);
-        expect(r.plans.filter((p) => p.recommended)).toHaveLength(1);
-        const excluded = new Set([own.championId, ...picked]);
-        expect(r.ranking.every((c) => !excluded.has(c.championId))).toBe(true);
-      });
-  for (const p of profiles)
-    for (const role of p.roles)
-      it(`${p.slug} ${role}: páginas y rutas construibles`, () => {
-        const result = recommend(data, {
-          ...context(p.championId),
-          playerRole: role,
-        });
-        expect(result.errors).toEqual([]);
-        expect(result.plans.length).toBe(3);
-        for (const plan of result.plans) {
-          expect(plan.items.length + (plan.questUpgrade ? 1 : 0)).toBe(6);
-          if (role === "SUPPORT") {
-            expect(plan.starter).toContain(3865);
-            expect(
-              data.items.find((i) => i.id === plan.questUpgrade)?.from,
-            ).toContain(3867);
-            expect(
-              plan.steps.some((s) => s.itemId === 3865 && s.kind === "sell"),
-            ).toBe(false);
-          }
-          expect(validateRunes(data, plan.runes)).toEqual([]);
-          expect(new Set(plan.items).size).toBe(plan.items.length);
-          expect(new Set(plan.steps.map((s) => s.id)).size).toBe(
-            plan.steps.length,
-          );
-          expect(plan.steps.some((s) => s.kind === "combine")).toBe(true);
-          const inventory: number[] = [];
-          for (const step of plan.steps) {
-            if (["sell", "consume", "quest"].includes(step.kind)) {
-              const index = inventory.indexOf(step.itemId);
-              expect(index).toBeGreaterThanOrEqual(0);
-              inventory.splice(index, 1);
-            } else {
-              for (const id of step.consumes) {
-                const index = inventory.indexOf(id);
-                expect(index).toBeGreaterThanOrEqual(0);
-                inventory.splice(index, 1);
-              }
-              inventory.push(step.itemId);
-              expect(inventory.length).toBeLessThanOrEqual(6);
-              expect(step.cost).toBeGreaterThanOrEqual(0);
-            }
-          }
-        }
-      });
-  it("rechaza runas eliminadas, duplicadas y secundarias de la misma fila", () => {
-    const page = recommend(data, context()).plans[0].runes;
-    expect(
-      validateRunes(data, { ...page, primaryRunes: [999, 1, 2, 3] }).length,
-    ).toBeGreaterThan(0);
-    expect(
-      validateRunes(data, { ...page, secondaryRunes: [8226, 8275] }).length,
-    ).toBeGreaterThan(0);
-    expect(
-      validateRunes(data, { ...page, shards: [5008, 5008, 5003] }).length,
-    ).toBeGreaterThan(0);
-  });
-  it("desactiva reglas antiguas y no inventa perfiles", () => {
-    expect(
-      recommend(data, { ...context(), gameVersion: "99.1.0" }).plans,
-    ).toEqual([]);
-    expect(recommend(data, context(999999)).plans).toEqual([]);
-  });
-  it("rechaza ciclos de receta sin ocultarlos mediante compra directa", () => {
+  it("detecta ciclos de recetas", () => {
     const bad = structuredClone(data);
-    const id = profiles[0].core[0];
-    bad.items.find((i) => i.id === id)!.from = [id];
-    expect(() => purchaseRoute(bad, profiles[0], [1054], [id])).toThrow(
-      /ciclo/,
-    );
+    bad.items.find((i) => i.id === 6672)!.from = [6672];
+    expect(() =>
+      purchaseRoute(bad, { ...profiles[0], starter: 1054 }, [1054], [6672]),
+    ).toThrow(/ciclo/);
   });
-  it("excluye picks y bans y explica cambios de composición", () => {
-    const base = {
-      ...context(null),
-      playerRole: "JUNGLE" as const,
-      bans: [64],
-      allies: [{ championId: 254, locked: true, role: null }],
-    };
-    const rank = recommend(data, base).ranking;
-    expect(rank.some((r) => [64, 254].includes(r.championId))).toBe(false);
-    expect(
-      rank.every((r) => r.score >= 0 && r.score <= 100 && r.reasons.length > 0),
-    ).toBe(true);
-    const noFront = recommend(data, { ...base, allies: [] }).ranking;
-    expect(noFront.find((r) => r.championId === 32)!.score).toBeGreaterThan(
-      rank.find((r) => r.championId === 32)!.score,
-    );
-  });
-  it("infiere roles conjuntamente y conserva la incertidumbre", () => {
-    const result = possibleRoles([
-      { championId: 103, locked: true, role: null },
-      { championId: 1, locked: true, role: "SUPPORT" },
-    ]);
-    expect(result[0]).toEqual(["MID"]);
-    expect(result[1]).toEqual(["SUPPORT"]);
-    expect(
-      possibleRoles([{ championId: 99999, locked: true, role: null }]),
-    ).toEqual([null]);
+  it("mantiene desconocidos los roles incompatibles o sin evidencia", () => {
+    expect(possibleRoles([slot(999999)])).toEqual([null]);
+    expect(possibleRoles([{ ...slot(103), role: "MID" }])).toEqual([["MID"]]);
   });
 });

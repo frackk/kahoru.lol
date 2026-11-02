@@ -3,58 +3,44 @@ import raw from "../../data/game-data.json";
 import { SessionPlans } from "./sessionPlans";
 import type { GameData } from "../gameData";
 import type { DraftContext } from "./recommendations";
-
-it("conserva el plan elegido y congela el cálculo al entrar a partida", () => {
-  const store = new SessionPlans();
-  const data = raw as GameData;
-  const ctx: DraftContext = {
-    sessionId: "one",
-    playerRole: "MID",
-    playerChampionId: 103,
-    allies: [],
-    enemies: [],
-    bans: [],
-  };
+import { syntheticAnalysis } from "../../tests/fixtures/analysis";
+const data = raw as GameData;
+const ctx: DraftContext = {
+  sessionId: "one",
+  playerRole: "JUNGLE",
+  playerChampionId: 234,
+  allies: [],
+  enemies: [],
+  bans: [],
+};
+it("conserva la alternativa por sus objetos y congela la preparación durante partida", () => {
+  const store = new SessionPlans(() => ({
+    data: syntheticAnalysis(),
+    pending: false,
+  }));
   const original = store.prepare(data, ctx, true)!;
-  store.select("one", "magic");
-  const frozen = store.prepare(
-    data,
-    { ...ctx, enemies: [{ championId: 32, locked: true, role: null }] },
-    false,
-  )!;
-  expect(frozen).toBe(original);
-  expect(frozen.selected).toBe("magic");
-  expect(
-    store.prepare(data, { ...ctx, sessionId: "other" }, false),
-  ).toBeUndefined();
-  expect(
-    store.prepare(data, { ...ctx, playerChampionId: 99 }, true)!.selected,
-  ).toBe("principal");
-});
-
-it("la preparación independiente de la vista conserva la corrección manual del rol", () => {
-  const store = new SessionPlans();
-  const data = raw as GameData;
-  const ctx: DraftContext = {
-    sessionId: "live",
-    playerRole: null,
-    playerChampionId: 103,
-    allies: [],
-    enemies: [],
-    bans: [],
-  };
-  store.setRole("live", "MID");
-  const prepared = store.prepare(data, ctx, true)!;
-  expect(prepared.result.plans).toHaveLength(3);
-  store.select("live", "magic");
+  const chosen = original.result.plans.at(-1)!.id;
+  store.select("one", chosen);
   const updated = store.prepare(
     data,
-    { ...ctx, enemies: [{ championId: 51, locked: true, role: null }] },
+    { ...ctx, enemies: [{ championId: 238, locked: true, role: null }] },
     true,
   )!;
-  expect(updated.selected).toBe("magic");
-  expect(store.prepare(data, ctx, false)).toBe(updated);
+  expect(updated.selected).toBe(chosen);
+  expect(store.prepare(data, { ...ctx, enemies: [] }, false)).toBe(updated);
   expect(
-    store.prepare(data, { ...ctx, sessionId: "new" }, true)!.result.plans,
-  ).toEqual([]);
+    store.prepare(data, { ...ctx, sessionId: "new" }, false),
+  ).toBeUndefined();
+});
+it("la corrección manual persiste con nuevas lecturas del cliente", () => {
+  const store = new SessionPlans(() => ({
+    data: syntheticAnalysis(),
+    pending: false,
+  }));
+  store.setRole("one", "JUNGLE");
+  expect(
+    store.prepare(data, { ...ctx, playerRole: null }, true)!.result.plans
+      .length,
+  ).toBeGreaterThan(0);
+  expect(store.role("different")).toBeNull();
 });

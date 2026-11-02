@@ -8,7 +8,7 @@
 
 > Documento de referencia para el desarrollo. Describe el producto que se quiere construir, no funciones que ya estén implementadas. Ante una discrepancia entre este documento y el código, registrar la diferencia y decidir explícitamente cuál debe actualizarse.
 
-**Estado actual (0.3.0):** lector experimental del cliente local, simulador, biblioteca con imágenes oficiales y actualización manual de Data Dragon. El motor inicial usa 85 perfiles cualitativos para ranking, hipótesis de roles y tres planes de runas/compras. Conserva el plan al entrar a partida. No incorpora estadísticas de meta ni importa runas. Las reglas aún necesitan evaluación estratégica; el registro ante Riot sigue pendiente. Ver `RECOMMENDATIONS.md`, `CLIENT_INTEGRATION.md` y `VALIDATION.md`.
+**Estado actual (0.4.0):** lector experimental del cliente, simulador e imágenes oficiales; 173 campeones con kits, posiciones y 825 páginas de Riot. Las builds consultan OP.GG por campeón y rol y requieren datos compatibles. Importación explícita de runas y spells con respaldo y restauración, probada localmente. Estrategia previa por reglas y modelo local opcional que selecciona hechos del motor. Se conserva el plan en partida. Siguen pendientes matchups empíricos, contraste estadístico entre proveedores, calibración y registro ante Riot. Ver `RECOMMENDATIONS.md`, `CLIENT_INTEGRATION.md`, `LOCAL_MODEL.md` y `VALIDATION.md`.
 
 ## 1. Visión
 
@@ -123,7 +123,7 @@ Factores iniciales, con pesos configurables y sujetos a validación:
 
 Estos pesos son **hipótesis de producto**, no valores demostrados. Se deberán calibrar mediante evaluación sobre drafts reales y pruebas de consistencia. Si no hay datos personales, redistribuir el peso de familiaridad de forma explícita; si faltan estadísticas, indicar menor confianza y utilizar reglas documentadas, no completar con números falsos.
 
-En 0.3.0 se utiliza el modelo conservador descrito en `RECOMMENDATIONS.md`: aportes fijos de composición, sin términos de meta o matchup empírico. La tabla anterior sigue siendo un objetivo de investigación, no el algoritmo actual.
+En 0.4.0 el ranking conserva aportes de composición sin términos de matchup empírico. OP.GG se utiliza para compras, runas y spells del campeón elegido; no representa todavía el término estadístico del ranking. La tabla anterior sigue siendo un objetivo de investigación.
 
 Mostrar como mínimo:
 
@@ -189,7 +189,7 @@ Diseño previsto:
 4. Si el método está autorizado y probado, se crea/actualiza una página identificable de kahoru.lol sin sobrescribir silenciosamente páginas del usuario.
 5. Si falla, se mantiene la selección manual con instrucciones breves y registro de error no sensible.
 
-La integración de escritura debe vivir en un módulo independiente, detrás de una opción de activación, deshabilitada por defecto hasta completar su revisión. No confundir que una API local técnicamente permita una operación con que Riot la apruebe para este producto.
+La integración vive en un módulo independiente. Por pedido explícito del usuario se habilita experimentalmente mediante botones de importación durante la selección real. Se probaron validación, respaldo, restauración y lectura posterior; el registro ante Riot sigue pendiente. No confundir funcionamiento técnico con aprobación particular del producto. No se implementó importación automática sin clic.
 
 **Criterio de aceptación:** los planes reflejan los diez picks cuando están disponibles, contienen runas válidas y rutas de compra construibles. La interfaz responde aun cuando el proveedor estadístico no está disponible.
 
@@ -459,7 +459,7 @@ Los presupuestos deben validarse en un PC modesto, no únicamente en el equipo d
 | Riot Web API | Fuente oficial documentada | Permisos, cuotas y claves sujetos al tipo de aplicación. |
 | League Client API (LCU) | Lectura experimental probada localmente | Endpoints en `CLIENT_INTEGRATION.md`; registro y estabilidad futura pendientes. |
 | Game Client / Live Client Data API | Documentada, de disponibilidad local | Uso restringido a datos y finalidades admitidas; no habilita cualquier forma de coaching en vivo. |
-| Escritura/importación de runas | Pendiente de verificación | No afirmar funcionamiento ni autorización sin prueba específica. |
+| Escritura/importación de runas y spells | Experimental, probada localmente | Acción explícita; respaldo y restauración. Registro del producto pendiente. |
 | Overlay sobre LoL | Condicionado | Validar política, compatibilidad y consumo. No usar inyección. |
 | Corrección de roles en loading | Pendiente de verificar fuente | No asumir roles confirmados por el mero orden de la pantalla de carga. |
 
@@ -641,13 +641,13 @@ No crear todas estas carpetas vacías desde el inicio. Añadirlas progresivament
 | --- | --- | --- |
 | Escritorio | Tauri 2 + React + TypeScript + Rust implementados | Compatibilidad ampliada y consumo medido. |
 | Persistencia | Preferencias locales y caché de archivos implementadas | SQLite solo si aparecen consultas o migraciones que lo requieran. |
-| Fuente de meta | Datos agregados de Riot o proveedor con permiso | Acceso, cuota, licencia, coste, representatividad. |
-| Importación | Voluntaria y reversible | Endpoint, política, comportamiento al sobrescribir páginas. |
+| Fuente de meta | OP.GG MCP para compras/runas; páginas de Riot como contraste | Segunda fuente estadística, población, condiciones de distribución y matchups. |
+| Importación | Explícita, con respaldo y restauración, probada | Registro y declaración de usos; ampliar pruebas de cliente. |
 | Overlay | Opcional, apagado inicialmente | Compatibilidad técnica y autorización. |
 | Rol rival | Hipótesis cualitativas conjuntas implementadas | Ampliar perfiles y calibrar antes de mostrar probabilidades. |
 | Localización | Español inicial | Terminología y estrategia de traducción. |
 | Servidor | No incorporarlo de inicio | Necesidad de procesamiento estadístico y seguridad de claves. |
-| IA generativa | No requerida para MVP | Beneficio medible frente a plantillas y reglas. |
+| IA local | Selector opcional de hechos con Qwen3 4B y llama.cpp | Evaluación de prioridades y consumo en otros equipos; no se muestra prosa libre. |
 | Actualización del ejecutable | Manual al inicio | Estrategia segura de distribución futura. |
 
 Las decisiones nuevas se documentarán en `docs/decisions/` con contexto, opciones, elección y consecuencias.
@@ -670,7 +670,7 @@ Los colaboradores deben leer **este documento y `AGENTS.md` antes de modificar c
 
 Revisar estratégicamente los perfiles iniciales, ampliar cobertura y probar una partida completa con continuidad entre selección, carga y partida. Medir consumo y tiempo de cálculo en un equipo de referencia. Las pruebas de invariantes no reemplazan esta evaluación.
 
-Resolver el proveedor estadístico y el registro del producto antes de afirmar que el motor representa el meta o que Riot aprobó la integración. La importación de runas, el overlay y la actualización del ejecutable continúan como capacidades separadas y condicionadas a sus pruebas y revisión.
+Evaluar matchups y otras fuentes antes de afirmar que el ranking representa el meta. Completar el registro del producto antes de afirmar aprobación de Riot. La importación experimental está implementada y documentada; overlay y actualización del ejecutable siguen siendo capacidades separadas, pendientes.
 
 ---
 

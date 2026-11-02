@@ -1,39 +1,33 @@
 # Arquitectura
 
-Versión 0.3.0. Tauri 2 aloja una ventana React/TypeScript sobre WebView2. Rust controla la conexión local, las descargas y los archivos. No hay servicios auxiliares ni backend remoto propio.
+Versión 0.4.0. Tauri 2, Rust y WebView2 alojan React/TypeScript. No hay backend remoto propio ni claves de Riot empaquetadas.
 
-## Componentes
+| Módulo                                 | Responsabilidad                                                         |
+| -------------------------------------- | ----------------------------------------------------------------------- |
+| `client.rs`                            | Descubrimiento de LCU, TLS y snapshots públicos sin identidades.        |
+| `session.rs`                           | Simulador, revisiones y transiciones.                                   |
+| `game_data.rs`                         | Paquete oficial, imágenes y activación con recuperación.                |
+| `knowledge.rs`                         | Kits, posiciones y páginas recomendadas; validación de caché.           |
+| `statistics.rs` / `provider_format.rs` | OP.GG, caché y decodificación sin ejecutar texto del proveedor.         |
+| `loadout.rs`                           | Importación explícita, respaldo, lectura posterior y restauración.      |
+| `local_model.rs`                       | Modelo opcional en proceso separado, selección de hechos y cancelación. |
+| `src/engine/`                          | Ranking, hipótesis de roles, candidatos, compras y estrategia.          |
+| `src/liveSession.ts`                   | Continuidad del cliente y preparación independiente de la pestaña.      |
 
-| Ubicación                    | Responsabilidad                                                               |
-| ---------------------------- | ----------------------------------------------------------------------------- |
-| `src-tauri/src/client.rs`    | Descubrir LCU, validar TLS y publicar snapshots sin identidades.              |
-| `src-tauri/src/session.rs`   | Sesión manual, revisiones, validaciones y transiciones.                       |
-| `src-tauri/src/game_data.rs` | Paquete oficial, actualización, imágenes y recuperación de caché.             |
-| `src-tauri/src/lib.rs`       | Estado compartido y siete comandos IPC.                                       |
-| `src/liveSession.ts`         | Consultar snapshots y preparar planes con independencia de la vista activa.   |
-| `src/engine/`                | Ranking, hipótesis de roles, runas, rutas de compra y conservación de planes. |
-| `src/gameData.tsx`           | Contrato del paquete y acceso acotado a imágenes.                             |
-| `src/features/`              | Cliente, simulador, preparación y biblioteca.                                 |
-| `data/knowledge/`            | Perfiles estratégicos y fragmentos con revisión propia.                       |
+El cálculo puro recibe datos tipados. Los efectos de red, disco y escritura al cliente pertenecen a adaptadores nativos. React presenta resultados y solicita acciones; no tiene acceso general a archivos, shell ni credenciales.
 
-El motor TypeScript es puro y no depende de React, red o disco. Recibe datos tipados y devuelve resultados explicados. La decisión está en [0002](decisions/0002-data-and-rules.md); Rust continúa siendo la autoridad de las operaciones nativas.
+## Estado y persistencia
 
-## Sesiones
+El simulador nunca escribe en LoL. La importación exige una selección real vigente de la Grieta y verifica sesión, campeón, página y fase antes de escribir. La lectura posterior confirma lo aplicado y devuelve resultados parciales cuando corresponde.
 
-El simulador y el lector real están separados. Una acción manual requiere la revisión actual y se aplica sobre una copia antes de publicarse. Nunca escribe en LoL.
+Se conservan como máximo ocho preparaciones y estrategias en memoria. El plan elegido y la corrección manual pertenecen a la sesión. Durante partida no se vuelve a pedir análisis ni se ejecuta el modelo; se consulta el resultado previo. Un ID de partida diferente invalida la continuidad.
 
-El lector nativo produce una instantánea con fase, versión, mapa, picks, bans, posición y campeón propios. Las intenciones y posiciones rivales se descartan. El identificador interno de partida permite conservar el draft durante carga y reconexión; una partida distinta invalida esa continuidad. Los endpoints y tiempos de sondeo están en [CLIENT_INTEGRATION.md](CLIENT_INTEGRATION.md).
+La caché de Tauri contiene `game/`, `knowledge.json`, `statistics/`, `imports/` y la configuración del modelo. WebView2 guarda espaciado y champion pool. Los respaldos de runas se separan por un hash local de la cuenta; no se publica el identificador usado para obtenerlo.
 
-La preparación se actualiza durante selección, incluso fuera de Inicio. La corrección manual de rol y el plan elegido pertenecen a la sesión. Se conservan como máximo ocho preparaciones en memoria. Durante partida se consulta lo ya calculado; no se genera un plan nuevo para una partida cuyo draft no se observó.
+Data Dragon se descarga por HTTPS a staging, se valida y se activa mediante índice atómico. Los metadatos LCU se aceptan solo si cubren el catálogo y coinciden con el parche. La caché inválida recupera el paquete incluido. La actualización se bloquea durante draft y partida. Los recursos de spells y fragmentos incluidos tienen revisión independiente; un cambio de sus reglas exige revisión antes de distribuir otro parche.
 
-## Datos y persistencia
+## Dependencias
 
-El ejecutable incluye el paquete y sus imágenes. El botón de actualización descarga una versión compatible con el parche del cliente a la caché de Tauri, dentro de `game/`. Verifica estructura, recursos PNG y hashes antes de cambiar atómicamente `active.json`. No activa datos durante un draft o una partida. Si la caché está incompleta o corrupta, el arranque recupera el paquete incluido.
+`sha2` verifica integridad, `tempfile` prepara escrituras y `time` registra fechas. `windows-sys` se usa para el Job Object que evita dejar el modelo ejecutándose tras cerrar la app. No se agrega un servicio persistente para IA.
 
-El frontend solo accede a imágenes del paquete incluido o de `$APPCACHE/game/**` mediante el protocolo de assets. No recibe acceso general al sistema de archivos, shell o red. Las descargas oficiales se hacen en Rust con HTTPS y sin redirecciones.
-
-WebView2 guarda espaciado y champion pool en almacenamiento local. No se persisten drafts, identidades, historial ni credenciales. SQLite no aporta valor a estos datos y sigue sin incorporarse.
-
-## Herramientas
-
-`package-lock.json` y `Cargo.lock` fijan las dependencias. SHA-256 comprueba integridad local; `tempfile` evita activar descargas incompletas; `time` registra fechas de procedencia. Playwright Core se usa únicamente en pruebas y controla WebView2 instalado. El puerto de depuración se habilita solo en el proceso temporal de prueba.
+Los pesos y el runtime se descargan aparte, con revisión y hashes fijados. Playwright Core solo se usa en pruebas nativas; el puerto de depuración se habilita únicamente en ese proceso temporal. SQLite sigue sin incorporarse: las cachés actuales no requieren consultas relacionales.

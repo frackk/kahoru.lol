@@ -1,43 +1,44 @@
 # Datos e imágenes
 
-Paquete incluido: Data Dragon **16.21.1**, idioma `es_AR`. Contiene 173 campeones, 272 objetos de la Grieta, 62 runas, cinco árboles y 512 imágenes PNG oficiales. Los objetos de misión o transformados pueden estar catalogados sin estar disponibles en tienda; la biblioteca lo indica.
+Paquete incluido: Data Dragon 16.21.1, español de Argentina. Contiene 173 campeones, 272 objetos de la Grieta, 62 runas, cinco árboles y 512 imágenes PNG. Los objetos transformados o de misión pueden estar catalogados sin venderse en tienda.
 
-## Procedencia
+## Riot
 
-La [documentación de Riot](https://developer.riotgames.com/docs/lol#data-dragon) describe Data Dragon y sus límites. Las descargas utilizadas son:
+La [documentación de Data Dragon](https://developer.riotgames.com/docs/lol#data-dragon) describe versiones y recursos. Se utilizan `api/versions.json` y, bajo `cdn/16.21.1/data/es_AR/`, `champion.json`, `item.json`, `runesReforged.json` y `summoner.json`. Las rutas de imágenes salen de esos documentos oficiales.
 
-- `https://ddragon.leagueoflegends.com/api/versions.json`
-- `https://ddragon.leagueoflegends.com/cdn/16.21.1/data/es_AR/champion.json`
-- `https://ddragon.leagueoflegends.com/cdn/16.21.1/data/es_AR/item.json`
-- `https://ddragon.leagueoflegends.com/cdn/16.21.1/data/es_AR/runesReforged.json`
-- Imágenes de campeones y objetos bajo `/cdn/16.21.1/img/`; runas bajo `/cdn/img/`, con las rutas de los JSON oficiales.
+`data/game-data.json` guarda estructura normalizada y manifiesto de 512 imágenes con URL y SHA-256; `data/champions.json` conserva el catálogo compatible. Los hashes detectan corrupción, no son firmas publicadas por Riot.
 
-`data/game-data.json` reúne el contrato normalizado y un manifiesto de imágenes con URL y SHA-256. `data/champions.json` conserva el catálogo compatible. La procedencia del catálogo incluye fecha, idioma, URL y hash de la respuesta original. Los hashes documentan la descarga y permiten detectar corrupción; no son firmas publicadas por Riot.
+Los fragmentos y nueve spells tienen metadatos e iconos incluidos por separado en `data/knowledge/` y `public/knowledge/`. Sus filas se contrastaron con el cliente 16.21. Los cambios futuros de fragmentos o spells necesitan revisión propia; no se interpreta que actualizar imágenes confirme esas reglas.
 
-Los siete iconos de fragmentos también proceden del CDN oficial. Las filas válidas se contrastaron el 2 de noviembre con los metadatos públicos de `/lol-perks/v1/styles` y `/lol-perks/v1/perks` del cliente local 16.21. `data/knowledge/shards.json` registra las filas, nombres y origen. No se exportaron páginas de runas ni datos de cuenta.
+`data/client-recommendations.json` contiene metadatos públicos del kit, posiciones y 825 páginas de los 173 campeones, obtenidos del cliente local. No contiene páginas personales ni identidades. Cada página conserva la posición devuelta y su ID de recomendación. La ruta exige posiciones en mayúsculas; respuestas para otra posición se descartan.
 
-## Actualizar desde la aplicación
+## Actualización oficial
 
-En **Datos del juego → Comprobar datos**, Rust consulta las versiones oficiales. Busca la revisión más reciente dentro del parche mayor/menor detectado en LoL. Sin cliente conectado utiliza la familia del paquete actual, evitando saltar a un parche regional desconocido.
+**Datos del juego → Comprobar datos** busca la revisión más reciente del parche detectado en LoL. Sin cliente utiliza la familia del paquete actual. Descarga JSON e imágenes a staging, valida y activa al terminar; ante fallos conserva la versión anterior. La caché se comprueba al arrancar. La activación se bloquea durante draft y partida.
 
-Si existe otra revisión, descarga los JSON e imágenes a una carpeta temporal, valida el conjunto y cambia el índice activo al terminar. Una descarga fallida conserva los datos anteriores. No cambia el paquete durante selección o partida y vuelve a comprobarlo antes de activarlo. El siguiente arranque verifica todos los recursos de la caché y recupera el paquete incluido ante corrupción.
+Si LoL está abierto y en inicio o sala, también comprueba sus kits, posiciones y páginas. El catálogo y el cliente deben compartir parche. Si falla esta parte se informa por separado. Si queda un paquete de recomendaciones de otro parche, el motor bloquea los planes incompatibles.
 
-Data Dragon puede llegar después del parche y tener varias revisiones. La versión del cliente y la del paquete se muestran por separado. Los recursos incluidos permiten consultar la biblioteca y preparar planes sin conexión.
+## OP.GG
 
-## Preparar un paquete para distribuir
+Se utiliza la [interfaz MCP pública documentada por OP.GG](https://github.com/opgginc/opgg-mcp), en `https://mcp-api.op.gg/mcp`, mediante JSON-RPC `tools/call`:
+
+- `lol_list_champions`: claves y nombres canónicos; permite resolver aliases como Lee Sin.
+- `lol_get_champion_analysis`: campeón, posición y modo ranked; selección acotada de campos de compras, runas, spells y tendencias.
+
+No se extraen páginas HTML ni endpoints internos de sitios. El transporte puede devolver JSON o eventos SSE; el contenido se decodifica con un parser acotado, sin evaluar código o constructores. La respuesta debe corresponder al campeón y rol pedidos.
+
+La caché local dura doce horas. El botón **Actualizar análisis** permite refrescar, con un mínimo de sesenta segundos entre consultas. Solo se envían campeón y posición; no cuentas ni draft completo. Los datos de respuesta no se incluyen en Git; los tests usan muestras sintéticas identificadas.
+
+Límites: el contrato utilizado no admite región o parche explícitos. Se muestra versión de tendencias, fecha de consulta, todos los rangos y región no informada. No se conoce una ventana estadística exacta para cada fila. Una muestra observada de compras no prueba causalidad. Esta interfaz pública no concede por sí sola derechos generales de redistribución.
+
+Riot aporta una recomendación independiente de runas, pero no una segunda muestra estadística de builds. La comparación de varios proveedores y los matchups empíricos siguen pendientes.
+
+## Preparación del repositorio
 
 ```powershell
 npm run data:update -- 16.21.1
-npm test
-cargo test --manifest-path src-tauri/Cargo.toml
+node scripts/prepare-spells.mjs
+node scripts/prepare-client-recommendations.mjs
 ```
 
-El script exige una versión concreta y obtiene JSON e imágenes desde Riot. Revisar el diff y las reglas estratégicas antes de distribuir otra versión. Los fragmentos tienen revisión independiente y no se regeneran con este comando.
-
-## Estadísticas y reglas
-
-Data Dragon no aporta win rates, matchups ni builds óptimas. Todavía no hay un proveedor estadístico conectado ni una clave Riot configurada. No se realiza scraping de sitios de builds.
-
-Las recomendaciones usan reglas propias identificadas en [RECOMMENDATIONS.md](RECOMMENDATIONS.md). Actualizar el paquete vuelve a comprobar su validez estructural, pero no calibra el modelo ni interpreta notas de balance. Un parche distinto deshabilita las reglas anteriores hasta revisarlas.
-
-Para incorporar meta empírico falta resolver fuente, permisos, cuotas, población, región, cola, rango, fecha y muestra. Esa decisión puede requerir un backend que mantenga las claves fuera del instalador.
+El último comando requiere LoL abierto y descubre el lockfile; `LEAGUE_LOCKFILE` permite indicar otra ubicación sin guardar credenciales. Revisar el diff y ejecutar los controles antes de distribuir un paquete.
