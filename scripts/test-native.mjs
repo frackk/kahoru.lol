@@ -7,6 +7,12 @@ import { chromium } from "playwright-core";
 
 const port = 19223;
 const userData = await mkdtemp(join(tmpdir(), "kahoru-test-"));
+const temporary = resolve(userData);
+if (
+  dirname(temporary) !== resolve(tmpdir()) ||
+  !basename(temporary).startsWith("kahoru-test-")
+)
+  throw new Error("La carpeta temporal no pertenece a esta prueba.");
 const executable = new URL(
   process.argv.includes("--release")
     ? "../src-tauri/target/release/kahoru-lol.exe"
@@ -232,12 +238,6 @@ try {
   if (browser) await browser.close();
   child.kill();
   await exited;
-  const temporary = resolve(userData);
-  if (
-    dirname(temporary) !== resolve(tmpdir()) ||
-    !basename(temporary).startsWith("kahoru-test-")
-  )
-    throw new Error("La carpeta temporal no pertenece a esta prueba.");
   await rm(temporary, {
     recursive: true,
     force: true,
