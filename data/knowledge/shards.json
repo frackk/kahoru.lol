@@ -1,0 +1,65 @@
+{
+  "patch": "16.21",
+  "source": "LCU /lol-perks/v1/styles y /lol-perks/v1/perks; comprobación local 2026-11-02",
+  "slots": [
+    [
+      5008,
+      5005,
+      5007
+    ],
+    [
+      5008,
+      5010,
+      5001
+    ],
+    [
+      5011,
+      5013,
+      5001
+    ]
+  ],
+  "shards": [
+    {
+      "id": 5001,
+      "name": "Progresión de vida",
+      "description": "+10 a 180 de vida (según tu nivel)",
+      "icon": "perk-images/StatMods/StatModsHealthPlusIcon.png"
+    },
+    {
+      "id": 5005,
+      "name": "Velocidad de ataque",
+      "description": "+10% de Velocidad de Ataque",
+      "icon": "perk-images/StatMods/StatModsAttackSpeedIcon.png"
+    },
+    {
+      "id": 5007,
+      "name": "Aceleración de Habilidad",
+      "description": "+8   de Aceleración de Habilidad  ",
+      "icon": "perk-images/StatMods/StatModsCDRScalingIcon.png"
+    },
+    {
+      "id": 5008,
+      "name": "Fuerza Adaptable",
+      "description": "+9   de fuerza adaptable  ",
+      "icon": "perk-images/StatMods/StatModsAdaptiveForceIcon.png"
+    },
+    {
+      "id": 5010,
+      "name": "Velocidad de Movimiento",
+      "description": "+2.5%   de Velocidad de Movimiento ",
+      "icon": "perk-images/StatMods/StatModsMovementSpeedIcon.png"
+    },
+    {
+      "id": 5011,
+      "name": "Vida",
+      "description": "+65 de Vida",
+      "icon": "perk-images/StatMods/StatModsHealthScalingIcon.png"
+    },
+    {
+      "id": 5013,
+      "name": "Tenacidad y resistencia a ralentizaciones",
+      "description": "+15% de Tenacidad y Resistencia a Ralentizaciones",
+      "icon": "perk-images/StatMods/StatModsTenacityIcon.png"
+    }
+  ]
+}

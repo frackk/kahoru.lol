@@ -1,12 +1,14 @@
 # kahoru.lol — Especificación del producto
 
-**Estado:** planificación · **Versión del documento:** 0.1 · **Última revisión:** 2026-11-01  
+**Estado:** desarrollo de Fases 3 y 4 · **Versión del documento:** 0.4 · **Última revisión:** 2026-11-02
 **Repositorio:** https://github.com/frackk/kahoru.lol  
 **Autor:** frack.one  
 **Plataforma inicial:** Windows 10/11, escritorio  
 **Idioma inicial:** español; localización ampliable
 
 > Documento de referencia para el desarrollo. Describe el producto que se quiere construir, no funciones que ya estén implementadas. Ante una discrepancia entre este documento y el código, registrar la diferencia y decidir explícitamente cuál debe actualizarse.
+
+**Estado actual (0.3.0):** lector experimental del cliente local, simulador, biblioteca con imágenes oficiales y actualización manual de Data Dragon. El motor inicial usa 85 perfiles cualitativos para ranking, hipótesis de roles y tres planes de runas/compras. Conserva el plan al entrar a partida. No incorpora estadísticas de meta ni importa runas. Las reglas aún necesitan evaluación estratégica; el registro ante Riot sigue pendiente. Ver `RECOMMENDATIONS.md`, `CLIENT_INTEGRATION.md` y `VALIDATION.md`.
 
 ## 1. Visión
 
@@ -120,6 +122,8 @@ Factores iniciales, con pesos configurables y sujetos a validación:
 | Familiaridad del jugador | 10 % | Champion pool declarado o historial propio, cuando esté disponible. |
 
 Estos pesos son **hipótesis de producto**, no valores demostrados. Se deberán calibrar mediante evaluación sobre drafts reales y pruebas de consistencia. Si no hay datos personales, redistribuir el peso de familiaridad de forma explícita; si faltan estadísticas, indicar menor confianza y utilizar reglas documentadas, no completar con números falsos.
+
+En 0.3.0 se utiliza el modelo conservador descrito en `RECOMMENDATIONS.md`: aportes fijos de composición, sin términos de meta o matchup empírico. La tabla anterior sigue siendo un objetivo de investigación, no el algoritmo actual.
 
 Mostrar como mínimo:
 
@@ -235,7 +239,7 @@ Al salir del draft, la aplicación pasa a una vista compacta dedicada a la consu
 - No utilizar hooks gráficos, inyección, lectura de memoria ni métodos para esquivar sistemas antitrampas.
 - No mostrar notificaciones o animaciones invasivas durante la partida.
 - No realizar análisis de IA pesado en segundo plano mientras se juega.
-- No actualizar recomendaciones de gameplay en vivo sin revisión específica de la política de Riot.
+- No actualizar recomendaciones de gameplay en vivo. Durante la partida se consulta información preparada previamente.
 - Permitir ocultar/mostrar con un atajo configurable, si el método de atajos es compatible.
 - Si no puede confirmar que el juego se inició, mantener un modo manual y no asumir el estado.
 
@@ -447,13 +451,13 @@ Los presupuestos deben validarse en un PC modesto, no únicamente en el equipo d
 - Mantener deshabilitadas las funciones que dependan de integraciones no verificadas.
 - Registrar el producto y declarar usos y endpoints ante Riot cuando corresponda; las características publicadas deben reevaluarse ante cambios de política.
 
-### 13.2 Estado de las integraciones (01/11/2026)
+### 13.2 Estado de las integraciones (02/11/2026)
 
 | Integración | Estado | Observación |
 | --- | --- | --- |
 | Data Dragon | Fuente oficial documentada | No representa por sí sola estadísticas de meta. |
 | Riot Web API | Fuente oficial documentada | Permisos, cuotas y claves sujetos al tipo de aplicación. |
-| League Client API (LCU) | Local, sin soporte oficial garantizado | Riot exige registrar/declarar su uso. Endpoints y estabilidad a verificar. |
+| League Client API (LCU) | Lectura experimental probada localmente | Endpoints en `CLIENT_INTEGRATION.md`; registro y estabilidad futura pendientes. |
 | Game Client / Live Client Data API | Documentada, de disponibilidad local | Uso restringido a datos y finalidades admitidas; no habilita cualquier forma de coaching en vivo. |
 | Escritura/importación de runas | Pendiente de verificación | No afirmar funcionamiento ni autorización sin prueba específica. |
 | Overlay sobre LoL | Condicionado | Validar política, compatibilidad y consumo. No usar inyección. |
@@ -635,12 +639,12 @@ No crear todas estas carpetas vacías desde el inicio. Añadirlas progresivament
 
 | Tema | Propuesta inicial | Qué falta validar |
 | --- | --- | --- |
-| Escritorio | Tauri 2 + React + TypeScript + Rust | Prototipo, WebView2, compatibilidad, consumo. |
-| Persistencia | SQLite + caché de archivos | Tamaño de datasets y migraciones. |
+| Escritorio | Tauri 2 + React + TypeScript + Rust implementados | Compatibilidad ampliada y consumo medido. |
+| Persistencia | Preferencias locales y caché de archivos implementadas | SQLite solo si aparecen consultas o migraciones que lo requieran. |
 | Fuente de meta | Datos agregados de Riot o proveedor con permiso | Acceso, cuota, licencia, coste, representatividad. |
 | Importación | Voluntaria y reversible | Endpoint, política, comportamiento al sobrescribir páginas. |
 | Overlay | Opcional, apagado inicialmente | Compatibilidad técnica y autorización. |
-| Rol rival | Inferencia probabilística | Señales legítimas disponibles y calibración. |
+| Rol rival | Hipótesis cualitativas conjuntas implementadas | Ampliar perfiles y calibrar antes de mostrar probabilidades. |
 | Localización | Español inicial | Terminología y estrategia de traducción. |
 | Servidor | No incorporarlo de inicio | Necesidad de procesamiento estadístico y seguridad de claves. |
 | IA generativa | No requerida para MVP | Beneficio medible frente a plantillas y reglas. |
@@ -662,11 +666,11 @@ Los colaboradores deben leer **este documento y `AGENTS.md` antes de modificar c
 - Preservar la firma `made by frack.one` en los lugares visibles definidos, sin ensuciar el código.
 - No llamar `completo` al producto hasta superar los criterios de aceptación de todas las fases relevantes.
 
-## 19. Primer trabajo de implementación
+## 19. Próxima etapa
 
-**Primera implementación:** investigar y construir el esqueleto de la Fase 1, no el motor de recomendaciones definitivo. Entregar una aplicación Tauri ejecutable con navegación entre estados, simulador de draft, componentes de interfaz iniciales, tests, instrucciones de instalación y un README preciso. Mantener intactos los contratos públicos de la especificación o proponer cambios documentados antes de escribirlos.
+Revisar estratégicamente los perfiles iniciales, ampliar cobertura y probar una partida completa con continuidad entre selección, carga y partida. Medir consumo y tiempo de cálculo en un equipo de referencia. Las pruebas de invariantes no reemplazan esta evaluación.
 
-**Antes de integrar datos reales:** confirmar que el proyecto arranca en Windows, soporta el simulador de los diez picks, actualiza el estado sin duplicados y pasa pruebas de tipos y tests. El siguiente trabajo será la investigación de la Fase 0 que todavía no esté resuelta y la validación del adaptador real.
+Resolver el proveedor estadístico y el registro del producto antes de afirmar que el motor representa el meta o que Riot aprobó la integración. La importación de runas, el overlay y la actualización del ejecutable continúan como capacidades separadas y condicionadas a sus pruebas y revisión.
 
 ---
 

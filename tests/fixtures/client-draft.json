@@ -1,0 +1,43 @@
+{
+  "localPlayerCellId": 0,
+  "myTeam": [
+    {
+      "cellId": 0,
+      "championId": 0,
+      "championPickIntent": 0,
+      "assignedPosition": "jungle"
+    }
+  ],
+  "theirTeam": [],
+  "bans": {
+    "myTeamBans": [],
+    "numBans": 0,
+    "theirTeamBans": []
+  },
+  "actions": [
+    [
+      {
+        "actorCellId": 0,
+        "championId": 0,
+        "completed": false,
+        "type": "ban"
+      }
+    ],
+    [
+      {
+        "actorCellId": -1,
+        "championId": 0,
+        "completed": false,
+        "type": "ten_bans_reveal"
+      }
+    ],
+    [
+      {
+        "actorCellId": 0,
+        "championId": 0,
+        "completed": false,
+        "type": "pick"
+      }
+    ]
+  ]
+}
