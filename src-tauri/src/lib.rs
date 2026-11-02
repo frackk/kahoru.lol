@@ -1,7 +1,10 @@
 mod catalog;
 mod client;
 mod game_data;
+mod loadout;
+mod provider_format;
 mod session;
+mod statistics;
 
 use catalog::Catalog;
 use game_data::{GameData, UpdateStatus};
@@ -18,6 +21,102 @@ struct AppState {
     live: Arc<Mutex<client::ClientSnapshot>>,
     update: Arc<Mutex<UpdateStatus>>,
     cache: PathBuf,
+    statistics: Arc<statistics::Statistics>,
+    import_lock: Arc<Mutex<()>>,
+}
+
+#[tauri::command]
+async fn get_import_targets(state: State<'_, AppState>) -> Result<serde_json::Value, String> {
+    let directory = state.cache.with_file_name("imports");
+    tauri::async_runtime::spawn_blocking(move || {
+        loadout::targets(&client::LocalClient::connect()?, &directory)
+    })
+    .await
+    .map_err(|_| "No se pudieron consultar las páginas")?
+}
+#[tauri::command]
+async fn restore_import(
+    page_id: u64,
+    champion_id: u32,
+    session_id: String,
+    state: State<'_, AppState>,
+) -> Result<String, String> {
+    let directory = state.cache.with_file_name("imports");
+    let live = state.live.clone();
+    let guard = state.import_lock.clone();
+    tauri::async_runtime::spawn_blocking(move || {
+        let _guard = guard.try_lock().map_err(|_| "Ya hay un cambio en curso")?;
+        let snapshot = live.lock().map_err(|_| "Sesión no disponible")?;
+        if snapshot.phase != "ChampSelect"
+            || snapshot.session_id.as_deref() != Some(&session_id)
+            || snapshot.player_champion_id != Some(champion_id)
+        {
+            return Err("La selección cambió. No se restauró la página.".into());
+        }
+        drop(snapshot);
+        loadout::restore(
+            &client::LocalClient::connect()?,
+            champion_id,
+            page_id,
+            &directory,
+        )
+    })
+    .await
+    .map_err(|_| "La restauración se interrumpió")?
+}
+#[tauri::command]
+async fn import_loadout(
+    request: loadout::Request,
+    state: State<'_, AppState>,
+) -> Result<loadout::Applied, String> {
+    let game = state
+        .game
+        .lock()
+        .map_err(|_| "Datos no disponibles")?
+        .clone();
+    let live = state.live.clone();
+    let guard = state.import_lock.clone();
+    let directory = state.cache.with_file_name("imports");
+    tauri::async_runtime::spawn_blocking(move||{
+        let _guard=guard.try_lock().map_err(|_|"Ya hay una importación en curso")?;
+        let snapshot=live.lock().map_err(|_|"Sesión no disponible")?.clone();
+        if !snapshot.connected||snapshot.phase!="ChampSelect"||snapshot.session_id.as_deref()!=Some(&request.session_id)||snapshot.player_champion_id!=Some(request.champion_id)||snapshot.map_id!=Some(11){return Err("La selección cambió o no corresponde al cliente real. Actualizá el plan antes de importar.".into());}
+        loadout::apply(&client::LocalClient::connect()?,&game,&request,&directory)
+    }).await.map_err(|_|"La importación se interrumpió")?
+}
+
+#[tauri::command]
+async fn get_champion_analysis(
+    champion_id: u32,
+    role: String,
+    refresh: bool,
+    state: State<'_, AppState>,
+) -> Result<serde_json::Value, String> {
+    if matches!(
+        state
+            .live
+            .lock()
+            .map_err(|_| "Sesión no disponible")?
+            .phase
+            .as_str(),
+        "InProgress" | "GameStart" | "Reconnect"
+    ) {
+        return Err("El análisis se prepara antes de entrar a partida.".into());
+    }
+    let slug = state
+        .game
+        .lock()
+        .map_err(|_| "Datos no disponibles")?
+        .catalog
+        .champions
+        .iter()
+        .find(|c| c.id == champion_id)
+        .map(|c| c.slug.clone())
+        .ok_or("Campeón no disponible")?;
+    let provider = state.statistics.clone();
+    tauri::async_runtime::spawn_blocking(move || provider.analysis(&slug, &role, refresh))
+        .await
+        .map_err(|_| "Consulta estadística interrumpida")?
 }
 
 #[tauri::command]
@@ -185,6 +284,10 @@ pub fn run() {
                 }
             });
             app.manage(AppState {
+                import_lock: Arc::new(Mutex::new(())),
+                statistics: Arc::new(statistics::Statistics::new(
+                    cache.with_file_name("statistics"),
+                )),
                 game: Mutex::new(game),
                 session,
                 live,
@@ -200,7 +303,11 @@ pub fn run() {
             get_session,
             dispatch,
             get_update_status,
-            update_game_data
+            update_game_data,
+            get_champion_analysis,
+            import_loadout,
+            get_import_targets,
+            restore_import
         ])
         .run(tauri::generate_context!())
         .expect("No se pudo iniciar kahoru.lol");

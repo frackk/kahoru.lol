@@ -1,0 +1,70 @@
+{
+  "version": "16.21.1",
+  "source": "https://ddragon.leagueoflegends.com/cdn/16.21.1/data/es_AR/summoner.json",
+  "retrievedAt": "2026-11-02T08:06:36.307Z",
+  "spells": [
+    {
+      "id": 21,
+      "name": "Barrera",
+      "description": "Obtienes un escudo que dura un breve tiempo.",
+      "level": 4,
+      "source": "https://ddragon.leagueoflegends.com/cdn/16.21.1/img/spell/SummonerBarrier.png"
+    },
+    {
+      "id": 1,
+      "name": "Purificación",
+      "description": "Elimina todos los efectos de inhabilitación (a excepción de las supresiones y los lanzamientos en el aire) y las debilitaciones de los hechizos de invocador que afecten a tu campeón y otorga tenacidad.",
+      "level": 9,
+      "source": "https://ddragon.leagueoflegends.com/cdn/16.21.1/img/spell/SummonerBoost.png"
+    },
+    {
+      "id": 14,
+      "name": "Ignición",
+      "description": "Inflige daño verdadero prolongado al campeón enemigo objetivo y reduce los efectos de curación que reciba mientras dure el efecto.",
+      "level": 9,
+      "source": "https://ddragon.leagueoflegends.com/cdn/16.21.1/img/spell/SummonerDot.png"
+    },
+    {
+      "id": 3,
+      "name": "Extenuación",
+      "description": "Ralentiza al campeón enemigo objetivo y reduce el daño que inflige.",
+      "level": 4,
+      "source": "https://ddragon.leagueoflegends.com/cdn/16.21.1/img/spell/SummonerExhaust.png"
+    },
+    {
+      "id": 4,
+      "name": "Destello",
+      "description": "Te teletransporta una corta distancia hacia tu cursor.",
+      "level": 7,
+      "source": "https://ddragon.leagueoflegends.com/cdn/16.21.1/img/spell/SummonerFlash.png"
+    },
+    {
+      "id": 6,
+      "name": "Fantasma",
+      "description": "Obtienes velocidad de movimiento e ignoras la colisión de unidades mientras dure el efecto.",
+      "level": 1,
+      "source": "https://ddragon.leagueoflegends.com/cdn/16.21.1/img/spell/SummonerHaste.png"
+    },
+    {
+      "id": 7,
+      "name": "Curación",
+      "description": "Restaura vida y otorga velocidad de movimiento a ti y al campeón aliado objetivo.",
+      "level": 1,
+      "source": "https://ddragon.leagueoflegends.com/cdn/16.21.1/img/spell/SummonerHeal.png"
+    },
+    {
+      "id": 11,
+      "name": "Castigo",
+      "description": "Inflige daño verdadero a un monstruo o súbdito.",
+      "level": 3,
+      "source": "https://ddragon.leagueoflegends.com/cdn/16.21.1/img/spell/SummonerSmite.png"
+    },
+    {
+      "id": 12,
+      "name": "Teleportación",
+      "description": "Tras una breve canalización, te vuelves inalcanzable y te teleportas hacia una unidad aliada. Se mejora a Teleportación Desatada, lo que aumenta en gran medida la velocidad de teleportación. ",
+      "level": 7,
+      "source": "https://ddragon.leagueoflegends.com/cdn/16.21.1/img/spell/SummonerTeleport.png"
+    }
+  ]
+}

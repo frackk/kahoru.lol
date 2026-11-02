@@ -310,6 +310,56 @@ fn populate(next: &mut ClientSnapshot, value: &Value) -> Result<(), &'static str
     Ok(())
 }
 
+pub struct LocalClient {
+    http: Client,
+    credentials: Credentials,
+}
+impl LocalClient {
+    pub fn connect() -> Result<Self, String> {
+        let path = discover().ok_or("Abrí el cliente de League of Legends.")?;
+        let credentials = parse_lockfile(
+            &std::fs::read_to_string(path).map_err(|_| "No se pudo leer la conexión local")?,
+        )
+        .map_err(str::to_string)?;
+        Ok(Self {
+            http: http_client().map_err(|_| "No se pudo iniciar la conexión local")?,
+            credentials,
+        })
+    }
+    pub fn get(&self, path: &str) -> Result<Value, String> {
+        read(&self.http, &self.credentials, path).map_err(str::to_string)
+    }
+    pub fn change(
+        &self,
+        method: reqwest::Method,
+        path: &str,
+        body: &Value,
+    ) -> Result<Value, String> {
+        let response = self
+            .http
+            .request(
+                method,
+                format!("https://127.0.0.1:{}{path}", self.credentials.port),
+            )
+            .basic_auth("riot", Some(&self.credentials.password))
+            .json(body)
+            .send()
+            .map_err(|_| "Se perdió la conexión durante la importación")?;
+        if !response.status().is_success() {
+            return Err("El cliente rechazó el cambio. Comprobá la fase y las ranuras de páginas disponibles.".into());
+        }
+        let bytes = response
+            .bytes()
+            .map_err(|_| "No se pudo comprobar el cambio")?;
+        if bytes.is_empty() {
+            Ok(Value::Null)
+        } else {
+            serde_json::from_slice(&bytes)
+                .map_err(|_| "Respuesta de importación no compatible".into())
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
