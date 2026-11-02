@@ -673,4 +673,3 @@ Los colaboradores deben leer **este documento y `AGENTS.md` antes de modificar c
 ---
 
 **Mantenimiento:** actualizar este documento cuando cambie el alcance. Todo cambio de capacidad que dependa de Riot debe registrar su fecha de revisión y la fuente oficial consultada.
-
