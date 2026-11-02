@@ -2,6 +2,20 @@
 
 Aplicación de escritorio para preparar partidas de League of Legends. **made by [frack.one](https://frack.one)**.
 
+## Código fuente
+
+| Carpeta          | Contenido                                                     |
+| ---------------- | ------------------------------------------------------------- |
+| `src/`           | Interfaz React, estilos y contratos TypeScript.               |
+| `src-tauri/src/` | Sesión, validaciones y comandos nativos en Rust.              |
+| `scripts/`       | Actualización del catálogo y prueba de la aplicación Windows. |
+| `data/`          | Catálogo de campeones incluido.                               |
+| `docs/`          | Especificación, arquitectura y resultados de pruebas.         |
+
+`AGENTS.md` contiene las pautas de desarrollo del repositorio. No se incluye en la aplicación.
+
+## Estado
+
 La versión 0.1.0 implementa la primera etapa: un simulador de draft ejecutado en Windows con Tauri 2, Rust, React y TypeScript. Permite editar ambos equipos, confirmar picks, bloquear campeones, intercambiar posiciones y recorrer estados de sesión. El catálogo oficial de 173 campeones está incluido y funciona sin conexión.
 
 El simulador se identifica siempre como entrada manual. La conexión con LoL, el ranking contextual, los planes, la inferencia de roles y la importación de runas pertenecen a etapas posteriores. No se ofrecen estadísticas ni recomendaciones ficticias.
