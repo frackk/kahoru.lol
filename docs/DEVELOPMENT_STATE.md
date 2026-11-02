@@ -28,3 +28,9 @@ Consultar `VALIDATION.md` para resultados concretos y límites. Los tests sinté
 El modelo se prepara con `npm run model:prepare -- --activate`; no subir pesos o credenciales. El instalador se genera con `npm run tauri -- build`. `--provider` y `--model` son recorridos nativos optativos; CI debe funcionar sin LoL, OP.GG ni modelo instalado.
 
 Leer `AGENTS.md` y `PRODUCT_SPEC.md` antes de modificar código. No confundir las funciones implementadas con el roadmap completo.
+
+## Última entrega verificada
+
+`f83e511` pasó GitHub Actions completo. El ejecutable 0.4.0 pasó proveedor real, modelo y actualización oficial desde sala; metadatos comprobados: 173 campeones y 825 páginas. Se preparó y activó el modelo opcional en este equipo. El instalador queda en `src-tauri/target/release/bundle/nsis/kahoru.lol_0.4.0_x64-setup.exe`.
+
+La revisión final refuerza la validación de estructuras del proveedor y la caché para rechazar datos incompatibles sin romper la interfaz. Los registros de rendimiento, capturas y pruebas locales quedan en `test-results/`, excluidos de Git. Los resultados y sus condiciones están en `VALIDATION.md`.

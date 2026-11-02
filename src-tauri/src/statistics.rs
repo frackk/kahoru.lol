@@ -13,6 +13,40 @@ pub struct Statistics {
     names: Mutex<HashMap<String, String>>,
     directory: PathBuf,
 }
+fn usable(analysis: &Value) -> bool {
+    let ids = |value: &Value| {
+        value.as_array().is_some_and(|a| {
+            a.len() <= 10
+                && a.iter()
+                    .all(|id| id.as_u64().is_some_and(|id| id > 0 && id < 100_000))
+        })
+    };
+    let row = |value: &Value| {
+        value.is_object() && ids(&value["ids"]) && value["play"].is_u64() && value["win"].is_u64()
+    };
+    let data = &analysis["data"];
+    analysis["champion"].is_string()
+        && analysis["position"].is_string()
+        && data.is_object()
+        && data["trends"]["win"]["version"].is_string()
+        && row(&data["core_items"])
+        && row(&data["starter_items"])
+        && (data["boots"].is_null() || row(&data["boots"]))
+        && ["fourth_items", "fifth_items", "sixth_items"]
+            .iter()
+            .all(|k| {
+                data[k].is_null()
+                    || data[k]
+                        .as_array()
+                        .is_some_and(|a| a.len() <= 100 && a.iter().all(row))
+            })
+        && ["primary_rune_ids", "secondary_rune_ids", "stat_mod_ids"]
+            .iter()
+            .all(|k| ids(&data["runes"][k]))
+        && ["primary_page_id", "secondary_page_id"]
+            .iter()
+            .all(|k| data["runes"][k].is_u64())
+}
 impl Statistics {
     pub fn new(directory: PathBuf) -> Self {
         Self {
@@ -51,7 +85,10 @@ impl Statistics {
                 {
                     if let Ok(value) = serde_json::from_slice::<Value>(&bytes) {
                         if let Some(time) = value["retrievedAt"].as_u64().filter(|t| {
-                            *t <= now + 300 && value["championKey"] == slug && value["role"] == role
+                            *t <= now + 300
+                                && value["championKey"] == slug
+                                && value["role"] == role
+                                && usable(&value["analysis"])
                         }) {
                             cache.insert(key.clone(), (time, value));
                         }
@@ -98,6 +135,9 @@ impl Statistics {
             "lol_get_champion_analysis",
             json!({"game_mode":"ranked","champion":champion,"position":position,"lang":"en_US","desired_output_fields":fields}),
         )?;
+        if !usable(&data) {
+            return Err("OP.GG devolvió un análisis incompleto o incompatible".into());
+        }
         if data["champion"] != champion
             || data["position"]
                 .as_str()
@@ -164,6 +204,16 @@ fn call(name: &str, arguments: Value) -> Result<Value, String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn malformed_cached_or_remote_rows_are_rejected() {
+        let sample = json!({"ids":[6672],"play":1000,"win":500});
+        let mut analysis = json!({"champion":"VIEGO","position":"jungle","data":{"trends":{"win":{"version":"16.21"}},"core_items":sample,"starter_items":sample,"fourth_items":[],"runes":{"primary_page_id":8000,"secondary_page_id":8300,"primary_rune_ids":[8010,9111,9104,8014],"secondary_rune_ids":[8304,8347],"stat_mod_ids":[5005,5008,5001]}}});
+        assert!(usable(&analysis));
+        analysis["data"]["runes"]["secondary_rune_ids"] = json!("invalid");
+        assert!(!usable(&analysis));
+        analysis["data"] = Value::Null;
+        assert!(!usable(&analysis));
+    }
     #[test]
     #[ignore = "consulta la interfaz pública del proveedor"]
     fn published_analysis_is_available() {
