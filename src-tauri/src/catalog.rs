@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+#[cfg(test)]
 use std::collections::HashSet;
 
 #[derive(Clone, Deserialize, Serialize)]
@@ -18,8 +19,17 @@ pub struct Champion {
     pub slug: String,
     pub name: String,
     pub title: String,
+    #[serde(default)]
+    pub icon: String,
+    #[serde(default)]
+    pub tags: Vec<String>,
+    #[serde(default)]
+    pub resource: String,
+    #[serde(default)]
+    pub range: f64,
 }
 
+#[cfg(test)]
 impl Catalog {
     pub fn bundled() -> Result<Self, String> {
         let catalog: Self = serde_json::from_str(include_str!("../../data/champions.json"))

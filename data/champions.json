@@ -2,1046 +2,2214 @@
   "version": "16.21.1",
   "locale": "es_AR",
   "source": "https://ddragon.leagueoflegends.com/cdn/16.21.1/data/es_AR/champion.json",
-  "retrievedAt": "2026-11-01T09:29:26.367Z",
+  "retrievedAt": "2026-11-02T05:34:36.084Z",
   "sha256": "358b4a7c15b5bf440a87f7ccd6d455241b71f859c3125336ed6936d8406a1e3f",
   "champions": [
     {
       "id": 266,
       "slug": "Aatrox",
       "name": "Aatrox",
-      "title": "la Espada Darkin"
+      "title": "la Espada Darkin",
+      "icon": "champion/Aatrox.png",
+      "tags": [
+        "Fighter"
+      ],
+      "resource": "Pozo Sangriento",
+      "range": 175
     },
     {
       "id": 103,
       "slug": "Ahri",
       "name": "Ahri",
-      "title": "la Vastaya de Nueve Colas"
+      "title": "la Vastaya de Nueve Colas",
+      "icon": "champion/Ahri.png",
+      "tags": [
+        "Mage",
+        "Assassin"
+      ],
+      "resource": "Maná",
+      "range": 550
     },
     {
       "id": 84,
       "slug": "Akali",
       "name": "Akali",
-      "title": "la Asesina Furtiva"
+      "title": "la Asesina Furtiva",
+      "icon": "champion/Akali.png",
+      "tags": [
+        "Assassin"
+      ],
+      "resource": "Energía",
+      "range": 125
     },
     {
       "id": 166,
       "slug": "Akshan",
       "name": "Akshan",
-      "title": "el Centinela Rebelde"
+      "title": "el Centinela Rebelde",
+      "icon": "champion/Akshan.png",
+      "tags": [
+        "Marksman",
+        "Assassin"
+      ],
+      "resource": "Maná",
+      "range": 500
     },
     {
       "id": 12,
       "slug": "Alistar",
       "name": "Alistar",
-      "title": "el Minotauro"
+      "title": "el Minotauro",
+      "icon": "champion/Alistar.png",
+      "tags": [
+        "Tank",
+        "Support"
+      ],
+      "resource": "Maná",
+      "range": 125
     },
     {
       "id": 799,
       "slug": "Ambessa",
       "name": "Ambessa",
-      "title": "La Matriarca de la Guerra"
+      "title": "La Matriarca de la Guerra",
+      "icon": "champion/Ambessa.png",
+      "tags": [
+        "Fighter",
+        "Assassin"
+      ],
+      "resource": "Energía",
+      "range": 125
     },
     {
       "id": 32,
       "slug": "Amumu",
       "name": "Amumu",
-      "title": "la Momia Triste"
+      "title": "la Momia Triste",
+      "icon": "champion/Amumu.png",
+      "tags": [
+        "Tank",
+        "Support"
+      ],
+      "resource": "Maná",
+      "range": 125
     },
     {
       "id": 34,
       "slug": "Anivia",
       "name": "Anivia",
-      "title": "la Criofénix"
+      "title": "la Criofénix",
+      "icon": "champion/Anivia.png",
+      "tags": [
+        "Mage"
+      ],
+      "resource": "Maná",
+      "range": 600
     },
     {
       "id": 1,
       "slug": "Annie",
       "name": "Annie",
-      "title": "la Hija de la Oscuridad"
+      "title": "la Hija de la Oscuridad",
+      "icon": "champion/Annie.png",
+      "tags": [
+        "Mage",
+        "Support"
+      ],
+      "resource": "Maná",
+      "range": 625
     },
     {
       "id": 523,
       "slug": "Aphelios",
       "name": "Aphelios",
-      "title": "El Arma de los Adeptos"
+      "title": "El Arma de los Adeptos",
+      "icon": "champion/Aphelios.png",
+      "tags": [
+        "Marksman"
+      ],
+      "resource": "Maná",
+      "range": 550
     },
     {
       "id": 22,
       "slug": "Ashe",
       "name": "Ashe",
-      "title": "la Arquera de Hielo"
+      "title": "la Arquera de Hielo",
+      "icon": "champion/Ashe.png",
+      "tags": [
+        "Marksman",
+        "Support"
+      ],
+      "resource": "Maná",
+      "range": 600
     },
     {
       "id": 136,
       "slug": "AurelionSol",
       "name": "Aurelion Sol",
-      "title": "el Forjador de Estrellas"
+      "title": "el Forjador de Estrellas",
+      "icon": "champion/AurelionSol.png",
+      "tags": [
+        "Mage"
+      ],
+      "resource": "Maná",
+      "range": 550
     },
     {
       "id": 893,
       "slug": "Aurora",
       "name": "Aurora",
-      "title": "la Bruja entre Mundos"
+      "title": "la Bruja entre Mundos",
+      "icon": "champion/Aurora.png",
+      "tags": [
+        "Mage",
+        "Assassin"
+      ],
+      "resource": "Maná",
+      "range": 550
     },
     {
       "id": 268,
       "slug": "Azir",
       "name": "Azir",
-      "title": "el Emperador de las Arenas"
+      "title": "el Emperador de las Arenas",
+      "icon": "champion/Azir.png",
+      "tags": [
+        "Mage",
+        "Marksman"
+      ],
+      "resource": "Maná",
+      "range": 525
     },
     {
       "id": 432,
       "slug": "Bard",
       "name": "Bardo",
-      "title": "el Guardián Trotamundos"
+      "title": "el Guardián Trotamundos",
+      "icon": "champion/Bard.png",
+      "tags": [
+        "Support",
+        "Mage"
+      ],
+      "resource": "Maná",
+      "range": 500
     },
     {
       "id": 200,
       "slug": "Belveth",
       "name": "Bel'Veth",
-      "title": "la Emperatriz del Vacío"
+      "title": "la Emperatriz del Vacío",
+      "icon": "champion/Belveth.png",
+      "tags": [
+        "Fighter"
+      ],
+      "resource": "",
+      "range": 150
     },
     {
       "id": 53,
       "slug": "Blitzcrank",
       "name": "Blitzcrank",
-      "title": "el Gran Gólem de Vapor"
+      "title": "el Gran Gólem de Vapor",
+      "icon": "champion/Blitzcrank.png",
+      "tags": [
+        "Tank",
+        "Support"
+      ],
+      "resource": "Maná",
+      "range": 125
     },
     {
       "id": 63,
       "slug": "Brand",
       "name": "Brand",
-      "title": "la Venganza Ardiente"
+      "title": "la Venganza Ardiente",
+      "icon": "champion/Brand.png",
+      "tags": [
+        "Mage",
+        "Support"
+      ],
+      "resource": "Maná",
+      "range": 550
     },
     {
       "id": 201,
       "slug": "Braum",
       "name": "Braum",
-      "title": "el Corazón del Fréljord"
+      "title": "el Corazón del Fréljord",
+      "icon": "champion/Braum.png",
+      "tags": [
+        "Tank",
+        "Support"
+      ],
+      "resource": "Maná",
+      "range": 125
     },
     {
       "id": 233,
       "slug": "Briar",
       "name": "Briar",
-      "title": "el Hambre Contenida"
+      "title": "el Hambre Contenida",
+      "icon": "champion/Briar.png",
+      "tags": [
+        "Fighter",
+        "Assassin"
+      ],
+      "resource": "Furia",
+      "range": 125
     },
     {
       "id": 51,
       "slug": "Caitlyn",
       "name": "Caitlyn",
-      "title": "la Sheriff de Piltóver"
+      "title": "la Sheriff de Piltóver",
+      "icon": "champion/Caitlyn.png",
+      "tags": [
+        "Marksman"
+      ],
+      "resource": "Maná",
+      "range": 650
     },
     {
       "id": 164,
       "slug": "Camille",
       "name": "Camille",
-      "title": "la Sombra de Acero"
+      "title": "la Sombra de Acero",
+      "icon": "champion/Camille.png",
+      "tags": [
+        "Fighter",
+        "Assassin"
+      ],
+      "resource": "Maná",
+      "range": 125
     },
     {
       "id": 69,
       "slug": "Cassiopeia",
       "name": "Cassiopeia",
-      "title": "el Abrazo de la Serpiente"
+      "title": "el Abrazo de la Serpiente",
+      "icon": "champion/Cassiopeia.png",
+      "tags": [
+        "Mage"
+      ],
+      "resource": "Maná",
+      "range": 550
     },
     {
       "id": 31,
       "slug": "Chogath",
       "name": "Cho'Gath",
-      "title": "el Terror del Vacío"
+      "title": "el Terror del Vacío",
+      "icon": "champion/Chogath.png",
+      "tags": [
+        "Tank",
+        "Mage"
+      ],
+      "resource": "Maná",
+      "range": 125
     },
     {
       "id": 42,
       "slug": "Corki",
       "name": "Corki",
-      "title": "el Bombardero Osado"
+      "title": "el Bombardero Osado",
+      "icon": "champion/Corki.png",
+      "tags": [
+        "Marksman",
+        "Mage"
+      ],
+      "resource": "Maná",
+      "range": 550
     },
     {
       "id": 122,
       "slug": "Darius",
       "name": "Darius",
-      "title": "la mano de Noxus"
+      "title": "la mano de Noxus",
+      "icon": "champion/Darius.png",
+      "tags": [
+        "Fighter",
+        "Tank"
+      ],
+      "resource": "Maná",
+      "range": 175
     },
     {
       "id": 131,
       "slug": "Diana",
       "name": "Diana",
-      "title": "el Desdén de la Luna"
+      "title": "el Desdén de la Luna",
+      "icon": "champion/Diana.png",
+      "tags": [
+        "Fighter",
+        "Assassin"
+      ],
+      "resource": "Maná",
+      "range": 150
     },
     {
       "id": 36,
       "slug": "DrMundo",
       "name": "Dr. Mundo",
-      "title": "el Loco de Zaun"
+      "title": "el Loco de Zaun",
+      "icon": "champion/DrMundo.png",
+      "tags": [
+        "Tank",
+        "Fighter"
+      ],
+      "resource": "Ninguno",
+      "range": 125
     },
     {
       "id": 119,
       "slug": "Draven",
       "name": "Draven",
-      "title": "el Glorioso Ejecutor"
+      "title": "el Glorioso Ejecutor",
+      "icon": "champion/Draven.png",
+      "tags": [
+        "Marksman"
+      ],
+      "resource": "Maná",
+      "range": 550
     },
     {
       "id": 245,
       "slug": "Ekko",
       "name": "Ekko",
-      "title": "el Joven que Fragmentó el Tiempo"
+      "title": "el Joven que Fragmentó el Tiempo",
+      "icon": "champion/Ekko.png",
+      "tags": [
+        "Assassin",
+        "Mage"
+      ],
+      "resource": "Maná",
+      "range": 125
     },
     {
       "id": 60,
       "slug": "Elise",
       "name": "Elise",
-      "title": "la Reina de las Arañas"
+      "title": "la Reina de las Arañas",
+      "icon": "champion/Elise.png",
+      "tags": [
+        "Assassin",
+        "Mage"
+      ],
+      "resource": "Maná",
+      "range": 550
     },
     {
       "id": 28,
       "slug": "Evelynn",
       "name": "Evelynn",
-      "title": "Abrazo de la Agonía"
+      "title": "Abrazo de la Agonía",
+      "icon": "champion/Evelynn.png",
+      "tags": [
+        "Assassin",
+        "Mage"
+      ],
+      "resource": "Maná",
+      "range": 125
     },
     {
       "id": 81,
       "slug": "Ezreal",
       "name": "Ezreal",
-      "title": "el Explorador Pródigo"
+      "title": "el Explorador Pródigo",
+      "icon": "champion/Ezreal.png",
+      "tags": [
+        "Marksman",
+        "Mage"
+      ],
+      "resource": "Maná",
+      "range": 550
     },
     {
       "id": 9,
       "slug": "Fiddlesticks",
       "name": "Fiddlesticks",
-      "title": "el Terror Ancestral"
+      "title": "el Terror Ancestral",
+      "icon": "champion/Fiddlesticks.png",
+      "tags": [
+        "Mage",
+        "Support"
+      ],
+      "resource": "Maná",
+      "range": 480
     },
     {
       "id": 114,
       "slug": "Fiora",
       "name": "Fiora",
-      "title": "la Gran Duelista"
+      "title": "la Gran Duelista",
+      "icon": "champion/Fiora.png",
+      "tags": [
+        "Fighter",
+        "Assassin"
+      ],
+      "resource": "Maná",
+      "range": 150
     },
     {
       "id": 105,
       "slug": "Fizz",
       "name": "Fizz",
-      "title": "el Bromista de las Mareas"
+      "title": "el Bromista de las Mareas",
+      "icon": "champion/Fizz.png",
+      "tags": [
+        "Assassin",
+        "Fighter"
+      ],
+      "resource": "Maná",
+      "range": 175
     },
     {
       "id": 3,
       "slug": "Galio",
       "name": "Galio",
-      "title": "el Coloso"
+      "title": "el Coloso",
+      "icon": "champion/Galio.png",
+      "tags": [
+        "Tank",
+        "Mage"
+      ],
+      "resource": "Maná",
+      "range": 150
     },
     {
       "id": 41,
       "slug": "Gangplank",
       "name": "Gangplank",
-      "title": "el Azote de los Mares"
+      "title": "el Azote de los Mares",
+      "icon": "champion/Gangplank.png",
+      "tags": [
+        "Fighter"
+      ],
+      "resource": "Maná",
+      "range": 125
     },
     {
       "id": 86,
       "slug": "Garen",
       "name": "Garen",
-      "title": "el Poder de Demacia"
+      "title": "el Poder de Demacia",
+      "icon": "champion/Garen.png",
+      "tags": [
+        "Fighter",
+        "Tank"
+      ],
+      "resource": "Ninguno",
+      "range": 175
     },
     {
       "id": 150,
       "slug": "Gnar",
       "name": "Gnar",
-      "title": "el Eslabón Perdido"
+      "title": "el Eslabón Perdido",
+      "icon": "champion/Gnar.png",
+      "tags": [
+        "Fighter",
+        "Tank"
+      ],
+      "resource": "Rabia",
+      "range": 175
     },
     {
       "id": 79,
       "slug": "Gragas",
       "name": "Gragas",
-      "title": "el Revoltoso"
+      "title": "el Revoltoso",
+      "icon": "champion/Gragas.png",
+      "tags": [
+        "Fighter",
+        "Mage"
+      ],
+      "resource": "Maná",
+      "range": 125
     },
     {
       "id": 104,
       "slug": "Graves",
       "name": "Graves",
-      "title": "el Forajido"
+      "title": "el Forajido",
+      "icon": "champion/Graves.png",
+      "tags": [
+        "Marksman"
+      ],
+      "resource": "Maná",
+      "range": 425
     },
     {
       "id": 887,
       "slug": "Gwen",
       "name": "Gwen",
-      "title": "La Costurera Sagrada"
+      "title": "La Costurera Sagrada",
+      "icon": "champion/Gwen.png",
+      "tags": [
+        "Fighter"
+      ],
+      "resource": "Maná",
+      "range": 150
     },
     {
       "id": 120,
       "slug": "Hecarim",
       "name": "Hecarim",
-      "title": "la Sombra de la Guerra"
+      "title": "la Sombra de la Guerra",
+      "icon": "champion/Hecarim.png",
+      "tags": [
+        "Fighter",
+        "Tank"
+      ],
+      "resource": "Maná",
+      "range": 175
     },
     {
       "id": 74,
       "slug": "Heimerdinger",
       "name": "Heimerdinger",
-      "title": "el Venerable Inventor"
+      "title": "el Venerable Inventor",
+      "icon": "champion/Heimerdinger.png",
+      "tags": [
+        "Mage",
+        "Support"
+      ],
+      "resource": "Maná",
+      "range": 550
     },
     {
       "id": 910,
       "slug": "Hwei",
       "name": "Hwei",
-      "title": "el Visionario"
+      "title": "el Visionario",
+      "icon": "champion/Hwei.png",
+      "tags": [
+        "Mage",
+        "Support"
+      ],
+      "resource": "Maná",
+      "range": 550
     },
     {
       "id": 420,
       "slug": "Illaoi",
       "name": "Illaoi",
-      "title": "la Sacerdotisa del Kraken"
+      "title": "la Sacerdotisa del Kraken",
+      "icon": "champion/Illaoi.png",
+      "tags": [
+        "Fighter",
+        "Tank"
+      ],
+      "resource": "Maná",
+      "range": 125
     },
     {
       "id": 39,
       "slug": "Irelia",
       "name": "Irelia",
-      "title": "la Cuchilla Danzante"
+      "title": "la Cuchilla Danzante",
+      "icon": "champion/Irelia.png",
+      "tags": [
+        "Fighter",
+        "Assassin"
+      ],
+      "resource": "Maná",
+      "range": 200
     },
     {
       "id": 427,
       "slug": "Ivern",
       "name": "Ivern",
-      "title": "el Árbol Padre"
+      "title": "el Árbol Padre",
+      "icon": "champion/Ivern.png",
+      "tags": [
+        "Support",
+        "Mage"
+      ],
+      "resource": "Maná",
+      "range": 475
     },
     {
       "id": 40,
       "slug": "Janna",
       "name": "Janna",
-      "title": "la Furia de la Tormenta"
+      "title": "la Furia de la Tormenta",
+      "icon": "champion/Janna.png",
+      "tags": [
+        "Support",
+        "Mage"
+      ],
+      "resource": "Maná",
+      "range": 550
     },
     {
       "id": 59,
       "slug": "JarvanIV",
       "name": "Jarvan IV",
-      "title": "el Ejemplo de Demacia"
+      "title": "el Ejemplo de Demacia",
+      "icon": "champion/JarvanIV.png",
+      "tags": [
+        "Fighter",
+        "Tank"
+      ],
+      "resource": "Maná",
+      "range": 175
     },
     {
       "id": 24,
       "slug": "Jax",
       "name": "Jax",
-      "title": "el Maestro de Armas"
+      "title": "el Maestro de Armas",
+      "icon": "champion/Jax.png",
+      "tags": [
+        "Fighter"
+      ],
+      "resource": "Maná",
+      "range": 125
     },
     {
       "id": 126,
       "slug": "Jayce",
       "name": "Jayce",
-      "title": "el Defensor del Mañana"
+      "title": "el Defensor del Mañana",
+      "icon": "champion/Jayce.png",
+      "tags": [
+        "Fighter",
+        "Marksman"
+      ],
+      "resource": "Maná",
+      "range": 125
     },
     {
       "id": 202,
       "slug": "Jhin",
       "name": "Jhin",
-      "title": "el Virtuoso"
+      "title": "el Virtuoso",
+      "icon": "champion/Jhin.png",
+      "tags": [
+        "Marksman",
+        "Mage"
+      ],
+      "resource": "Maná",
+      "range": 550
     },
     {
       "id": 222,
       "slug": "Jinx",
       "name": "Jinx",
-      "title": "la Bala Perdida"
+      "title": "la Bala Perdida",
+      "icon": "champion/Jinx.png",
+      "tags": [
+        "Marksman"
+      ],
+      "resource": "Maná",
+      "range": 525
     },
     {
       "id": 897,
       "slug": "KSante",
       "name": "K'Sante",
-      "title": "El Orgullo de Nazumah"
+      "title": "El Orgullo de Nazumah",
+      "icon": "champion/KSante.png",
+      "tags": [
+        "Tank",
+        "Fighter"
+      ],
+      "resource": "Maná",
+      "range": 150
     },
     {
       "id": 145,
       "slug": "Kaisa",
       "name": "Kai'Sa",
-      "title": "La Hija del Vacío"
+      "title": "La Hija del Vacío",
+      "icon": "champion/Kaisa.png",
+      "tags": [
+        "Marksman",
+        "Mage"
+      ],
+      "resource": "Maná",
+      "range": 525
     },
     {
       "id": 429,
       "slug": "Kalista",
       "name": "Kalista",
-      "title": "el Espíritu de la Venganza"
+      "title": "el Espíritu de la Venganza",
+      "icon": "champion/Kalista.png",
+      "tags": [
+        "Marksman"
+      ],
+      "resource": "Maná",
+      "range": 525
     },
     {
       "id": 43,
       "slug": "Karma",
       "name": "Karma",
-      "title": "la Iluminada"
+      "title": "la Iluminada",
+      "icon": "champion/Karma.png",
+      "tags": [
+        "Mage",
+        "Support"
+      ],
+      "resource": "Maná",
+      "range": 525
     },
     {
       "id": 30,
       "slug": "Karthus",
       "name": "Karthus",
-      "title": "el Canto de la Muerte"
+      "title": "el Canto de la Muerte",
+      "icon": "champion/Karthus.png",
+      "tags": [
+        "Mage"
+      ],
+      "resource": "Maná",
+      "range": 450
     },
     {
       "id": 38,
       "slug": "Kassadin",
       "name": "Kassadin",
-      "title": "el Caminante del Vacío"
+      "title": "el Caminante del Vacío",
+      "icon": "champion/Kassadin.png",
+      "tags": [
+        "Assassin",
+        "Mage"
+      ],
+      "resource": "Maná",
+      "range": 150
     },
     {
       "id": 55,
       "slug": "Katarina",
       "name": "Katarina",
-      "title": "la Daga Siniestra"
+      "title": "la Daga Siniestra",
+      "icon": "champion/Katarina.png",
+      "tags": [
+        "Assassin",
+        "Mage"
+      ],
+      "resource": "Ninguno",
+      "range": 125
     },
     {
       "id": 10,
       "slug": "Kayle",
       "name": "Kayle",
-      "title": "la Justiciera"
+      "title": "la Justiciera",
+      "icon": "champion/Kayle.png",
+      "tags": [
+        "Marksman",
+        "Mage"
+      ],
+      "resource": "Maná",
+      "range": 175
     },
     {
       "id": 141,
       "slug": "Kayn",
       "name": "Kayn",
-      "title": "el Segador Sombrío"
+      "title": "el Segador Sombrío",
+      "icon": "champion/Kayn.png",
+      "tags": [
+        "Fighter",
+        "Assassin"
+      ],
+      "resource": "Maná",
+      "range": 175
     },
     {
       "id": 85,
       "slug": "Kennen",
       "name": "Kennen",
-      "title": "el Corazón de la Tempestad"
+      "title": "el Corazón de la Tempestad",
+      "icon": "champion/Kennen.png",
+      "tags": [
+        "Mage"
+      ],
+      "resource": "Energía",
+      "range": 550
     },
     {
       "id": 121,
       "slug": "Khazix",
       "name": "Kha'Zix",
-      "title": "el Saqueador del Vacío"
+      "title": "el Saqueador del Vacío",
+      "icon": "champion/Khazix.png",
+      "tags": [
+        "Assassin"
+      ],
+      "resource": "Maná",
+      "range": 125
     },
     {
       "id": 203,
       "slug": "Kindred",
       "name": "Kindred",
-      "title": "los Cazadores Eternos"
+      "title": "los Cazadores Eternos",
+      "icon": "champion/Kindred.png",
+      "tags": [
+        "Marksman"
+      ],
+      "resource": "Maná",
+      "range": 500
     },
     {
       "id": 240,
       "slug": "Kled",
       "name": "Kled",
-      "title": "el Jinete Cascarrabias"
+      "title": "el Jinete Cascarrabias",
+      "icon": "champion/Kled.png",
+      "tags": [
+        "Fighter"
+      ],
+      "resource": "Coraje",
+      "range": 125
     },
     {
       "id": 96,
       "slug": "KogMaw",
       "name": "Kog'Maw",
-      "title": "la Boca del Abismo"
+      "title": "la Boca del Abismo",
+      "icon": "champion/KogMaw.png",
+      "tags": [
+        "Marksman",
+        "Mage"
+      ],
+      "resource": "Maná",
+      "range": 500
     },
     {
       "id": 7,
       "slug": "Leblanc",
       "name": "LeBlanc",
-      "title": "la Maquiavélica"
+      "title": "la Maquiavélica",
+      "icon": "champion/Leblanc.png",
+      "tags": [
+        "Assassin",
+        "Mage"
+      ],
+      "resource": "Maná",
+      "range": 525
     },
     {
       "id": 64,
       "slug": "LeeSin",
       "name": "Lee Sin",
-      "title": "el Monje Ciego"
+      "title": "el Monje Ciego",
+      "icon": "champion/LeeSin.png",
+      "tags": [
+        "Fighter",
+        "Assassin"
+      ],
+      "resource": "Energía",
+      "range": 125
     },
     {
       "id": 89,
       "slug": "Leona",
       "name": "Leona",
-      "title": "el Radiante Amanecer"
+      "title": "el Radiante Amanecer",
+      "icon": "champion/Leona.png",
+      "tags": [
+        "Tank",
+        "Support"
+      ],
+      "resource": "Maná",
+      "range": 125
     },
     {
       "id": 876,
       "slug": "Lillia",
       "name": "Lillia",
-      "title": "La Flor Tímida"
+      "title": "La Flor Tímida",
+      "icon": "champion/Lillia.png",
+      "tags": [
+        "Fighter",
+        "Mage"
+      ],
+      "resource": "Maná",
+      "range": 325
     },
     {
       "id": 127,
       "slug": "Lissandra",
       "name": "Lissandra",
-      "title": "la Bruja de Hielo"
+      "title": "la Bruja de Hielo",
+      "icon": "champion/Lissandra.png",
+      "tags": [
+        "Mage"
+      ],
+      "resource": "Maná",
+      "range": 550
     },
     {
       "id": 805,
       "slug": "Locke",
       "name": "Locke",
-      "title": "el Exorcista de las Cenizas"
+      "title": "el Exorcista de las Cenizas",
+      "icon": "champion/Locke.png",
+      "tags": [
+        "Assassin",
+        "Mage"
+      ],
+      "resource": "Maná",
+      "range": 125
     },
     {
       "id": 236,
       "slug": "Lucian",
       "name": "Lucian",
-      "title": "el Purificador"
+      "title": "el Purificador",
+      "icon": "champion/Lucian.png",
+      "tags": [
+        "Marksman",
+        "Assassin"
+      ],
+      "resource": "Maná",
+      "range": 500
     },
     {
       "id": 117,
       "slug": "Lulu",
       "name": "Lulu",
-      "title": "La Hechicera Hadística"
+      "title": "La Hechicera Hadística",
+      "icon": "champion/Lulu.png",
+      "tags": [
+        "Support",
+        "Mage"
+      ],
+      "resource": "Maná",
+      "range": 550
     },
     {
       "id": 99,
       "slug": "Lux",
       "name": "Lux",
-      "title": "la Dama Luminosa"
+      "title": "la Dama Luminosa",
+      "icon": "champion/Lux.png",
+      "tags": [
+        "Mage",
+        "Support"
+      ],
+      "resource": "Maná",
+      "range": 550
     },
     {
       "id": 11,
       "slug": "MasterYi",
       "name": "Maestro Yi",
-      "title": "la Espada Wuju"
+      "title": "la Espada Wuju",
+      "icon": "champion/MasterYi.png",
+      "tags": [
+        "Fighter",
+        "Assassin"
+      ],
+      "resource": "Maná",
+      "range": 175
     },
     {
       "id": 54,
       "slug": "Malphite",
       "name": "Malphite",
-      "title": "el Fragmento del Monolito"
+      "title": "el Fragmento del Monolito",
+      "icon": "champion/Malphite.png",
+      "tags": [
+        "Tank",
+        "Mage"
+      ],
+      "resource": "Maná",
+      "range": 125
     },
     {
       "id": 90,
       "slug": "Malzahar",
       "name": "Malzahar",
-      "title": "el Profeta del Vacío"
+      "title": "el Profeta del Vacío",
+      "icon": "champion/Malzahar.png",
+      "tags": [
+        "Mage"
+      ],
+      "resource": "Maná",
+      "range": 500
     },
     {
       "id": 57,
       "slug": "Maokai",
       "name": "Maokai",
-      "title": "el Treant Retorcido"
+      "title": "el Treant Retorcido",
+      "icon": "champion/Maokai.png",
+      "tags": [
+        "Tank",
+        "Support"
+      ],
+      "resource": "Maná",
+      "range": 125
     },
     {
       "id": 800,
       "slug": "Mel",
       "name": "Mel",
-      "title": "el Reflejo del Alma"
+      "title": "el Reflejo del Alma",
+      "icon": "champion/Mel.png",
+      "tags": [
+        "Mage",
+        "Support"
+      ],
+      "resource": "Maná",
+      "range": 550
     },
     {
       "id": 902,
       "slug": "Milio",
       "name": "Milio",
-      "title": "La Flama Gentil"
+      "title": "La Flama Gentil",
+      "icon": "champion/Milio.png",
+      "tags": [
+        "Support",
+        "Mage"
+      ],
+      "resource": "Maná",
+      "range": 525
     },
     {
       "id": 21,
       "slug": "MissFortune",
       "name": "Miss Fortune",
-      "title": "la Cazarrecompensas"
+      "title": "la Cazarrecompensas",
+      "icon": "champion/MissFortune.png",
+      "tags": [
+        "Marksman",
+        "Mage"
+      ],
+      "resource": "Maná",
+      "range": 550
     },
     {
       "id": 82,
       "slug": "Mordekaiser",
       "name": "Mordekaiser",
-      "title": "el Renacido de Hierro"
+      "title": "el Renacido de Hierro",
+      "icon": "champion/Mordekaiser.png",
+      "tags": [
+        "Fighter",
+        "Mage"
+      ],
+      "resource": "Escudo",
+      "range": 175
     },
     {
       "id": 25,
       "slug": "Morgana",
       "name": "Morgana",
-      "title": "la Caída"
+      "title": "la Caída",
+      "icon": "champion/Morgana.png",
+      "tags": [
+        "Support",
+        "Mage"
+      ],
+      "resource": "Maná",
+      "range": 450
     },
     {
       "id": 950,
       "slug": "Naafiri",
       "name": "Naafiri",
-      "title": "la Sabueso de las Cien Mordidas"
+      "title": "la Sabueso de las Cien Mordidas",
+      "icon": "champion/Naafiri.png",
+      "tags": [
+        "Assassin",
+        "Fighter"
+      ],
+      "resource": "Maná",
+      "range": 125
     },
     {
       "id": 267,
       "slug": "Nami",
       "name": "Nami",
-      "title": "la Invocadora de Mareas"
+      "title": "la Invocadora de Mareas",
+      "icon": "champion/Nami.png",
+      "tags": [
+        "Support",
+        "Mage"
+      ],
+      "resource": "Maná",
+      "range": 550
     },
     {
       "id": 75,
       "slug": "Nasus",
       "name": "Nasus",
-      "title": "el Curador de las Arenas"
+      "title": "el Curador de las Arenas",
+      "icon": "champion/Nasus.png",
+      "tags": [
+        "Fighter",
+        "Tank"
+      ],
+      "resource": "Maná",
+      "range": 125
     },
     {
       "id": 111,
       "slug": "Nautilus",
       "name": "Nautilus",
-      "title": "el Titán de las Profundidades"
+      "title": "el Titán de las Profundidades",
+      "icon": "champion/Nautilus.png",
+      "tags": [
+        "Tank",
+        "Support"
+      ],
+      "resource": "Maná",
+      "range": 175
     },
     {
       "id": 518,
       "slug": "Neeko",
       "name": "Neeko",
-      "title": "la Camaleón Curiosa"
+      "title": "la Camaleón Curiosa",
+      "icon": "champion/Neeko.png",
+      "tags": [
+        "Mage",
+        "Support"
+      ],
+      "resource": "Maná",
+      "range": 550
     },
     {
       "id": 76,
       "slug": "Nidalee",
       "name": "Nidalee",
-      "title": "la Cazadora Salvaje"
+      "title": "la Cazadora Salvaje",
+      "icon": "champion/Nidalee.png",
+      "tags": [
+        "Assassin",
+        "Mage"
+      ],
+      "resource": "Maná",
+      "range": 525
     },
     {
       "id": 895,
       "slug": "Nilah",
       "name": "Nilah",
-      "title": "la Alegría Desatada"
+      "title": "la Alegría Desatada",
+      "icon": "champion/Nilah.png",
+      "tags": [
+        "Fighter",
+        "Assassin"
+      ],
+      "resource": "Maná",
+      "range": 225
     },
     {
       "id": 56,
       "slug": "Nocturne",
       "name": "Nocturne",
-      "title": "la Pesadilla Eterna"
+      "title": "la Pesadilla Eterna",
+      "icon": "champion/Nocturne.png",
+      "tags": [
+        "Fighter",
+        "Assassin"
+      ],
+      "resource": "Maná",
+      "range": 125
     },
     {
       "id": 20,
       "slug": "Nunu",
       "name": "Nunu y Willump",
-      "title": "el Niño y su Yeti"
+      "title": "el Niño y su Yeti",
+      "icon": "champion/Nunu.png",
+      "tags": [
+        "Tank",
+        "Mage"
+      ],
+      "resource": "Maná",
+      "range": 125
     },
     {
       "id": 2,
       "slug": "Olaf",
       "name": "Olaf",
-      "title": "el Berserker"
+      "title": "el Berserker",
+      "icon": "champion/Olaf.png",
+      "tags": [
+        "Fighter",
+        "Tank"
+      ],
+      "resource": "Maná",
+      "range": 125
     },
     {
       "id": 61,
       "slug": "Orianna",
       "name": "Orianna",
-      "title": "la Doncella Mecánica"
+      "title": "la Doncella Mecánica",
+      "icon": "champion/Orianna.png",
+      "tags": [
+        "Mage",
+        "Support"
+      ],
+      "resource": "Maná",
+      "range": 525
     },
     {
       "id": 516,
       "slug": "Ornn",
       "name": "Ornn",
-      "title": "El Fuego Debajo de la Montaña"
+      "title": "El Fuego Debajo de la Montaña",
+      "icon": "champion/Ornn.png",
+      "tags": [
+        "Tank"
+      ],
+      "resource": "Maná",
+      "range": 175
     },
     {
       "id": 80,
       "slug": "Pantheon",
       "name": "Pantheon",
-      "title": "la Lanza Inquebrantable"
+      "title": "la Lanza Inquebrantable",
+      "icon": "champion/Pantheon.png",
+      "tags": [
+        "Fighter",
+        "Assassin"
+      ],
+      "resource": "Maná",
+      "range": 175
     },
     {
       "id": 78,
       "slug": "Poppy",
       "name": "Poppy",
-      "title": "la Guardiana del Martillo"
+      "title": "la Guardiana del Martillo",
+      "icon": "champion/Poppy.png",
+      "tags": [
+        "Tank",
+        "Fighter"
+      ],
+      "resource": "Maná",
+      "range": 125
     },
     {
       "id": 555,
       "slug": "Pyke",
       "name": "Pyke",
-      "title": "el Destripador del Muelle Rojo"
+      "title": "el Destripador del Muelle Rojo",
+      "icon": "champion/Pyke.png",
+      "tags": [
+        "Support",
+        "Assassin"
+      ],
+      "resource": "Maná",
+      "range": 150
     },
     {
       "id": 246,
       "slug": "Qiyana",
       "name": "Qiyana",
-      "title": "La Emperatriz de los Elementos"
+      "title": "La Emperatriz de los Elementos",
+      "icon": "champion/Qiyana.png",
+      "tags": [
+        "Assassin"
+      ],
+      "resource": "Maná",
+      "range": 150
     },
     {
       "id": 133,
       "slug": "Quinn",
       "name": "Quinn",
-      "title": "las Alas de Demacia"
+      "title": "las Alas de Demacia",
+      "icon": "champion/Quinn.png",
+      "tags": [
+        "Marksman",
+        "Assassin"
+      ],
+      "resource": "Maná",
+      "range": 525
     },
     {
       "id": 497,
       "slug": "Rakan",
       "name": "Rakan",
-      "title": "El Encantador"
+      "title": "El Encantador",
+      "icon": "champion/Rakan.png",
+      "tags": [
+        "Support"
+      ],
+      "resource": "Maná",
+      "range": 300
     },
     {
       "id": 33,
       "slug": "Rammus",
       "name": "Rammus",
-      "title": "el Armadurillo"
+      "title": "el Armadurillo",
+      "icon": "champion/Rammus.png",
+      "tags": [
+        "Tank"
+      ],
+      "resource": "Maná",
+      "range": 125
     },
     {
       "id": 421,
       "slug": "RekSai",
       "name": "Rek'Sai",
-      "title": "la Excavadora del Vacío"
+      "title": "la Excavadora del Vacío",
+      "icon": "champion/RekSai.png",
+      "tags": [
+        "Fighter",
+        "Tank"
+      ],
+      "resource": "Rabia",
+      "range": 175
     },
     {
       "id": 526,
       "slug": "Rell",
       "name": "Rell",
-      "title": "la Doncella de Hierro"
+      "title": "la Doncella de Hierro",
+      "icon": "champion/Rell.png",
+      "tags": [
+        "Tank",
+        "Support"
+      ],
+      "resource": "Maná",
+      "range": 175
     },
     {
       "id": 888,
       "slug": "Renata",
       "name": "Renata Glasc",
-      "title": "la Quimobaronesa"
+      "title": "la Quimobaronesa",
+      "icon": "champion/Renata.png",
+      "tags": [
+        "Support",
+        "Mage"
+      ],
+      "resource": "Maná",
+      "range": 550
     },
     {
       "id": 58,
       "slug": "Renekton",
       "name": "Renekton",
-      "title": "el Carnicero de las Arenas"
+      "title": "el Carnicero de las Arenas",
+      "icon": "champion/Renekton.png",
+      "tags": [
+        "Fighter",
+        "Tank"
+      ],
+      "resource": "Furia",
+      "range": 125
     },
     {
       "id": 107,
       "slug": "Rengar",
       "name": "Rengar",
-      "title": "el Orgullo Acechante"
+      "title": "el Orgullo Acechante",
+      "icon": "champion/Rengar.png",
+      "tags": [
+        "Assassin",
+        "Fighter"
+      ],
+      "resource": "Ferocidad",
+      "range": 125
     },
     {
       "id": 92,
       "slug": "Riven",
       "name": "Riven",
-      "title": "la Desterrada"
+      "title": "la Desterrada",
+      "icon": "champion/Riven.png",
+      "tags": [
+        "Fighter",
+        "Assassin"
+      ],
+      "resource": "Ninguno",
+      "range": 125
     },
     {
       "id": 68,
       "slug": "Rumble",
       "name": "Rumble",
-      "title": "la Amenaza Mecánica"
+      "title": "la Amenaza Mecánica",
+      "icon": "champion/Rumble.png",
+      "tags": [
+        "Fighter",
+        "Mage"
+      ],
+      "resource": "Calor",
+      "range": 125
     },
     {
       "id": 13,
       "slug": "Ryze",
       "name": "Ryze",
-      "title": "el Mago Rúnico"
+      "title": "el Mago Rúnico",
+      "icon": "champion/Ryze.png",
+      "tags": [
+        "Mage"
+      ],
+      "resource": "Maná",
+      "range": 550
     },
     {
       "id": 360,
       "slug": "Samira",
       "name": "Samira",
-      "title": "la Rosa del Desierto"
+      "title": "la Rosa del Desierto",
+      "icon": "champion/Samira.png",
+      "tags": [
+        "Marksman",
+        "Assassin"
+      ],
+      "resource": "Maná",
+      "range": 500
     },
     {
       "id": 113,
       "slug": "Sejuani",
       "name": "Sejuani",
-      "title": "la Furia del Norte"
+      "title": "la Furia del Norte",
+      "icon": "champion/Sejuani.png",
+      "tags": [
+        "Tank"
+      ],
+      "resource": "Maná",
+      "range": 150
     },
     {
       "id": 235,
       "slug": "Senna",
       "name": "Senna",
-      "title": "la Redentora"
+      "title": "la Redentora",
+      "icon": "champion/Senna.png",
+      "tags": [
+        "Support",
+        "Marksman"
+      ],
+      "resource": "Maná",
+      "range": 600
     },
     {
       "id": 147,
       "slug": "Seraphine",
       "name": "Seraphine",
-      "title": "la Cantante Soñadora"
+      "title": "la Cantante Soñadora",
+      "icon": "champion/Seraphine.png",
+      "tags": [
+        "Support",
+        "Mage"
+      ],
+      "resource": "Maná",
+      "range": 525
     },
     {
       "id": 875,
       "slug": "Sett",
       "name": "Sett",
-      "title": "El Jefe"
+      "title": "El Jefe",
+      "icon": "champion/Sett.png",
+      "tags": [
+        "Fighter",
+        "Tank"
+      ],
+      "resource": "Determinación",
+      "range": 125
     },
     {
       "id": 35,
       "slug": "Shaco",
       "name": "Shaco",
-      "title": "el Bufón Siniestro"
+      "title": "el Bufón Siniestro",
+      "icon": "champion/Shaco.png",
+      "tags": [
+        "Assassin"
+      ],
+      "resource": "Maná",
+      "range": 125
     },
     {
       "id": 98,
       "slug": "Shen",
       "name": "Shen",
-      "title": "el Ojo del Crepúsculo"
+      "title": "el Ojo del Crepúsculo",
+      "icon": "champion/Shen.png",
+      "tags": [
+        "Tank"
+      ],
+      "resource": "Energía",
+      "range": 125
     },
     {
       "id": 102,
       "slug": "Shyvana",
       "name": "Shyvana",
-      "title": "la Hija del Dragón"
+      "title": "la Hija del Dragón",
+      "icon": "champion/Shyvana.png",
+      "tags": [
+        "Fighter",
+        "Tank"
+      ],
+      "resource": "Furia",
+      "range": 150
     },
     {
       "id": 27,
       "slug": "Singed",
       "name": "Singed",
-      "title": "el Químico Loco"
+      "title": "el Químico Loco",
+      "icon": "champion/Singed.png",
+      "tags": [
+        "Tank",
+        "Mage"
+      ],
+      "resource": "Maná",
+      "range": 125
     },
     {
       "id": 14,
       "slug": "Sion",
       "name": "Sion",
-      "title": "el Coloso no Muerto"
+      "title": "el Coloso no Muerto",
+      "icon": "champion/Sion.png",
+      "tags": [
+        "Tank",
+        "Fighter"
+      ],
+      "resource": "Maná",
+      "range": 175
     },
     {
       "id": 15,
       "slug": "Sivir",
       "name": "Sivir",
-      "title": "la Señora de la Batalla"
+      "title": "la Señora de la Batalla",
+      "icon": "champion/Sivir.png",
+      "tags": [
+        "Marksman"
+      ],
+      "resource": "Maná",
+      "range": 500
     },
     {
       "id": 72,
       "slug": "Skarner",
       "name": "Skarner",
-      "title": "El Soberano Primordial"
+      "title": "El Soberano Primordial",
+      "icon": "champion/Skarner.png",
+      "tags": [
+        "Tank",
+        "Fighter"
+      ],
+      "resource": "Maná",
+      "range": 150
     },
     {
       "id": 901,
       "slug": "Smolder",
       "name": "Smolder",
-      "title": "el Dragoncito Flamante"
+      "title": "el Dragoncito Flamante",
+      "icon": "champion/Smolder.png",
+      "tags": [
+        "Marksman",
+        "Mage"
+      ],
+      "resource": "Maná",
+      "range": 550
     },
     {
       "id": 37,
       "slug": "Sona",
       "name": "Sona",
-      "title": "la Virtuosa de las Cuerdas"
+      "title": "la Virtuosa de las Cuerdas",
+      "icon": "champion/Sona.png",
+      "tags": [
+        "Support",
+        "Mage"
+      ],
+      "resource": "Maná",
+      "range": 550
     },
     {
       "id": 16,
       "slug": "Soraka",
       "name": "Soraka",
-      "title": "la Hija de las Estrellas"
+      "title": "la Hija de las Estrellas",
+      "icon": "champion/Soraka.png",
+      "tags": [
+        "Support",
+        "Mage"
+      ],
+      "resource": "Maná",
+      "range": 550
     },
     {
       "id": 50,
       "slug": "Swain",
       "name": "Swain",
-      "title": "el Gran General Noxiano"
+      "title": "el Gran General Noxiano",
+      "icon": "champion/Swain.png",
+      "tags": [
+        "Mage",
+        "Support"
+      ],
+      "resource": "Maná",
+      "range": 525
     },
     {
       "id": 517,
       "slug": "Sylas",
       "name": "Sylas",
-      "title": "el Usurpador"
+      "title": "el Usurpador",
+      "icon": "champion/Sylas.png",
+      "tags": [
+        "Mage",
+        "Assassin"
+      ],
+      "resource": "Maná",
+      "range": 175
     },
     {
       "id": 134,
       "slug": "Syndra",
       "name": "Syndra",
-      "title": "la Soberana Oscura"
+      "title": "la Soberana Oscura",
+      "icon": "champion/Syndra.png",
+      "tags": [
+        "Mage"
+      ],
+      "resource": "Maná",
+      "range": 550
     },
     {
       "id": 223,
       "slug": "TahmKench",
       "name": "Tahm Kench",
-      "title": "El Rey del Río"
+      "title": "El Rey del Río",
+      "icon": "champion/TahmKench.png",
+      "tags": [
+        "Tank",
+        "Support"
+      ],
+      "resource": "Maná",
+      "range": 175
     },
     {
       "id": 163,
       "slug": "Taliyah",
       "name": "Taliyah",
-      "title": "la Tejedora de Piedra"
+      "title": "la Tejedora de Piedra",
+      "icon": "champion/Taliyah.png",
+      "tags": [
+        "Mage",
+        "Support"
+      ],
+      "resource": "Maná",
+      "range": 525
     },
     {
       "id": 91,
       "slug": "Talon",
       "name": "Talon",
-      "title": "la Sombra de la Navaja"
+      "title": "la Sombra de la Navaja",
+      "icon": "champion/Talon.png",
+      "tags": [
+        "Assassin"
+      ],
+      "resource": "Maná",
+      "range": 125
     },
     {
       "id": 44,
       "slug": "Taric",
       "name": "Taric",
-      "title": "el Escudo de Valoran"
+      "title": "el Escudo de Valoran",
+      "icon": "champion/Taric.png",
+      "tags": [
+        "Support",
+        "Tank"
+      ],
+      "resource": "Maná",
+      "range": 150
     },
     {
       "id": 17,
       "slug": "Teemo",
       "name": "Teemo",
-      "title": "el Explorador Veloz"
+      "title": "el Explorador Veloz",
+      "icon": "champion/Teemo.png",
+      "tags": [
+        "Marksman",
+        "Mage"
+      ],
+      "resource": "Maná",
+      "range": 500
     },
     {
       "id": 412,
       "slug": "Thresh",
       "name": "Thresh",
-      "title": "el Carcelero Implacable"
+      "title": "el Carcelero Implacable",
+      "icon": "champion/Thresh.png",
+      "tags": [
+        "Support",
+        "Tank"
+      ],
+      "resource": "Maná",
+      "range": 450
     },
     {
       "id": 18,
       "slug": "Tristana",
       "name": "Tristana",
-      "title": "la Artillera Yordle"
+      "title": "la Artillera Yordle",
+      "icon": "champion/Tristana.png",
+      "tags": [
+        "Marksman",
+        "Assassin"
+      ],
+      "resource": "Maná",
+      "range": 550
     },
     {
       "id": 48,
       "slug": "Trundle",
       "name": "Trundle",
-      "title": "el Rey de los Troles"
+      "title": "el Rey de los Troles",
+      "icon": "champion/Trundle.png",
+      "tags": [
+        "Fighter",
+        "Tank"
+      ],
+      "resource": "Maná",
+      "range": 175
     },
     {
       "id": 23,
       "slug": "Tryndamere",
       "name": "Tryndamere",
-      "title": "el Rey Bárbaro"
+      "title": "el Rey Bárbaro",
+      "icon": "champion/Tryndamere.png",
+      "tags": [
+        "Fighter",
+        "Assassin"
+      ],
+      "resource": "Furia",
+      "range": 175
     },
     {
       "id": 4,
       "slug": "TwistedFate",
       "name": "Twisted Fate",
-      "title": "el Maestro de las Cartas"
+      "title": "el Maestro de las Cartas",
+      "icon": "champion/TwistedFate.png",
+      "tags": [
+        "Mage",
+        "Marksman"
+      ],
+      "resource": "Maná",
+      "range": 525
     },
     {
       "id": 29,
       "slug": "Twitch",
       "name": "Twitch",
-      "title": "la Rata Mutante"
+      "title": "la Rata Mutante",
+      "icon": "champion/Twitch.png",
+      "tags": [
+        "Marksman",
+        "Assassin"
+      ],
+      "resource": "Maná",
+      "range": 550
     },
     {
       "id": 77,
       "slug": "Udyr",
       "name": "Udyr",
-      "title": "el Cambiapieles"
+      "title": "el Cambiapieles",
+      "icon": "champion/Udyr.png",
+      "tags": [
+        "Fighter",
+        "Tank"
+      ],
+      "resource": "Maná",
+      "range": 125
     },
     {
       "id": 6,
       "slug": "Urgot",
       "name": "Urgot",
-      "title": "el Temerario"
+      "title": "el Temerario",
+      "icon": "champion/Urgot.png",
+      "tags": [
+        "Fighter",
+        "Tank"
+      ],
+      "resource": "Maná",
+      "range": 350
     },
     {
       "id": 110,
       "slug": "Varus",
       "name": "Varus",
-      "title": "la Flecha del Castigo"
+      "title": "la Flecha del Castigo",
+      "icon": "champion/Varus.png",
+      "tags": [
+        "Marksman",
+        "Mage"
+      ],
+      "resource": "Maná",
+      "range": 575
     },
     {
       "id": 67,
       "slug": "Vayne",
       "name": "Vayne",
-      "title": "la Cazadora Nocturna"
+      "title": "la Cazadora Nocturna",
+      "icon": "champion/Vayne.png",
+      "tags": [
+        "Marksman",
+        "Assassin"
+      ],
+      "resource": "Maná",
+      "range": 550
     },
     {
       "id": 45,
       "slug": "Veigar",
       "name": "Veigar",
-      "title": "el Pequeño Maestro del Mal"
+      "title": "el Pequeño Maestro del Mal",
+      "icon": "champion/Veigar.png",
+      "tags": [
+        "Mage"
+      ],
+      "resource": "Maná",
+      "range": 550
     },
     {
       "id": 161,
       "slug": "Velkoz",
       "name": "Vel'Koz",
-      "title": "el Ojo del Vacío"
+      "title": "el Ojo del Vacío",
+      "icon": "champion/Velkoz.png",
+      "tags": [
+        "Mage",
+        "Support"
+      ],
+      "resource": "Maná",
+      "range": 525
     },
     {
       "id": 711,
       "slug": "Vex",
       "name": "Vex",
-      "title": "la Tristóloga"
+      "title": "la Tristóloga",
+      "icon": "champion/Vex.png",
+      "tags": [
+        "Mage"
+      ],
+      "resource": "Maná",
+      "range": 550
     },
     {
       "id": 254,
       "slug": "Vi",
       "name": "Vi",
-      "title": "la Vigilante de Piltóver"
+      "title": "la Vigilante de Piltóver",
+      "icon": "champion/Vi.png",
+      "tags": [
+        "Fighter",
+        "Assassin"
+      ],
+      "resource": "Maná",
+      "range": 125
     },
     {
       "id": 234,
       "slug": "Viego",
       "name": "Viego",
-      "title": "El Rey Arruinado"
+      "title": "El Rey Arruinado",
+      "icon": "champion/Viego.png",
+      "tags": [
+        "Fighter",
+        "Assassin"
+      ],
+      "resource": "Ninguno",
+      "range": 200
     },
     {
       "id": 112,
       "slug": "Viktor",
       "name": "Viktor",
-      "title": "El Heraldo de lo Arcano"
+      "title": "El Heraldo de lo Arcano",
+      "icon": "champion/Viktor.png",
+      "tags": [
+        "Mage"
+      ],
+      "resource": "Maná",
+      "range": 525
     },
     {
       "id": 8,
       "slug": "Vladimir",
       "name": "Vladimir",
-      "title": "el Segador Carmesí"
+      "title": "el Segador Carmesí",
+      "icon": "champion/Vladimir.png",
+      "tags": [
+        "Mage",
+        "Fighter"
+      ],
+      "resource": "Impulso Carmesí",
+      "range": 450
     },
     {
       "id": 106,
       "slug": "Volibear",
       "name": "Volibear",
-      "title": "la Tormenta Implacable"
+      "title": "la Tormenta Implacable",
+      "icon": "champion/Volibear.png",
+      "tags": [
+        "Fighter",
+        "Tank"
+      ],
+      "resource": "Maná",
+      "range": 150
     },
     {
       "id": 19,
       "slug": "Warwick",
       "name": "Warwick",
-      "title": "la Furia Desatada de Zaun"
+      "title": "la Furia Desatada de Zaun",
+      "icon": "champion/Warwick.png",
+      "tags": [
+        "Fighter",
+        "Tank"
+      ],
+      "resource": "Maná",
+      "range": 125
     },
     {
       "id": 62,
       "slug": "MonkeyKing",
       "name": "Wukong",
-      "title": "el Rey de los Monos"
+      "title": "el Rey de los Monos",
+      "icon": "champion/MonkeyKing.png",
+      "tags": [
+        "Fighter",
+        "Tank"
+      ],
+      "resource": "Maná",
+      "range": 175
     },
     {
       "id": 498,
       "slug": "Xayah",
       "name": "Xayah",
-      "title": "la Rebelde"
+      "title": "la Rebelde",
+      "icon": "champion/Xayah.png",
+      "tags": [
+        "Marksman"
+      ],
+      "resource": "Maná",
+      "range": 525
     },
     {
       "id": 101,
       "slug": "Xerath",
       "name": "Xerath",
-      "title": "el Mago Ascendente"
+      "title": "el Mago Ascendente",
+      "icon": "champion/Xerath.png",
+      "tags": [
+        "Mage",
+        "Support"
+      ],
+      "resource": "Maná",
+      "range": 525
     },
     {
       "id": 5,
       "slug": "XinZhao",
       "name": "Xin Zhao",
-      "title": "el Senescal de Demacia"
+      "title": "el Senescal de Demacia",
+      "icon": "champion/XinZhao.png",
+      "tags": [
+        "Fighter",
+        "Tank"
+      ],
+      "resource": "Maná",
+      "range": 175
     },
     {
       "id": 157,
       "slug": "Yasuo",
       "name": "Yasuo",
-      "title": "el Imperdonable"
+      "title": "el Imperdonable",
+      "icon": "champion/Yasuo.png",
+      "tags": [
+        "Fighter",
+        "Assassin"
+      ],
+      "resource": "Flujo",
+      "range": 175
     },
     {
       "id": 777,
       "slug": "Yone",
       "name": "Yone",
-      "title": "el Imborrable"
+      "title": "el Imborrable",
+      "icon": "champion/Yone.png",
+      "tags": [
+        "Fighter",
+        "Assassin"
+      ],
+      "resource": "Flujo",
+      "range": 175
     },
     {
       "id": 83,
       "slug": "Yorick",
       "name": "Yorick",
-      "title": "Pastor de Almas"
+      "title": "Pastor de Almas",
+      "icon": "champion/Yorick.png",
+      "tags": [
+        "Fighter",
+        "Tank"
+      ],
+      "resource": "Maná",
+      "range": 175
     },
     {
       "id": 804,
       "slug": "Yunara",
       "name": "Yunara",
-      "title": "La Fe Inquebrantable"
+      "title": "La Fe Inquebrantable",
+      "icon": "champion/Yunara.png",
+      "tags": [
+        "Marksman"
+      ],
+      "resource": "Maná",
+      "range": 575
     },
     {
       "id": 350,
       "slug": "Yuumi",
       "name": "Yuumi",
-      "title": "la gatita mágica"
+      "title": "la gatita mágica",
+      "icon": "champion/Yuumi.png",
+      "tags": [
+        "Support",
+        "Mage"
+      ],
+      "resource": "Maná",
+      "range": 425
     },
     {
       "id": 904,
       "slug": "Zaahen",
       "name": "Zaahen",
-      "title": "El Incorrupto"
+      "title": "El Incorrupto",
+      "icon": "champion/Zaahen.png",
+      "tags": [
+        "Fighter"
+      ],
+      "resource": "Maná",
+      "range": 175
     },
     {
       "id": 154,
       "slug": "Zac",
       "name": "Zac",
-      "title": "el Arma Secreta"
+      "title": "el Arma Secreta",
+      "icon": "champion/Zac.png",
+      "tags": [
+        "Tank",
+        "Fighter"
+      ],
+      "resource": "Ninguno",
+      "range": 175
     },
     {
       "id": 238,
       "slug": "Zed",
       "name": "Zed",
-      "title": "el Maestro de las Sombras"
+      "title": "el Maestro de las Sombras",
+      "icon": "champion/Zed.png",
+      "tags": [
+        "Assassin"
+      ],
+      "resource": "Energía",
+      "range": 125
     },
     {
       "id": 221,
       "slug": "Zeri",
       "name": "Zeri",
-      "title": "La chispa de Zaun"
+      "title": "La chispa de Zaun",
+      "icon": "champion/Zeri.png",
+      "tags": [
+        "Marksman"
+      ],
+      "resource": "Maná",
+      "range": 550
     },
     {
       "id": 115,
       "slug": "Ziggs",
       "name": "Ziggs",
-      "title": "el Experto en Hexplosivos "
+      "title": "el Experto en Hexplosivos ",
+      "icon": "champion/Ziggs.png",
+      "tags": [
+        "Mage"
+      ],
+      "resource": "Maná",
+      "range": 550
     },
     {
       "id": 26,
       "slug": "Zilean",
       "name": "Zilean",
-      "title": "el Guardián del Tiempo"
+      "title": "el Guardián del Tiempo",
+      "icon": "champion/Zilean.png",
+      "tags": [
+        "Support",
+        "Mage"
+      ],
+      "resource": "Maná",
+      "range": 550
     },
     {
       "id": 142,
       "slug": "Zoe",
       "name": "Zoe",
-      "title": "el Aspecto del Crepúsculo"
+      "title": "el Aspecto del Crepúsculo",
+      "icon": "champion/Zoe.png",
+      "tags": [
+        "Mage"
+      ],
+      "resource": "Maná",
+      "range": 550
     },
     {
       "id": 143,
       "slug": "Zyra",
       "name": "Zyra",
-      "title": "el Despertar de las Espinas"
+      "title": "el Despertar de las Espinas",
+      "icon": "champion/Zyra.png",
+      "tags": [
+        "Mage",
+        "Support"
+      ],
+      "resource": "Maná",
+      "range": 575
     }
   ]
 }
