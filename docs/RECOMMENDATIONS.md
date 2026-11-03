@@ -1,8 +1,8 @@
 # Recomendaciones
 
-Versión 0.6.0, parche incluido 16.21. Se retiraron los núcleos y páginas genéricas de la versión anterior. El caso de Viego mostró que agruparlo con otros luchadores producía una build sin fundamento suficiente.
+Versión 0.7.0, parche incluido 16.21. Las referencias estadísticas son por campeón y rol; no se asignan builds genéricas por clase.
 
-La decisión final de 0.6 se describe en «Búsqueda conjunta de 0.6». Las reglas de 0.5 se conservan debajo como antecedente y generación de referencias.
+La decisión actual se describe en «Constructor de 0.7». Las etapas anteriores se conservan como antecedente de la generación de referencias.
 
 ## Draft y posiciones
 
@@ -49,13 +49,13 @@ En 0.5 el resumen usa tres bloques breves: apertura, recursos y peleas. Nombra a
 
 La lectura por reglas separa apertura, objetivos y peleas, con campeón, rol, aliados y amenazas conocidos. Los rasgos cualitativos necesitan evaluación con partidas; no demuestran ventaja de línea.
 
-El modelo local opcional selecciona prioridades entre hechos preparados por el motor. Recibe el draft, kits y plan validado; devuelve IDs de hechos, nunca texto libre para mostrar. Rust rechaza IDs desconocidos, repetidos o de otra fase. No puede cambiar runas, objetos ni acciones del cliente. Esta restricción se eligió después de observar mecánicas falsas en pruebas de redacción libre. Ver [LOCAL_MODEL.md](LOCAL_MODEL.md).
+El modelo local opcional puede elegir una configuración completa entre candidatos validados y priorizar hechos para la estrategia. Recibe draft, kits y datos del plan; devuelve IDs, nunca texto libre para mostrar ni acciones del cliente. Rust rechaza IDs desconocidos, repetidos o ajenos a la operación. El formato cerrado se eligió después de observar mecánicas falsas en pruebas de redacción libre. Ver [LOCAL_MODEL.md](LOCAL_MODEL.md).
 
 ## Pendientes
 
-Matchups para roles inferidos, uso estadístico en el ranking, comparación entre proveedores independientes, calibración por población y revisión estratégica de todos los campeones. El núcleo de compras continúa agregado por campeón/rol. No hay un agente experto que optimice conjuntamente todo el espacio de configuraciones. Las pruebas de estructura no demuestran que una recomendación sea competitivamente mejor.
+Matchups para roles inferidos, uso estadístico en el ranking, comparación entre proveedores independientes, calibración por población y revisión estratégica de todos los campeones. Las referencias de compras proceden de agregados por campeón/rol. No hay un agente experto que optimice conjuntamente todo el espacio de configuraciones. Las pruebas de estructura no demuestran que una recomendación sea competitivamente mejor.
 
-## Búsqueda conjunta de 0.6
+## Búsqueda conjunta de 0.6 (antecedente)
 
 El motor anterior sirve para obtener referencias observadas, no para decidir por sí solo la configuración final. La búsqueda nueva compara todas las páginas compatibles del campeón y rol, incluidas otras runas clave. Puede proponer ajustes de filas individuales cuando las reglas y descripciones del parche lo permiten. No usa una excepción por campeón para elegir Viego o Elise.
 
@@ -67,4 +67,18 @@ La IA local recibe los diez kits conocidos, roles con su incertidumbre, descripc
 
 El análisis local automático se ofrece al completar el draft, con un breve debounce y cancelación ante cambios. Sin modelo o si no termina a tiempo, la búsqueda por reglas mantiene planes disponibles. Durante partida se conserva la elección; un resultado tardío no puede reemplazarla.
 
-Límite actual: no se explora todo el espacio de builds, ni se calcula DPS exacto, prioridad de línea o una ruta óptima de jungla. La primera compra sigue anclada en la referencia estadística y se ensaya una sustitución por candidato. Validez y diversidad no demuestran criterio de nivel profesional para cada matchup. El caso aportado por el usuario se usa como draft de regresión anónimo; su resultado, compras finales y runa usada no entran como respuesta esperada.
+Límite de 0.6: no se explora todo el espacio de builds, ni se calcula DPS exacto, prioridad de línea o una ruta óptima de jungla. La primera compra seguía anclada en la referencia estadística y se ensayaba una sustitución por candidato. Validez y diversidad no demuestran criterio de nivel profesional para cada matchup. El caso aportado por el usuario se usa como draft de regresión anónimo; su resultado, compras finales y runa usada no entran como respuesta esperada.
+
+## Constructor de 0.7
+
+`buildSearch.ts` sustituye la enumeración de una sola sustitución. Mantiene cinco estados por objetivo —equilibrio, presión y supervivencia— y revisa tantas compras como posiciones tenga la ruta. Puede cambiar varios objetos, botas, primera compra y orden. El ancho acota el coste; no es una exploración exhaustiva ni garantiza el óptimo. Conserva la referencia y la elección manual mientras sigan siendo compatibles.
+
+Las alternativas salen de compras observadas y familias de objetos con mecánicas reconocidas en las descripciones del parche. La identidad parte de la referencia del campeón/rol: AP, ataques, luchador, asesino, tanque o protección. Se preservan mínimos de inversión ofensiva, velocidad de ataque cuando corresponde, crítico en ADC y acceso temprano a maná cuando la referencia lo usa. Un ID conocido con una descripción de efecto incompatible no habilita esa nueva alternativa.
+
+La evaluación suma atributos fijos oficiales de los objetos: DA, PH, vida, armadura, RM, velocidad de ataque y crítico. Compara pérdida ofensiva, defensa con rendimientos decrecientes, aplicación de heridas, penetración, daño por vida, protección aliada, coste y orden. Penaliza cambios sin una compensación contextual y ciertas compras tardías adelantadas. Estos índices son heurísticos; no calculan DPS, vida efectiva exacta ni probabilidad de victoria. Data Dragon omite algunos atributos numéricos y las pasivas condicionales no se suman como atributos fijos. Las comprobaciones de exclusión de objetos son conservadoras, no un catálogo completo de restricciones oficiales.
+
+Se cruza cada ruta retenida con páginas completas del campeón y rol y ajustes compatibles de filas. Se comparan también relaciones entre la página y la inversión en ataques/crítico. Se reservan hasta doce candidatos con distintas claves y compras. Se muestran hasta tres enfoques por runa, perfil de inversión y botas; se omiten variantes menores del mismo enfoque, aunque sigan disponibles para el evaluador. Los nombres dependen de la configuración, sin numeración que cambie al recalcular. La IA recibe atributos, índices, orden, kits y compromisos; su contrato de elección y cancelación se mantiene.
+
+Heridas graves tiene una posición de compra propia: ante un rival de línea confirmado con curación, el componente puede preceder al primer objeto; en el caso general, va después del primer objeto. Se completa según la ruta y se consume una sola vez. No se deduce quién comprará heridas ni qué objetos comprarán los rivales.
+
+La cobertura estructural se verifica en las 282 combinaciones de campeón y rol declaradas por el paquete del cliente, con estadísticas sintéticas identificadas. Hay regresiones de adaptación por tipo de daño, curación y frontline, además de una evaluación optativa con cachés reales de seis campeones en cinco roles. Esto amplía lo que el motor puede considerar; todavía faltan evaluación experta, calibración de pesos y mecánicas más completas para sostener una calidad estratégica general.

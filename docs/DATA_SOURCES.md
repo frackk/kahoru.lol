@@ -8,6 +8,8 @@ La [documentación de Data Dragon](https://developer.riotgames.com/docs/lol#data
 
 `data/game-data.json` guarda estructura normalizada y manifiesto de 512 imágenes con URL y SHA-256; `data/champions.json` conserva el catálogo compatible. Los hashes detectan corrupción, no son firmas publicadas por Riot.
 
+Desde 0.7 el paquete usa esquema 2 y conserva también el objeto `stats` de cada ítem de `item.json`. Se comprueban valores finitos y no negativos. Las cachés de esquema 1 se rechazan y se recupera el paquete incluido; las próximas descargas generan el esquema nuevo. Los números describen atributos fijos, no el valor completo de pasivas ni daño de habilidades.
+
 Los fragmentos y nueve spells tienen metadatos e iconos incluidos por separado en `data/knowledge/` y `public/knowledge/`. Sus filas se contrastaron con el cliente 16.21. Los cambios futuros de fragmentos o spells necesitan revisión propia; no se interpreta que actualizar imágenes confirme esas reglas.
 
 `data/client-recommendations.json` contiene metadatos públicos del kit, posiciones y 825 páginas de los 173 campeones, obtenidos del cliente local. No contiene páginas personales ni identidades. Cada página conserva la posición devuelta y su ID de recomendación. La ruta exige posiciones en mayúsculas; respuestas para otra posición se descartan.

@@ -13,6 +13,7 @@ export interface Item {
   from: number[];
   into: number[];
   tags: string[];
+  stats: Partial<Record<string, number>>;
   requiredChampion: string | null;
 }
 export interface Rune {

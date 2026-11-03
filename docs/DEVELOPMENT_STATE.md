@@ -1,6 +1,6 @@
 # Continuidad del desarrollo
 
-Punto de trabajo: 2 de noviembre de 2026, entrega 0.6.0.
+Punto de trabajo: 3 de noviembre de 2026, entrega 0.7.0 verificada localmente.
 
 ## Repositorio y decisiones
 
@@ -29,7 +29,7 @@ El modelo se prepara con `npm run model:prepare -- --activate`; no subir pesos o
 
 Leer `AGENTS.md` y `PRODUCT_SPEC.md` antes de modificar código. No confundir las funciones implementadas con el roadmap completo.
 
-## Última entrega verificada
+## Entrega 0.4.0 (antecedente)
 
 `f83e511` pasó GitHub Actions completo. El ejecutable 0.4.0 pasó proveedor real, modelo y actualización oficial desde sala; metadatos comprobados: 173 campeones y 825 páginas. Se preparó y activó el modelo opcional en este equipo. El instalador queda en `src-tauri/target/release/bundle/nsis/kahoru.lol_0.4.0_x64-setup.exe`.
 
@@ -79,3 +79,15 @@ Código: 468d5f4, publicado en main. Instalación existente de E: actualizada a 
 Pendientes de producto, no de empaquetado: ampliar compras iniciales y combinaciones de objetos, revisar calidad estratégica con evidencia por matchup, ampliar capacidades y aperturas, datos de varios proveedores compatibles, ranking estadístico y evaluación de reglas especiales de habilidades. La IA automática vive en la vista de preparación; la preparación por reglas sí se conserva en segundo plano al cambiar pestaña. Se necesita revisar esa experiencia antes de prometer IA independiente de la vista.
 
 El usuario dejó la PC y pidió continuar sin preguntas. Para la próxima revisión: definir población estadística y conjunto de evaluación, revisar alternativas de la misma partida sin tomar coincidencia con iTero como verdad, y resolver acceso a otra fuente. No iniciar scraping de fuentes privadas ni presentar un selector acotado como un experto validado en todos los enfrentamientos.
+
+## Entrega 0.7.0: constructor de compras
+
+Se reemplazó la única sustitución posterior al núcleo por una búsqueda de varios estados y objetivos. Puede revisar todas las posiciones, primera compra, botas y orden. Usa atributos fijos de `item.json`, identidad de la referencia, respuestas a ambos equipos, penalización de pérdidas y coste. El paquete oficial pasa a esquema 2; las cachés anteriores recuperan el incluido.
+
+Las páginas completas se cruzan con esas rutas. Se conservan hasta doce configuraciones y tres tarjetas sin duplicar ruta y clave por una fila menor. La IA recibe atributos e índices heurísticos de cada alternativa. Heridas graves puede adelantarse como componente antes del primer objeto ante un rival de línea confirmado con curación, o después del primero en el caso general. La elección manual se reevalúa y conserva mientras siga siendo compatible con campeón y rol.
+
+Pruebas de estructura: 504 TypeScript, incluidas las 282 combinaciones de campeón/rol declaradas por el cliente, y 29 Rust. Se agregaron regresiones de adaptación AP, varias compras, primera compra, tipo de daño y componentes. La evaluación optativa con cachés reales de seis campeones en cinco roles pasó. Pasaron empaquetado, recorrido nativo en cinco roles y la prueba desde la instalación actualizada. Se verificaron también versión visible y conservación de runas, compras ordenadas y spells. No se hicieron escrituras en LoL.
+
+Pendiente central: calidad estratégica, no amplitud nominal. Los pesos todavía no están calibrados; faltan mecánicas de habilidades/pasivas más completas, modelado de acceso y tiempos, contrastes expertos, segundo proveedor y matchups sólidos. No afirmar que ya piensa como un profesional ni que supera a iTero. El siguiente trabajo debe evaluar decisiones concretas antes de ampliar más la enumeración.
+
+Instalación activa: `E:\Programas\kahoru.lol\kahoru.lol v.0.1\kahoru.lol\kahoru-lol.exe`, versión 0.7.0. Instalador: `src-tauri/target/release/bundle/nsis/kahoru.lol_0.7.0_x64-setup.exe`. El código y la documentación de esta entrega se publican juntos en main. La prueba local de la instalación fue `--release --provider --past-draft --configuration-auto --model --sources --update --live`. Registros y hashes: `test-results/release-verification.json`.

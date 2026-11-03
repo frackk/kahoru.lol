@@ -1,9 +1,10 @@
-import type { GameData, Item } from "../gameData";
+import type { GameData } from "../gameData";
 import type { DraftContext, Plan, RunePage } from "./recommendations";
 import { purchaseRoute, validateRunes } from "./recommendations";
 import { officialPages } from "./analysis";
 import { draftSignals } from "./draftSignals";
 import { getClientKnowledge, profileById } from "./profiles";
+import { buildSearch, buildStats, type BuildEvaluation } from "./buildSearch";
 
 export interface DecisionReason {
   id: string;
@@ -12,16 +13,13 @@ export interface DecisionReason {
   weight: number;
 }
 export interface Configuration extends Plan {
-  decision: { score: number; reasons: DecisionReason[]; changes: string[] };
+  decision: {
+    score: number;
+    reasons: DecisionReason[];
+    changes: string[];
+    evaluation: BuildEvaluation;
+  };
 }
-const groups = [
-  [3053, 3156, 6673],
-  [3033, 3036, 6694],
-  [3135, 3137],
-];
-const compatible = (ids: number[]) =>
-  new Set(ids).size === ids.length &&
-  groups.every((g) => ids.filter((id) => g.includes(id)).length <= 1);
 const runeIds = (p: RunePage) => [
   ...p.primaryRunes,
   ...p.secondaryRunes,
@@ -49,29 +47,36 @@ export function searchConfigurations(
     data.trees
       .flatMap((t) => t.slots.flatMap((s) => s.runes))
       .find((r) => r.id === id);
-  const effectChecks: Record<number, RegExp> = {
-    3157: /estasis/iu,
-    3102: /escudo antihechizos/iu,
-    3165: /heridas/iu,
-    3033: /heridas/iu,
-    6609: /heridas/iu,
-    3075: /heridas/iu,
-    3135: /penetración de magia/iu,
-    3156: /escudo contra daño mágico/iu,
-    4401: /resistencia mágica/iu,
-    3190: /aliados.{0,120}escudo/iu,
-    3504: /curar o escudar a un aliado/iu,
-  };
   const allyProtection = own.abilities.some((a) =>
     /(?:cura|curar|escudo|escudar).{0,100}aliad|aliad.{0,100}(?:cura|escudo)/iu.test(
       a.description,
     ),
   );
   const pages: RunePage[] = [];
+  const riotPages = officialPages(ctx.playerChampionId, ctx.playerRole);
+  const previous = /^config-(?:\d+-)*\d+$/u.test(preferredId ?? "")
+    ? preferredId!.slice(7).split("-").map(Number)
+    : [];
+  const previousRunes = previous.slice(-9);
+  const previousPage: RunePage = {
+    primary:
+      data.trees.find((t) =>
+        t.slots[0].runes.some((r) => r.id === previousRunes[0]),
+      )?.id ?? 0,
+    secondary:
+      data.trees.find((t) =>
+        t.slots
+          .slice(1)
+          .some((s) => s.runes.some((r) => r.id === previousRunes[4])),
+      )?.id ?? 0,
+    primaryRunes: previousRunes.slice(0, 4),
+    secondaryRunes: previousRunes.slice(4, 6),
+    shards: previousRunes.slice(6),
+  };
   for (const p of [
     providerPage ?? observed[0].runes,
     observed[0].runes,
-    ...officialPages(ctx.playerChampionId, ctx.playerRole),
+    ...riotPages,
   ]) {
     if (
       !validateRunes(data, p).length &&
@@ -118,8 +123,8 @@ export function searchConfigurations(
       text: "Segundo Aire como alternativa a Coraza Ósea ante el poke del rival de línea confirmado.",
     },
   ];
-  for (const page of [...pages])
-    for (const tweak of tweaks) {
+  for (const tweak of tweaks)
+    for (const page of [...pages]) {
       if (
         !tweak.when ||
         !tweak.valid.test(rune(tweak.to)?.description ?? "") ||
@@ -140,332 +145,321 @@ export function searchConfigurations(
         continue;
       pages.push(changed);
       generated.set(runeIds(changed).join(), {
-        text: tweak.text,
+        text: [generated.get(runeIds(page).join())?.text, tweak.text]
+          .filter(Boolean)
+          .join(" "),
         rune: tweak.to,
       });
     }
+  if (
+    !validateRunes(data, previousPage).length &&
+    !pages.some((p) => runeIds(p).join() === runeIds(previousPage).join())
+  )
+    pages.push(previousPage);
   const output: Configuration[] = [];
-  for (const seed of observed) {
-    const items = seed.items.map(item).filter((i): i is Item => !!i);
-    const ap = items.filter((i) => i.tags.includes("SpellDamage")).length >= 2;
-    const ad = items.filter((i) => i.tags.includes("Damage")).length >= 2;
-    const tank =
-      !ap &&
-      !ad &&
-      items.filter(
-        (i) => i.tags.includes("Armor") || i.tags.includes("SpellBlock"),
-      ).length >= 2;
-    const crit =
-      items.filter((i) => i.tags.includes("CriticalStrike")).length >= 2;
-    const replacements: { id: number; reason: string; need: boolean }[] = [
-      {
-        id: 3157,
-        need: ap && signals.physical >= 2 && signals.engage >= 1,
-        reason:
-          "Estasis como alternativa ante entradas físicas; sacrifica una compra ofensiva y exige usar el activo.",
-      },
-      {
-        id: 3102,
-        need: ap && signals.magic >= 2 && signals.control.length >= 1,
-        reason:
-          "Escudo antihechizos y resistencia mágica como alternativa frente al control y daño mágico rivales.",
-      },
-      {
-        id: 3165,
-        need: ap && signals.healing.length >= 2,
-        reason:
-          "Heridas graves aplicadas con daño mágico ante varias fuentes de curación.",
-      },
-      {
-        id: 3135,
-        need: ap && signals.frontline >= 2,
-        reason:
-          "Penetración mágica porcentual como alternativa si la primera línea rival compra resistencia mágica.",
-      },
-      {
-        id: crit ? 3033 : 6609,
-        need: ad && signals.healing.length >= 2,
-        reason:
-          "Heridas graves aplicadas con daño físico; comprobar si otro aliado ya puede cubrirlas.",
-      },
-      {
-        id: 3156,
-        need: ad && signals.magic >= 3,
-        reason:
-          "Daño de ataque y defensa mágica como alternativa ante varias fuentes de daño mágico; excluye otros objetos de Salvavidas.",
-      },
-      {
-        id: 3075,
-        need:
-          tank &&
-          signals.healing.some((e) => e.profile.traits.includes("attacks")),
-        reason:
-          "Armadura y heridas al atacante; requiere que el objetivo curativo te ataque, no se aplica por cercanía.",
-      },
-      {
-        id: 4401,
-        need: tank && signals.magic >= 3,
-        reason:
-          "Alternativa de resistencia mágica ante varias fuentes mágicas; conserva la función de primera línea.",
-      },
-      {
-        id: 3190,
-        need: ctx.playerRole === "SUPPORT" && signals.engage >= 2,
-        reason:
-          "Escudo activo a aliados cercanos como alternativa de protección frente a varias entradas.",
-      },
-      {
-        id: 3504,
-        need:
-          ctx.playerRole === "SUPPORT" &&
-          allyProtection &&
-          signals.allies.some(
-            (a) => a.locked && a.profile.traits.includes("attacks"),
-          ),
-        reason:
-          "Potenciar ataques del aliado al curarlo o escudarlo; requiere una herramienta propia que pueda aplicar el efecto.",
-      },
-    ].filter(
-      (r) =>
-        r.need &&
-        item(r.id)?.purchasable &&
-        effectChecks[r.id]?.test(item(r.id)!.description) &&
-        !seed.items.includes(r.id),
-    );
-    const builds = [{ ids: seed.items, changes: [] as string[] }];
-    for (const replacement of replacements) {
-      const added = item(replacement.id)!;
-      const slots = seed.items
-        .map((id, i) => ({ item: item(id)!, i }))
-        .filter(
-          ({ item: it, i }) =>
-            i >= 2 &&
-            it.cost >= 1800 &&
-            !it.tags.includes("Boots") &&
-            !it.requiredChampion,
+  const reference = buildStats(observed[0].items.map((id) => item(id)!));
+  for (const build of buildSearch(data, ctx, observed, previous.slice(0, -9))) {
+    const seed = build.seed;
+    for (const page of pages) {
+      const ids = runeIds(page);
+      const key = page.primaryRunes[0];
+      const reasons: DecisionReason[] = [];
+      const add = (text: string, references: string[], weight: number) =>
+        reasons.push({ id: `e${reasons.length}`, text, references, weight });
+      const published =
+        runeIds(page).join() === runeIds(providerPage ?? seed.runes).join();
+      const tweak = generated.get(ids.join());
+      const retained =
+        !published &&
+        !tweak &&
+        !riotPages.some((p) => runeIds(p).join() === ids.join());
+      add(
+        published
+          ? "Configuración de runas observada por la fuente para este campeón y rol."
+          : tweak
+            ? "Página adaptada por Kahoru a partir de una opción del campeón y rol; sin muestra estadística propia."
+            : retained
+              ? "Página elegida previamente; se reevalúa con el draft actual, sin muestra estadística propia."
+              : "Página alternativa publicada por el cliente para este campeón y rol; se evalúa completa, incluida su runa clave.",
+        [`champion:${ctx.playerChampionId}`, `rune:${key}`],
+        published ? 1 : 0,
+      );
+      if (tweak) add(tweak.text, [`rune:${tweak.rune}`], 2);
+      if (signals.frontline >= 2 && [8008, 8010].includes(key))
+        add(
+          `${rune(key)?.name}: alternativa de acumulaciones para intercambios prolongados frente a ${signals.enemies
+            .filter((e) => e.profile.traits.includes("frontline"))
+            .map((e) => name(e.championId))
+            .join(", ")}; exige tiempo de contacto.`,
+          [`rune:${key}`],
+          5,
         );
-      // Comparar una sustitución por vez mantiene el resto de la identidad observada.
-      for (const { i } of slots) {
-        const ids = [...seed.items];
-        const removed = item(ids[i])!;
-        ids[i] = replacement.id;
-        if (!compatible(ids)) continue;
+      if (
+        signals.frontline < 2 &&
+        [8112, 9923].includes(key) &&
+        signals.setup.length
+      )
+        add(
+          `${rune(key)?.name}: alternativa para intercambios cortos coordinados con el control de ${name(signals.setup[0].championId)}.`,
+          [`rune:${key}`, `champion:${signals.setup[0].championId}`],
+          4,
+        );
+      if (signals.engage >= 2 && [8230, 8465, 8439].includes(key))
+        add(
+          `${rune(key)?.name}: comparar su movilidad o defensa con las entradas de ${signals.enemies
+            .filter((e) => e.profile.traits.includes("engage"))
+            .map((e) => name(e.championId))
+            .join(", ")}; la activación depende de su descripción.`,
+          [`rune:${key}`],
+          4,
+        );
+      if (
+        ids.includes(9111) &&
+        (signals.engage >= 2 || profile.traits.includes("resets"))
+      )
+        add(
+          "Triunfo aporta recuperación tras un derribo; importa sobrevivir hasta conseguirlo.",
+          ["rune:9111"],
+          2,
+        );
+      if (
+        ids.includes(8232) &&
+        ctx.playerRole === "JUNGLE" &&
+        signals.setup.length >= 2 &&
+        signals.engage < 2
+      )
+        add(
+          "Caminar sobre Agua ofrece una alternativa para coordinar río con el control de las líneas aliadas.",
+          ["rune:8232"],
+          3,
+        );
+      const attackSpeed = build.ids.some((id) =>
+        item(id)?.tags.includes("AttackSpeed"),
+      );
+      if (key === 8008 && attackSpeed)
+        add(
+          "La velocidad de ataque de los objetos acompaña la acumulación de Cadencia Letal; necesita acceso sostenido al objetivo.",
+          [
+            "rune:8008",
+            ...build.ids
+              .filter((id) => item(id)?.tags.includes("AttackSpeed"))
+              .map((id) => `item:${id}`),
+          ],
+          2,
+        );
+      if (
+        [8214, 8465].includes(key) &&
+        allyProtection &&
+        signals.carries.length
+      )
+        add(
+          `La página permite orientar recursos de protección a ${name(signals.carries[0].championId)}.`,
+          [`rune:${key}`, `champion:${signals.carries[0].championId}`],
+          2,
+        );
+      for (const id of build.ids) {
+        const it = item(id)!;
+        if (it.tags.includes("Armor") && signals.physical >= 2)
+          add(
+            `${it.name}: armadura frente a ${signals.enemies
+              .filter((e) => e.profile.damage === "physical")
+              .map((e) => name(e.championId))
+              .join(", ")}.`,
+            [`item:${id}`],
+            0,
+          );
+        if (it.tags.includes("SpellBlock") && signals.magic >= 2)
+          add(
+            `${it.name}: resistencia mágica frente a ${signals.enemies
+              .filter((e) => e.profile.damage === "magic")
+              .map((e) => name(e.championId))
+              .join(", ")}.`,
+            [`item:${id}`],
+            0,
+          );
+        if (/heridas/iu.test(it.description) && signals.healing.length >= 2)
+          add(
+            `${it.name}: respuesta a la curación de ${signals.healing.map((e) => name(e.championId)).join(", ")}; revisar su condición de aplicación.`,
+            [`item:${id}`],
+            0,
+          );
         if (
-          ap &&
-          !added.tags.includes("SpellDamage") &&
-          removed.tags.includes("SpellDamage") &&
-          ctx.playerRole !== "SUPPORT"
+          (it.tags.includes("MagicPenetration") ||
+            it.tags.includes("ArmorPenetration")) &&
+          signals.frontline >= 2
         )
-          continue;
-        builds.push({
-          ids,
-          changes: [`${removed.name} → ${added.name}: ${replacement.reason}`],
+          add(
+            `${it.name}: alternativa de penetración frente a primera línea; no se presupone qué resistencias comprarán.`,
+            [`item:${id}`],
+            0,
+          );
+      }
+      const changes = [...build.changes];
+      const deltas = Object.entries(build.evaluation.stats).flatMap(
+        ([stat, value]) => {
+          const key = stat as keyof typeof reference;
+          const delta = value - reference[key];
+          if (Math.abs(delta) < 0.001) return [];
+          const labels = {
+            ad: "DA",
+            ap: "PH",
+            health: "vida",
+            armor: "armadura",
+            mr: "RM",
+            speed: "velocidad de ataque",
+            crit: "crítico",
+          };
+          return [
+            `${labels[key]} ${delta > 0 ? "+" : ""}${Math.round(delta * (["speed", "crit"].includes(key) ? 100 : 1))}${["speed", "crit"].includes(key) ? " puntos porcentuales" : ""}`,
+          ];
+        },
+      );
+      if (deltas.length)
+        add(
+          `Frente a la referencia: ${deltas.join(", ")}. Solo atributos fijos; no incluye pasivas condicionales ni daño de habilidades.`,
+          build.ids.map((id) => `item:${id}`),
+          0,
+        );
+      if (
+        [8112, 9923].includes(key) &&
+        signals.frontline < 2 &&
+        build.evaluation.stats.crit >= 0.5
+      )
+        add(
+          "La inversión en crítico acompaña una propuesta de intercambios cortos; exige acceso a un objetivo y desplaza presupuesto que podría ir a vida.",
+          [
+            `rune:${key}`,
+            ...build.ids
+              .filter((id) => item(id)?.tags.includes("CriticalStrike"))
+              .map((id) => `item:${id}`),
+          ],
+          1,
+        );
+      if (
+        [8008, 8010].includes(key) &&
+        signals.frontline >= 2 &&
+        build.evaluation.stats.speed >= 0.4
+      )
+        add(
+          "La velocidad de ataque de la ruta sostiene las acumulaciones de la página en peleas prolongadas; perder contacto reduce su valor.",
+          [
+            `rune:${key}`,
+            ...build.ids
+              .filter((id) => item(id)?.tags.includes("AttackSpeed"))
+              .map((id) => `item:${id}`),
+          ],
+          1,
+        );
+      if (key !== seed.runes.primaryRunes[0])
+        changes.push(
+          `Runa clave: ${rune(seed.runes.primaryRunes[0])?.name} → ${rune(key)?.name}.`,
+        );
+      const score =
+        build.evaluation.score + reasons.reduce((n, r) => n + r.weight, 0);
+      const id = `config-${build.ids.join("-")}-${ids.join("-")}`;
+      const stats = build.evaluation.stats;
+      const focus = build.ids.some((id) =>
+        [3165, 3033, 6609, 3075].includes(id),
+      )
+        ? "Heridas graves"
+        : stats.armor >= 50 && stats.mr >= 40
+          ? "Defensa mixta"
+          : stats.mr >= 40
+            ? "Resistencia mágica"
+            : stats.armor >= 50
+              ? "Armadura"
+              : build.ids.includes(6653)
+                ? "Desgaste"
+                : stats.crit >= 0.5
+                  ? "Crítico"
+                  : stats.speed >= 0.4
+                    ? "Ataques"
+                    : "Daño";
+      const footwear = build.ids.find((id) => item(id)!.tags.includes("Boots"));
+      const firstPurchase = build.ids.find(
+        (id) => !item(id)!.tags.includes("Boots"),
+      )!;
+      if (output.some((p) => p.id === id)) continue;
+      try {
+        const checkpoints: Plan["checkpoints"] = [];
+        if (!checkpoints.length && signals.healing.length >= 2) {
+          for (const finishInto of build.ids.slice(1)) {
+            const component = item(finishInto)?.from.find((id) =>
+              [3916, 3123, 3076].includes(id),
+            );
+            if (
+              !component ||
+              (component === 3076 &&
+                !signals.healing.some((e) =>
+                  e.profile.traits.includes("attacks"),
+                ))
+            )
+              continue;
+            checkpoints.push({
+              itemId: component,
+              finishInto,
+              afterItems:
+                ctx.playerRole !== "JUNGLE" &&
+                lane &&
+                signals.healing.some((e) => e.championId === lane.championId)
+                  ? 0
+                  : build.ids.findIndex(
+                      (id) => !item(id)!.tags.includes("Boots"),
+                    ) + 1,
+              reason:
+                "Comprar el componente de heridas graves antes de completar su objeto; conservar el primer pico de poder salvo que el rival confirmado de línea necesite la respuesta antes. Revisar qué aliado puede aplicarlas.",
+            });
+            break;
+          }
+        }
+        const steps = purchaseRoute(
+          data,
+          { ...profile, roles: [ctx.playerRole], starter: seed.starter[0] },
+          seed.starter,
+          build.ids,
+          page,
+          checkpoints.map((p) => ({
+            itemId: p.itemId,
+            afterItems: p.afterItems ?? 2,
+          })),
+        );
+        output.push({
+          ...seed,
+          id,
+          items: build.ids,
+          runes: {
+            primary: page.primary,
+            secondary: page.secondary,
+            primaryRunes: [...page.primaryRunes],
+            secondaryRunes: [...page.secondaryRunes],
+            shards: [...page.shards],
+          },
+          steps,
+          checkpoints,
+          recommended: false,
+          adjustments: reasons
+            .slice()
+            .sort((a, b) => b.weight - a.weight)
+            .map((r) => r.text),
+          title: [
+            rune(key)?.name ?? "Runas",
+            focus,
+            footwear ? item(footwear)!.name : null,
+          ]
+            .filter(Boolean)
+            .join(" · "),
+          reason: `${item(firstPurchase)!.name} primero. ${reasons.slice().sort((a, b) => b.weight - a.weight)[0].text}`,
+          tradeoff: deltas.length
+            ? `Cambios de atributos: ${deltas.slice(0, 4).join(", ")}. No hay una tasa medida de esta configuración contra este draft.`
+            : "Se conserva la inversión de la referencia; las runas cambian sus condiciones de uso. No hay una tasa medida contra este draft.",
+          decision: { score, reasons, changes, evaluation: build.evaluation },
+          samples: build.changes.length ? [] : seed.samples,
+          source: `OP.GG MCP: referencia de compras y página estadística. Riot: páginas alternativas y descripciones del paquete ${data.catalog.version}. ${published ? "Se conserva la página estadística." : tweak ? "Página adaptada por Kahoru." : retained ? "Se conserva la página elegida previamente." : "Página alternativa del cliente de Riot."} Las compras y su orden se comparan por estadísticas y mecánicas verificadas. El puntaje es heurístico; no hay una muestra conjunta medida.`,
         });
+      } catch {
+        /* Descartar rutas imposibles sin bloquear las demás configuraciones. */
       }
     }
-    for (const build of builds)
-      for (const page of pages) {
-        const ids = runeIds(page);
-        const key = page.primaryRunes[0];
-        const reasons: DecisionReason[] = [];
-        const add = (text: string, references: string[], weight: number) =>
-          reasons.push({ id: `e${reasons.length}`, text, references, weight });
-        const published =
-          runeIds(page).join() === runeIds(providerPage ?? seed.runes).join();
-        const tweak = generated.get(ids.join());
-        add(
-          published
-            ? "Configuración de runas observada por la fuente para este campeón y rol."
-            : tweak
-              ? "Página adaptada por Kahoru a partir de una opción del campeón y rol; sin muestra estadística propia."
-              : "Página alternativa publicada por el cliente para este campeón y rol; se evalúa completa, incluida su runa clave.",
-          [`champion:${ctx.playerChampionId}`, `rune:${key}`],
-          published ? 1 : 0,
-        );
-        if (tweak) add(tweak.text, [`rune:${tweak.rune}`], 2);
-        if (signals.frontline >= 2 && [8008, 8010].includes(key))
-          add(
-            `${rune(key)?.name}: alternativa de acumulaciones para intercambios prolongados frente a ${signals.enemies
-              .filter((e) => e.profile.traits.includes("frontline"))
-              .map((e) => name(e.championId))
-              .join(", ")}; exige tiempo de contacto.`,
-            [`rune:${key}`],
-            5,
-          );
-        if (
-          signals.frontline < 2 &&
-          [8112, 9923].includes(key) &&
-          signals.setup.length
-        )
-          add(
-            `${rune(key)?.name}: alternativa para intercambios cortos coordinados con el control de ${name(signals.setup[0].championId)}.`,
-            [`rune:${key}`, `champion:${signals.setup[0].championId}`],
-            4,
-          );
-        if (signals.engage >= 2 && [8230, 8465, 8439].includes(key))
-          add(
-            `${rune(key)?.name}: comparar su movilidad o defensa con las entradas de ${signals.enemies
-              .filter((e) => e.profile.traits.includes("engage"))
-              .map((e) => name(e.championId))
-              .join(", ")}; la activación depende de su descripción.`,
-            [`rune:${key}`],
-            4,
-          );
-        if (
-          ids.includes(9111) &&
-          (signals.engage >= 2 || profile.traits.includes("resets"))
-        )
-          add(
-            "Triunfo aporta recuperación tras un derribo; importa sobrevivir hasta conseguirlo.",
-            ["rune:9111"],
-            2,
-          );
-        if (
-          ids.includes(8232) &&
-          ctx.playerRole === "JUNGLE" &&
-          signals.setup.length >= 2 &&
-          signals.engage < 2
-        )
-          add(
-            "Caminar sobre Agua ofrece una alternativa para coordinar río con el control de las líneas aliadas.",
-            ["rune:8232"],
-            3,
-          );
-        const attackSpeed = build.ids.some((id) =>
-          item(id)?.tags.includes("AttackSpeed"),
-        );
-        if (key === 8008 && attackSpeed)
-          add(
-            "La velocidad de ataque de los objetos acompaña la acumulación de Cadencia Letal; necesita acceso sostenido al objetivo.",
-            [
-              "rune:8008",
-              ...build.ids
-                .filter((id) => item(id)?.tags.includes("AttackSpeed"))
-                .map((id) => `item:${id}`),
-            ],
-            2,
-          );
-        if (
-          [8214, 8465].includes(key) &&
-          allyProtection &&
-          signals.carries.length
-        )
-          add(
-            `La página permite orientar recursos de protección a ${name(signals.carries[0].championId)}.`,
-            [`rune:${key}`, `champion:${signals.carries[0].championId}`],
-            2,
-          );
-        for (const id of build.ids) {
-          const it = item(id)!;
-          if (it.tags.includes("Armor") && signals.physical >= 2)
-            add(
-              `${it.name}: armadura frente a ${signals.enemies
-                .filter((e) => e.profile.damage === "physical")
-                .map((e) => name(e.championId))
-                .join(", ")}.`,
-              [`item:${id}`],
-              Math.min(3, signals.physical),
-            );
-          if (it.tags.includes("SpellBlock") && signals.magic >= 2)
-            add(
-              `${it.name}: resistencia mágica frente a ${signals.enemies
-                .filter((e) => e.profile.damage === "magic")
-                .map((e) => name(e.championId))
-                .join(", ")}.`,
-              [`item:${id}`],
-              Math.min(3, signals.magic),
-            );
-          if (/heridas/iu.test(it.description) && signals.healing.length >= 2)
-            add(
-              `${it.name}: respuesta a la curación de ${signals.healing.map((e) => name(e.championId)).join(", ")}; revisar su condición de aplicación.`,
-              [`item:${id}`],
-              5,
-            );
-          if (
-            (it.tags.includes("MagicPenetration") ||
-              it.tags.includes("ArmorPenetration")) &&
-            signals.frontline >= 2
-          )
-            add(
-              `${it.name}: alternativa de penetración frente a primera línea; no se presupone qué resistencias comprarán.`,
-              [`item:${id}`],
-              1,
-            );
-        }
-        const changes = [...build.changes];
-        if (key !== seed.runes.primaryRunes[0])
-          changes.push(
-            `Runa clave: ${rune(seed.runes.primaryRunes[0])?.name} → ${rune(key)?.name}.`,
-          );
-        const score =
-          reasons.reduce((n, r) => n + r.weight, 0) -
-          (build.changes.length ? 1 : 0);
-        const id = `config-${build.ids.join("-")}-${ids.join("-")}`;
-        if (output.some((p) => p.id === id)) continue;
-        try {
-          const checkpoints = seed.checkpoints.filter((p) =>
-            build.ids.includes(p.finishInto),
-          );
-          if (!checkpoints.length && signals.healing.length >= 2) {
-            for (const finishInto of build.ids.slice(2)) {
-              const component = item(finishInto)?.from.find((id) =>
-                [3916, 3123, 3076].includes(id),
-              );
-              if (
-                !component ||
-                (component === 3076 &&
-                  !signals.healing.some((e) =>
-                    e.profile.traits.includes("attacks"),
-                  ))
-              )
-                continue;
-              checkpoints.push({
-                itemId: component,
-                finishInto,
-                reason:
-                  "Adelantar el componente de heridas graves y completar su objeto más adelante; revisar qué aliado puede aplicarlas.",
-              });
-              break;
-            }
-          }
-          const steps = purchaseRoute(
-            data,
-            { ...profile, roles: [ctx.playerRole], starter: seed.starter[0] },
-            seed.starter,
-            build.ids,
-            page,
-            checkpoints.map((p) => p.itemId),
-          );
-          output.push({
-            ...seed,
-            id,
-            items: build.ids,
-            runes: {
-              primary: page.primary,
-              secondary: page.secondary,
-              primaryRunes: [...page.primaryRunes],
-              secondaryRunes: [...page.secondaryRunes],
-              shards: [...page.shards],
-            },
-            steps,
-            checkpoints,
-            recommended: false,
-            adjustments: reasons
-              .slice()
-              .sort((a, b) => b.weight - a.weight)
-              .map((r) => r.text),
-            title: "Configuración contextual",
-            reason: reasons.slice().sort((a, b) => b.weight - a.weight)[0].text,
-            tradeoff:
-              "Ajuste calculado por Kahoru. No hay una tasa medida de esta configuración completa contra este draft.",
-            decision: { score, reasons, changes },
-            samples: build.changes.length ? [] : seed.samples,
-            source: `OP.GG MCP: referencia de compras y página estadística. Riot: páginas alternativas y descripciones del paquete ${data.catalog.version}. ${published ? "Se conserva la página estadística." : tweak ? "Página adaptada por Kahoru." : "Página alternativa del cliente de Riot."} Las sustituciones de objetos no tienen una muestra conjunta medida.`,
-          });
-        } catch {
-          /* Descartar rutas imposibles sin bloquear las demás configuraciones. */
-        }
-      }
   }
   output.sort(
     (a, b) => b.decision.score - a.decision.score || a.id.localeCompare(b.id),
@@ -487,6 +481,12 @@ export function searchConfigurations(
     )
       selected.push(p);
   for (const p of output)
+    if (
+      selected.length < 9 &&
+      !selected.some((q) => q.items.join() === p.items.join())
+    )
+      selected.push(p);
+  for (const p of output)
     if (selected.length < 12 && !selected.some((q) => q.id === p.id))
       selected.push(p);
   return selected
@@ -499,6 +499,5 @@ export function searchConfigurations(
         reasons: p.decision.reasons.map((r, j) => ({ ...r, id: `r${i}e${j}` })),
       },
       recommended: i === 0,
-      title: i === 0 ? "Plan contextual" : `Alternativa contextual ${i + 1}`,
     }));
 }

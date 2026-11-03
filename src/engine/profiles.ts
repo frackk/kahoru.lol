@@ -18,7 +18,7 @@ let client = bundled;
 export type ClientKnowledge = typeof bundled;
 export const getClientKnowledge = () => client;
 export let rulesPatch = client.clientVersion.split(".").slice(0, 2).join(".");
-export let rulesRevision = 2;
+export let rulesRevision = 3;
 const createProfiles = (
   client: ClientKnowledge,
   champions: Champion[] = catalog.champions,

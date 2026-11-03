@@ -17,6 +17,7 @@ import { DataLibrary } from "./features/DataLibrary";
 import { readPreferences } from "./preferences";
 import { useLiveSession } from "./liveSession";
 import { LocalModelSettings } from "./features/LocalStrategy";
+import { version } from "../package.json";
 
 type Page = "home" | "draft" | "data" | "settings" | "about";
 const pages: { id: Page; label: string; icon: string }[] = [
@@ -135,7 +136,7 @@ export function App() {
             ))}
           </nav>
           <div className="sidebar-bottom">
-            <span className="version">DESARROLLO · v0.6.0</span>
+            <span className="version">DESARROLLO · v{version}</span>
             <span>
               made by <strong>frack.one</strong>
             </span>
@@ -321,7 +322,7 @@ export function App() {
             )}
             {page === "about" && (
               <>
-                <div className="eyebrow">KAHORU.LOL · 0.6.0</div>
+                <div className="eyebrow">KAHORU.LOL · {version}</div>
                 <h1>Antes de entrar a la Grieta.</h1>
                 <section className="panel about">
                   <h2>made by frack.one</h2>

@@ -27,6 +27,9 @@ it("conserva la alternativa por sus objetos y congela la preparación durante pa
     true,
   )!;
   expect(updated.selected).toBe(chosen);
+  expect(updated.result.plans.find((p) => p.id === chosen)?.title).toBe(
+    original.result.plans.find((p) => p.id === chosen)?.title,
+  );
   expect(store.prepare(data, { ...ctx, enemies: [] }, false)).toBe(updated);
   expect(
     store.prepare(data, { ...ctx, sessionId: "new" }, false),

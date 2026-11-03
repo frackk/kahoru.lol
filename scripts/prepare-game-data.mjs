@@ -42,7 +42,7 @@ const catalog = {
     .sort((a, b) => a.name.localeCompare(b.name, "es")),
 };
 const game = {
-  schemaVersion: 1,
+  schemaVersion: 2,
   catalog,
   assetBase: null,
   items: Object.entries(items.data)
@@ -61,6 +61,7 @@ const game = {
       from: (i.from ?? []).map(Number),
       into: (i.into ?? []).map(Number),
       tags: i.tags ?? [],
+      stats: i.stats ?? {},
       requiredChampion: i.requiredChampion ?? null,
     })),
   trees: trees.map((t) => ({

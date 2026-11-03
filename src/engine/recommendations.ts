@@ -15,6 +15,7 @@ import {
   type Configuration,
 } from "./configurationSearch";
 import shards from "../../data/knowledge/shards.json";
+import { compatibleItems } from "./buildSearch";
 import type { DraftSlot, Role } from "../contracts";
 import type { GameData, Item } from "../gameData";
 import {
@@ -53,7 +54,12 @@ export interface Plan {
   adjustments: string[];
   skills?: SkillOrder;
   matchups: MatchupEvidence[];
-  checkpoints: { itemId: number; finishInto: number; reason: string }[];
+  checkpoints: {
+    itemId: number;
+    finishInto: number;
+    reason: string;
+    afterItems?: number;
+  }[];
   recommended: boolean;
   id: string;
   title: string;
@@ -137,7 +143,7 @@ export function purchaseRoute(
   starter: number[],
   targets: number[],
   runes?: RunePage,
-  earlyComponents: number[] = [],
+  earlyComponents: (number | { itemId: number; afterItems: number })[] = [],
 ): PurchaseStep[] {
   let inventory: number[] = [];
   let steps: PurchaseStep[] = [];
@@ -225,11 +231,30 @@ export function purchaseRoute(
       consumed,
     );
   };
-  const ordered = [
-    ...targets.slice(0, 2),
-    ...earlyComponents,
-    ...targets.slice(2),
-  ];
+  const scheduled = earlyComponents.map((component) =>
+    typeof component === "number"
+      ? { itemId: component, afterItems: 2 }
+      : component,
+  );
+  if (
+    scheduled.some(
+      (c) =>
+        !Number.isInteger(c.afterItems) ||
+        c.afterItems < 0 ||
+        c.afterItems > targets.length,
+    )
+  )
+    throw new Error("La compra intermedia no tiene una posición válida.");
+  const ordered = targets
+    .flatMap((id, index) => [
+      ...scheduled.filter((c) => c.afterItems === index).map((c) => c.itemId),
+      id,
+    ])
+    .concat(
+      scheduled
+        .filter((c) => c.afterItems === targets.length)
+        .map((c) => c.itemId),
+    );
   for (const id of ordered) {
     const before = [...inventory];
     const count = steps.length;
@@ -292,13 +317,6 @@ function teamProfiles(slots: DraftSlot[]): Profile[] {
       ? [profileById.get(s.championId)!]
       : [],
   );
-}
-function compatibleItems(ids: number[]) {
-  return [
-    [3053, 3156, 6673],
-    [3033, 3036, 6694],
-    [3135, 3137],
-  ].every((group) => ids.filter((id) => group.includes(id)).length <= 1);
 }
 export function rankChampions(
   data: GameData,
@@ -532,20 +550,6 @@ export function recommend(
   const signals = draftSignals(ctx);
   const boots = hasSample(a.boots) ? [...a.boots.ids] : [];
   const adjustments = [...loadout.reasons];
-  const defensiveBoots =
-    signals.magic >= 3 ? 3111 : signals.physical >= 3 ? 3047 : null;
-  if (
-    boots.length === 1 &&
-    [3006, 3047, 3111, 3158, 3020, 3009].includes(boots[0]) &&
-    defensiveBoots &&
-    defensiveBoots !== boots[0] &&
-    item(defensiveBoots)?.purchasable
-  ) {
-    boots[0] = defensiveBoots;
-    adjustments.push(
-      `${item(defensiveBoots)!.name}: resistencia ante la concentración de daño ${defensiveBoots === 3111 ? "mágico" : "físico"} rival; sustituye las botas estadísticas. Ajuste por reglas, no por muestra de matchup.`,
-    );
-  }
   const base = [...core.slice(0, 1), ...boots, ...core.slice(1)];
   const limit =
     ctx.playerRole === "SUPPORT" && a.starter_items.ids.includes(3865) ? 5 : 6;
@@ -708,7 +712,12 @@ export function recommend(
   );
   if (configurations.length) {
     result.candidates = configurations;
-    result.plans = configurations.slice(0, 3);
+    result.plans = [];
+    for (const plan of configurations) {
+      if (result.plans.length === 3) break;
+      if (result.plans.some((p) => p.title === plan.title)) continue;
+      result.plans.push(plan);
+    }
   }
   return result;
 }

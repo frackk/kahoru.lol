@@ -23,6 +23,7 @@ pub struct Item {
     pub from: Vec<u32>,
     pub into: Vec<u32>,
     pub tags: Vec<String>,
+    pub stats: BTreeMap<String, f64>,
     pub required_champion: Option<String>,
 }
 #[derive(Clone, Deserialize, Serialize)]
@@ -122,7 +123,7 @@ impl GameData {
         Ok(data)
     }
     pub fn validate(&self) -> Result<(), String> {
-        if self.schema_version != 1
+        if self.schema_version != 2
             || !valid_version(&self.catalog.version)
             || self.catalog.champions.len() < 100
             || self.catalog.champions.len() > 500
@@ -149,6 +150,9 @@ impl GameData {
                 || !items.insert(i.id)
                 || i.name.is_empty()
                 || !self.assets.contains_key(&i.icon)
+                || i.stats
+                    .values()
+                    .any(|v| !v.is_finite() || *v < 0. || *v > 100_000.)
             {
                 return Err("Catálogo de objetos inválido.".into());
             }
@@ -335,6 +339,8 @@ pub fn prepare(
             from: ids(&i["from"]),
             into: ids(&i["into"]),
             tags: serde_json::from_value(i["tags"].clone()).unwrap_or_default(),
+            stats: serde_json::from_value(i["stats"].clone())
+                .map_err(|_| "Estadísticas de objeto inválidas")?,
             required_champion: i["requiredChampion"].as_str().map(String::from),
         });
     }
@@ -411,7 +417,7 @@ pub fn prepare(
         }
     }
     let data = GameData {
-        schema_version: 1,
+        schema_version: 2,
         catalog: Catalog {
             version: version.clone(),
             locale: "es_AR".into(),
@@ -485,6 +491,24 @@ mod tests {
             .unwrap();
             assert!(GameData::load(dir.path()).asset_base.is_none());
         }
+    }
+    #[test]
+    fn item_stats_are_required_and_older_schema_is_rejected() {
+        let data = GameData::bundled().unwrap();
+        assert_eq!(data.schema_version, 2);
+        assert!(data.items.iter().any(|i| i
+            .stats
+            .get("FlatMagicDamageMod")
+            .is_some_and(|value| *value > 0.)));
+        let mut invalid = data.clone();
+        invalid.schema_version = 1;
+        assert!(invalid.validate().is_err());
+        invalid = data.clone();
+        invalid.items[0].stats.insert("FlatHPPoolMod".into(), -1.);
+        assert!(invalid.validate().is_err());
+        let mut old = serde_json::to_value(&data).unwrap();
+        old["items"][0].as_object_mut().unwrap().remove("stats");
+        assert!(serde_json::from_value::<GameData>(old).is_err());
     }
     #[test]
     fn cached_pack_loads_and_corrupt_asset_restores_bundle() {

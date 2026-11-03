@@ -12,6 +12,7 @@ interface Prepared {
   result: Recommendation;
   selected: string;
   playerChampionId: number | null;
+  playerRole: Role | null;
   userSelected: boolean;
   frozen?: boolean;
   modelChoice?: { planId: string; reasons: string[] };
@@ -63,28 +64,40 @@ export class SessionPlans {
       context,
       pool,
       analysis,
-      previous?.userSelected ? previous.selected : undefined,
+      previous?.userSelected &&
+        previous.playerChampionId === context.playerChampionId &&
+        previous.playerRole === context.playerRole
+        ? previous.selected
+        : undefined,
     );
     if (
       previous?.userSelected &&
       previous.playerChampionId === context.playerChampionId &&
+      previous.playerRole === context.playerRole &&
       !result.plans.some((p) => p.id === previous.selected)
     ) {
       const candidate = result.candidates?.find(
         (p) => p.id === previous.selected,
       );
-      if (candidate) result.plans = [candidate, ...result.plans].slice(0, 3);
+      if (candidate)
+        result.plans = [
+          candidate,
+          ...result.plans.filter((p) => p.title !== candidate.title),
+        ].slice(0, 3);
     }
     if (previous?.result.signature === result.signature) return previous;
     const next = {
       result,
       playerChampionId: context.playerChampionId,
+      playerRole: context.playerRole,
       userSelected:
         previous?.playerChampionId === context.playerChampionId &&
+        previous.playerRole === context.playerRole &&
         previous.userSelected,
       selected:
         previous?.userSelected &&
         previous?.playerChampionId === context.playerChampionId &&
+        previous.playerRole === context.playerRole &&
         result.plans.some((p) => p.id === previous?.selected)
           ? previous!.selected
           : (result.plans[0]?.id ?? ""),
@@ -128,7 +141,9 @@ export class SessionPlans {
       return false;
     entry.result.plans = [
       candidate,
-      ...entry.result.plans.filter((p) => p.id !== planId),
+      ...entry.result.plans.filter(
+        (p) => p.id !== planId && p.title !== candidate.title,
+      ),
     ].slice(0, 3);
     entry.selected = planId;
     entry.userSelected = true;

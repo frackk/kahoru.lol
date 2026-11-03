@@ -54,6 +54,7 @@ export function configurationContext(
         name: i.name,
         tags: i.tags,
         cost: i.cost,
+        stats: i.stats,
         description: i.description.slice(0, 700),
       })),
     runes: data.trees
@@ -71,6 +72,7 @@ export function configurationContext(
       spells: p.spells,
       observations: p.samples,
       changes: p.decision.changes,
+      evaluation: p.decision.evaluation,
       reasons: p.decision.reasons
         .slice()
         .sort((a, b) => b.weight - a.weight)
@@ -78,6 +80,6 @@ export function configurationContext(
         .map((r) => ({ id: r.id, text: r.text, references: r.references })),
     })),
     limits:
-      "Comparar configuraciones completas; las tasas de la fuente son por campeón/rol, no de este draft. Las herramientas del kit no demuestran prioridad de línea ni garantizan acceso a un objetivo. Los roles no confirmados siguen siendo hipótesis. Elegir entre candidatos validados; no inventar una configuración ni mecánicas.",
+      "Comparar configuraciones completas y el orden de compra. evaluation contiene índices heurísticos relativos al plan de referencia, no daño calculado ni probabilidades. stats suma atributos fijos de Data Dragon, sin habilidades ni pasivas condicionales. Las tasas de la fuente son por campeón/rol, no de este draft. Las herramientas del kit no demuestran prioridad de línea ni garantizan acceso a un objetivo. Los roles no confirmados siguen siendo hipótesis. Elegir entre candidatos validados; no inventar una configuración ni mecánicas.",
   });
 }

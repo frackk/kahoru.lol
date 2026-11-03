@@ -6,6 +6,10 @@ import { tmpdir } from "node:os";
 import { join, resolve, dirname, basename } from "node:path";
 import { chromium } from "playwright-core";
 
+const { version: appVersion } = JSON.parse(
+  await readFile(new URL("../package.json", import.meta.url), "utf8"),
+);
+
 const port = 19223;
 const userData = await mkdtemp(join(tmpdir(), "kahoru-test-"));
 const temporary = resolve(userData);
@@ -75,6 +79,9 @@ try {
     await new Promise((resolve) => setTimeout(resolve, 100));
   }
   assert.ok(page, "No se encontró la ventana principal");
+  await page
+    .getByText(`DESARROLLO · v${appVersion}`, { exact: true })
+    .waitFor();
   const errors = [];
   page.on("pageerror", (error) => errors.push(error.message));
   await page.evaluate(() =>
@@ -193,6 +200,7 @@ try {
     await Promise.all(images.map((img) => img.decode()));
   });
   let chosenHeading;
+  let chosenAssets;
   let preparedSkills;
   if (
     process.argv.includes("--roles-model") ||
@@ -229,6 +237,10 @@ try {
         await writeFile(
           "test-results/configuration-" + role + ".txt",
           await page.locator(".configuration-analysis").innerText(),
+        );
+        await writeFile(
+          "test-results/configuration-" + role + "-plan.txt",
+          await page.locator(".selected-plan").innerText(),
         );
         console.log("Configuración local por rol:", role);
         continue;
@@ -277,6 +289,9 @@ try {
       ),
       "flashF",
     );
+    chosenAssets = await page
+      .locator(".selected-plan img")
+      .evaluateAll((images) => images.map((img) => img.getAttribute("src")));
   }
   if (
     process.argv.includes("--configuration-model") ||
@@ -316,6 +331,9 @@ try {
       /Configuración elegida con el análisis local/,
     );
     chosenHeading = await page.locator(".selected-plan h2").innerText();
+    chosenAssets = await page
+      .locator(".selected-plan img")
+      .evaluateAll((images) => images.map((img) => img.getAttribute("src")));
     await mkdir("test-results", { recursive: true });
     await writeFile(
       "test-results/configuration-model.txt",
@@ -448,6 +466,13 @@ try {
       .locator(".selected-plan")
       .getByRole("heading", { name: chosenHeading, exact: true })
       .waitFor();
+    assert.deepEqual(
+      await page
+        .locator(".selected-plan img")
+        .evaluateAll((images) => images.map((img) => img.getAttribute("src"))),
+      chosenAssets,
+      "Runas, compras, orden y spells deben conservarse al cargar la partida",
+    );
   }
   await page.getByRole("button", { name: "Desconectar", exact: true }).click();
   await page

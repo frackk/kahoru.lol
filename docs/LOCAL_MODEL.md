@@ -33,3 +33,5 @@ La cobertura estratégica depende de los hechos del motor, todavía limitados. E
 El contrato de esta operación está separado del resumen estratégico: candidates contiene hasta doce configuraciones y sus motivos referenciados. La respuesta solo contiene planId y reasonIds. Se valida pertenencia y ausencia de duplicados, y se descartan resultados si cambió el draft, la elección manual o empezó la partida. El contexto máximo es 64 KB y el runtime dispone de 16.384 tokens de contexto.
 
 El modelo puede evaluar los compromisos de los candidatos. No crea IDs de runas u objetos ni modifica libremente el cliente; tampoco demuestra que haya encontrado una configuración óptima. La evaluación por campeón y matchup sigue siendo necesaria.
+
+En 0.7 los candidatos pueden cambiar varias compras, primera compra y orden. El contexto incorpora los atributos fijos de Data Dragon y la evaluación relativa de daño, defensa, utilidad, tempo y coste. Son índices heurísticos; el prompt los distingue de daño calculado o tasas observadas. La amplitud del constructor sigue limitando qué puede elegir el modelo.

@@ -117,10 +117,18 @@ describe("recomendaciones con procedencia", () => {
       expect([...inventory].sort()).toEqual([...plan.items].sort());
       expect(
         plan.steps.some((s) => s.itemId === 2422 && s.kind === "grant"),
-      ).toBe(true);
+      ).toBe(
+        [...plan.runes.primaryRunes, ...plan.runes.secondaryRunes].includes(
+          8304,
+        ),
+      );
       expect(
         plan.steps.some((s) => s.itemId === 1001 && s.kind === "buy"),
-      ).toBe(false);
+      ).toBe(
+        ![...plan.runes.primaryRunes, ...plan.runes.secondaryRunes].includes(
+          8304,
+        ),
+      );
     }
   });
   it("rechaza datos sin muestra o de otro parche", () => {

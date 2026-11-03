@@ -35,3 +35,5 @@ Los pesos y el runtime se descargan aparte, con revisión y hashes fijados. Play
 ## Configuración conjunta
 
 configurationSearch genera y puntúa pares de página y ruta. configurationContext construye un paquete acotado de evidencia para el modelo. configuration_model.rs valida el contrato de elección; local_model.rs conserva el proceso y la cancelación compartidos. SessionPlans acepta el resultado solo si coinciden firma, elección previa y sesión editable. La comprobación de firma antes de recalcular evita repetir la búsqueda en cada snapshot idéntico del cliente.
+
+buildSearch mantiene un haz acotado por objetivo sobre compras y orden; evalúa atributos oficiales, respuestas al draft y pérdidas respecto de una referencia común. configurationSearch lo cruza con páginas completas y valida las rutas de compra antes de exponerlas. Una elección manual se reconstruye y reevalúa con los datos nuevos; no se conserva una evaluación anterior si cambió el draft. Cambiar de campeón o rol libera esa preferencia.

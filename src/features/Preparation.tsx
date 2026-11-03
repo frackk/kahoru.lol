@@ -338,6 +338,12 @@ export function Preparation({
                 ?.name
             }
           </h3>
+          {result.plans.length < 3 && (
+            <p className="small-note">
+              Se muestran {result.plans.length} enfoques distintos; se omiten
+              variantes que solo cambian detalles menores.
+            </p>
+          )}
           <div className="plan-tabs">
             {result.plans.map((plan) => (
               <button
