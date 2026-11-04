@@ -19,7 +19,7 @@ Carpeta de trabajo en este equipo: `E:\Cosas\kahoru.lol`.
 
 ## Estado
 
-La versión 0.7.0 lee el cliente local, detecta fases y completa picks, hovers aliados y bans. Incluye imágenes de campeones, runas, fragmentos, objetos y spells. El ranking por composición y el champion pool siguen disponibles.
+La versión 0.8.0 lee el cliente local, detecta fases y completa picks, hovers aliados y bans. Incluye imágenes de campeones, runas, fragmentos, objetos y spells. Detecta el lado a partir del equipo local, con corrección manual. El ranking por composición y el champion pool siguen disponibles.
 
 Los 173 campeones tienen metadatos del kit y páginas recomendadas por Riot. Las builds usan análisis de OP.GG por campeón y posición, con parche y muestras; si faltan datos compatibles no se inventa una ruta. Se comparan hasta tres variantes construibles. El ranking todavía usa reglas cualitativas, con cobertura desigual de rasgos y sin matchups empíricos; no predice victoria. El simulador se identifica como entrada manual.
 

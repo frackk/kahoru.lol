@@ -54,3 +54,63 @@ it("la comprobación conjunta limita consultas y cuenta fallos por separado", as
   });
   expect(invoke).toHaveBeenCalledTimes(5);
 });
+
+it("separa el caché por parche y una respuesta tardía no pisa el parche nuevo", async () => {
+  const stats = await import("./statistics");
+  const old = { ...syntheticAnalysis(), retrievedAt: Date.now() / 1000 };
+  const next = structuredClone(old);
+  next.analysis.data.trends.win.version = "16.22";
+  let finish!: (value: typeof old) => void;
+  invoke.mockImplementationOnce(
+    () =>
+      new Promise((resolve) => {
+        finish = resolve;
+      }),
+  );
+  const pending = stats.requestStatistics(234, "JUNGLE", false, "16.21.1");
+  invoke.mockResolvedValueOnce(next);
+  await stats.requestStatistics(234, "JUNGLE", false, "16.22.1");
+  finish(old);
+  await pending;
+  expect(stats.readStatistics(234, "JUNGLE", "16.22.1")?.data).toEqual(next);
+  expect(stats.readStatistics(234, "JUNGLE", "16.21.1")?.data).toEqual(old);
+});
+
+it("los errores y respaldos tienen espera entre consultas automáticas", async () => {
+  const stats = await import("./statistics");
+  invoke.mockRejectedValueOnce("Sin red");
+  await stats.requestStatistics(234, "JUNGLE", false, "16.21.1");
+  await stats.requestStatistics(234, "JUNGLE", false, "16.21.1");
+  expect(invoke).toHaveBeenCalledTimes(1);
+  vi.advanceTimersByTime(60_000);
+  invoke.mockResolvedValue({
+    ...syntheticAnalysis(),
+    retrievedAt: Date.now() / 1000 - 43201,
+    warning: "Referencia conservada",
+  });
+  await stats.requestStatistics(234, "JUNGLE", false, "16.21.1");
+  await stats.requestStatistics(234, "JUNGLE", false, "16.21.1");
+  expect(invoke).toHaveBeenCalledTimes(2);
+  expect(await stats.refreshRecentStatistics("16.21.1")).toEqual({
+    completed: 0,
+    total: 1,
+  });
+});
+
+it("un error no mantiene evidencia vencida en una aplicación que lleva días abierta", async () => {
+  const stats = await import("./statistics");
+  invoke.mockResolvedValueOnce({
+    ...syntheticAnalysis(),
+    retrievedAt: Date.now() / 1000,
+  });
+  await stats.requestStatistics(234, "JUNGLE");
+  vi.advanceTimersByTime((7 * 86400 + 1) * 1000);
+  expect(stats.readStatistics(234, "JUNGLE")?.data).toBeUndefined();
+  invoke.mockRejectedValueOnce("Sin red");
+  await stats.requestStatistics(234, "JUNGLE");
+  expect(stats.readStatistics(234, "JUNGLE")).toEqual({
+    data: undefined,
+    error: "Sin red",
+    pending: false,
+  });
+});

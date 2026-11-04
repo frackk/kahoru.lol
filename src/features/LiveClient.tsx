@@ -115,6 +115,7 @@ export function LiveClient({
             enemies: snapshot.enemies,
             bans: snapshot.bans,
             gameVersion: snapshot.version,
+            playerSide: snapshot.playerSide,
           }}
           importable
           editable={snapshot.connected && snapshot.phase === "ChampSelect"}

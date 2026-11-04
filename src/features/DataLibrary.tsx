@@ -50,7 +50,7 @@ export function DataLibrary({
       setMessage(
         "Datos oficiales comprobados. Actualizando análisis recientes…",
       );
-      const refreshed = await refreshRecentStatistics();
+      const refreshed = await refreshRecentStatistics(next.catalog.version);
       setMessage(
         `${official} Análisis recientes comprobados: ${refreshed.completed}/${refreshed.total}.`,
       );

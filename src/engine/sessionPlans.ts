@@ -1,5 +1,5 @@
 import type { GameData } from "../gameData";
-import type { Role } from "../contracts";
+import type { Role, MapSide } from "../contracts";
 import { readStatistics } from "../statistics";
 import { rulesRevision } from "./profiles";
 import {
@@ -21,6 +21,14 @@ export class SessionPlans {
   constructor(private lookup: typeof readStatistics = readStatistics) {}
   private sessions = new Map<string, Prepared>();
   private roles = new Map<string, Role>();
+  private sides = new Map<string, MapSide>();
+  side(sessionId: string) {
+    return this.sides.get(sessionId) ?? null;
+  }
+  setSide(sessionId: string, side: MapSide | null) {
+    if (side) this.sides.set(sessionId, side);
+    else this.sides.delete(sessionId);
+  }
   role(sessionId: string) {
     return this.roles.get(sessionId) ?? null;
   }
@@ -43,10 +51,12 @@ export class SessionPlans {
     context = {
       ...context,
       playerRole: this.role(context.sessionId) ?? context.playerRole,
+      playerSide: this.side(context.sessionId) ?? context.playerSide ?? null,
     };
     const analysis = this.lookup(
       context.playerChampionId,
       context.playerRole,
+      data.catalog.version,
     )?.data;
     if (
       previous?.result.signature ===
@@ -107,6 +117,7 @@ export class SessionPlans {
       const oldest = this.sessions.keys().next().value!;
       this.sessions.delete(oldest);
       this.roles.delete(oldest);
+      this.sides.delete(oldest);
     }
     return next;
   }

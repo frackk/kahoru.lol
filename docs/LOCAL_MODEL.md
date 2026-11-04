@@ -35,3 +35,5 @@ El contrato de esta operación está separado del resumen estratégico: candidat
 El modelo puede evaluar los compromisos de los candidatos. No crea IDs de runas u objetos ni modifica libremente el cliente; tampoco demuestra que haya encontrado una configuración óptima. La evaluación por campeón y matchup sigue siendo necesaria.
 
 En 0.7 los candidatos pueden cambiar varias compras, primera compra y orden. El contexto incorpora los atributos fijos de Data Dragon y la evaluación relativa de daño, defensa, utilidad, tempo y coste. Son índices heurísticos; el prompt los distingue de daño calculado o tasas observadas. La amplitud del constructor sigue limitando qué puede elegir el modelo.
+
+En 0.8, el contexto agrega lado, oponente inferido, amenazas ponderadas y escenarios de contacto. Las compras incorporan modificadores reconocidos y las páginas pueden cambiar filas o árbol secundario. Los índices no son un simulador de combate; sus límites se incluyen en el contexto. Se mantiene el mismo modelo, runtime, contrato cerrado y presupuesto. No se agregan descargas ni servicios.

@@ -1,6 +1,6 @@
 # kahoru.lol — Especificación del producto
 
-**Estado:** desarrollo de Fases 3 y 4 · **Versión del documento:** 0.7 · **Última revisión:** 2026-11-03
+**Estado:** desarrollo de Fases 3 y 4 · **Versión del documento:** 0.8 · **Última revisión:** 2026-11-04
 **Repositorio:** https://github.com/frackk/kahoru.lol  
 **Autor:** frack.one  
 **Plataforma inicial:** Windows 10/11, escritorio  
@@ -8,7 +8,7 @@
 
 > Documento de referencia para el desarrollo. Describe el producto que se quiere construir, no funciones que ya estén implementadas. Ante una discrepancia entre este documento y el código, registrar la diferencia y decidir explícitamente cuál debe actualizarse.
 
-**Estado actual (0.7.0):** lector experimental del cliente, simulador e imágenes oficiales; 173 campeones con kits, posiciones y 825 páginas de Riot. Las builds consultan OP.GG por campeón y rol y requieren datos compatibles. Importación explícita de runas y spells con respaldo y restauración, probada localmente. Estrategia previa por reglas y modelo local opcional que selecciona hechos del motor. Se conserva el plan en partida. Se añaden ajustes contextuales acotados de runas, spells y botas, componentes de heridas graves, orden de habilidades 1–18 cuando es verificable y matchups publicados para posiciones confirmadas. La búsqueda conjunta compara páginas completas, claves alternativas, cambios coordinados de objetos, primera compra y orden, con atributos oficiales y coste de oportunidad; la IA local puede elegir una configuración con motivos validados. La búsqueda sigue acotada y requiere evaluación estratégica. Siguen pendientes la optimización completa, el contraste entre proveedores, la calibración y el registro ante Riot. Ver `RECOMMENDATIONS.md`, `CLIENT_INTEGRATION.md`, `LOCAL_MODEL.md` y `VALIDATION.md`.
+**Estado actual (0.8.0):** lector experimental del cliente, simulador e imágenes oficiales; 173 campeones con kits, posiciones y 825 páginas de Riot. Las builds consultan OP.GG por campeón y rol y requieren datos compatibles. Importación explícita de runas y spells con respaldo y restauración, probada localmente. Estrategia previa por reglas y modelo local opcional que selecciona hechos del motor. Se conserva el plan en partida. Se añaden ajustes contextuales acotados de runas, spells y botas, componentes de heridas graves, orden de habilidades 1–18 cuando es verificable y matchups publicados para posiciones confirmadas. La búsqueda conjunta compara páginas completas, claves alternativas, cambios coordinados de objetos, primera compra y orden, con atributos oficiales y coste de oportunidad; la IA local puede elegir una configuración con motivos validados. La búsqueda incluye objetos compatibles del catálogo, cambios de filas y árboles secundarios, control y recursos de cada amenaza, modificadores de objetos y restricciones de pasivas especiales. El lado se toma del equipo local, puede corregirse y acompaña la estrategia previa. La búsqueda sigue acotada y requiere evaluación estratégica. Siguen pendientes la optimización completa, el contraste entre proveedores, la calibración y el registro ante Riot. Ver `RECOMMENDATIONS.md`, `CLIENT_INTEGRATION.md`, `LOCAL_MODEL.md` y `VALIDATION.md`.
 
 ## 1. Visión
 

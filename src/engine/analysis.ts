@@ -18,6 +18,7 @@ export interface MatchupSample {
   my_win_rate: number;
 }
 export interface Analysis {
+  warning?: string;
   source: string;
   retrievedAt: number;
   region: string | null;

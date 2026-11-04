@@ -19,6 +19,7 @@ pub struct ClientSnapshot {
     pub enemies: Vec<DraftSlot>,
     pub bans: Vec<u32>,
     pub player_role: Option<Role>,
+    pub player_side: Option<&'static str>,
     pub message: String,
 }
 
@@ -36,6 +37,7 @@ impl Default for ClientSnapshot {
             enemies: vec![],
             bans: vec![],
             player_role: None,
+            player_side: None,
             message: "Esperando al cliente de League of Legends.".into(),
         }
     }
@@ -274,6 +276,21 @@ fn populate(next: &mut ClientSnapshot, value: &Value) -> Result<(), &'static str
     next.allies = parse_team("myTeam")?;
     next.enemies = parse_team("theirTeam")?;
     let local = value.get("localPlayerCellId").and_then(Value::as_i64);
+    // `team` pertenece al jugador local; el orden visual de myTeam no indica lado.
+    next.player_side = value
+        .get("myTeam")
+        .and_then(Value::as_array)
+        .and_then(|team| {
+            team.iter()
+                .find(|p| local.is_some() && p.get("cellId").and_then(Value::as_i64) == local)
+        })
+        .and_then(|p| p.get("team"))
+        .and_then(Value::as_u64)
+        .and_then(|team| match team {
+            1 => Some("BLUE"),
+            2 => Some("RED"),
+            _ => None,
+        });
     next.player_champion_id = value
         .get("myTeam")
         .and_then(Value::as_array)
@@ -410,6 +427,33 @@ mod tests {
         ] {
             assert!(parse_lockfile(raw).is_err());
         }
+    }
+    #[test]
+    fn side_comes_from_the_local_team_not_cell_order_or_first_pick() {
+        let mut snapshot = ClientSnapshot::default();
+        for (team, expected) in [(1, Some("BLUE")), (2, Some("RED")), (0, None), (100, None)] {
+            let value = serde_json::json!({"localPlayerCellId":7,"myTeam":[
+                {"cellId":0,"team":1},{"cellId":7,"team":team}
+            ],"theirTeam":[],"bans":{}});
+            populate(&mut snapshot, &value).unwrap();
+            assert_eq!(snapshot.player_side, expected);
+        }
+        populate(&mut snapshot, &serde_json::json!({"localPlayerCellId":7,"myTeam":[{"cellId":0,"team":2}],"theirTeam":[]})).unwrap();
+        assert_eq!(snapshot.player_side, None);
+    }
+    #[test]
+    fn side_survives_loading_but_not_a_new_lobby() {
+        let previous = ClientSnapshot {
+            connected: true,
+            phase: "ChampSelect".into(),
+            player_side: Some("RED"),
+            ..Default::default()
+        };
+        assert_eq!(
+            carry_session(&previous, "GameStart", None).player_side,
+            Some("RED")
+        );
+        assert_eq!(carry_session(&previous, "Lobby", None).player_side, None);
     }
     #[test]
     fn unknown_roles_stay_unknown_and_tentative_picks_are_not_locked() {

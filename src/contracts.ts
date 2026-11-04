@@ -1,6 +1,11 @@
 export const roles = ["TOP", "JUNGLE", "MID", "BOT", "SUPPORT"] as const;
 export type Role = (typeof roles)[number];
 export type Team = "allies" | "enemies";
+export type MapSide = "BLUE" | "RED";
+export const sideNames: Record<MapSide, string> = {
+  BLUE: "Azul · base inferior izquierda",
+  RED: "Rojo · base superior derecha",
+};
 export type Phase =
   | "IDLE"
   | "QUEUE"

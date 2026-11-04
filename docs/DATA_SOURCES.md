@@ -52,3 +52,11 @@ Revisión del 02/11/2026: [LoLalytics identifica su API como privada y excluye u
 [OP.GG pide atribución y evitar solicitudes excesivas](https://help.op.gg/hc/en-us/articles/31091405109401-Can-I-use-OP-GG-data). La aplicación utiliza su MCP público con caché y cita la fuente; no se redistribuyen respuestas como dataset. Estas revisiones no sustituyen las condiciones que correspondan a una distribución futura.
 
 Desde 0.6 se solicita también data.summary.id. La caché estadística usa esquema 3 y valida el ID oficial del campeón, además de posición y estructura: diferencias de espacios o apóstrofos del nombre no deben rechazar una respuesta legítima. Se comprobó el caso VEL_KOZ → VELKOZ sin relajar el control de identidad.
+
+## Transiciones de parche
+
+Desde 0.8 se guardan copias por campeón, rol y parche. Se migran las respuestas válidas del caché anterior antes de reemplazarlas. Una respuesta de otro parche se conserva por separado; nunca cambia de etiqueta para hacerla compatible. La interfaz también separa las consultas por parche y evita que una respuesta tardía sustituya los datos del paquete nuevo.
+
+Ante un fallo de red o un proveedor adelantado, se puede usar la última referencia del mismo parche, con fecha original y aviso, durante un máximo de siete días. Las consultas automáticas fallidas esperan al menos sesenta segundos. Sin copia compatible el motor mantiene el rechazo de builds. Esto no recupera respuestas que una versión anterior ya sobrescribió.
+
+El 04/11/2026 se observó una respuesta de Viego jungle con tendencias 16.22 mientras el cliente local y el paquete seguían en 16.21. Otras consultas todavía informaban 16.21. `tools/list` no ofrece selección histórica de parche en `lol_get_champion_analysis`; no se añade un parámetro supuesto. Se conservan ambos valores como hechos distintos hasta disponer de datos compatibles.

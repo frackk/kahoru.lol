@@ -3,6 +3,7 @@ import type { DraftContext } from "./recommendations";
 import type { Configuration } from "./configurationSearch";
 import { kitById } from "./profiles";
 import spellData from "../../data/knowledge/spells.json";
+import { draftSignals, fightContext, laneOpponent } from "./draftSignals";
 
 export function configurationContext(
   data: GameData,
@@ -23,13 +24,25 @@ export function configurationContext(
       ...p.runes.secondaryRunes,
     ]),
   );
+  const lane = laneOpponent(ctx);
   return JSON.stringify({
     kind: "configuration",
+    scenarios: fightContext(ctx),
+    lane: lane
+      ? { champion: name(lane.championId), confidence: lane.confidence }
+      : null,
+    threats: draftSignals(ctx).enemies.map((e) => ({
+      champion: name(e.championId),
+      damageWeight: e.damageWeight,
+      control: e.tools.control.map((a) => a.name),
+      tenacityAppliesTo: e.tools.tenacity.map((a) => a.name),
+    })),
     matchups: candidates[0]?.matchups ?? [],
     spells: spellData.spells.filter((s) =>
       candidates.some((p) => p.spells.includes(s.id)),
     ),
     patch: data.catalog.version,
+    side: ctx.playerSide ?? null,
     player: {
       champion: name(ctx.playerChampionId!),
       role: ctx.playerRole,
@@ -80,6 +93,6 @@ export function configurationContext(
         .map((r) => ({ id: r.id, text: r.text, references: r.references })),
     })),
     limits:
-      "Comparar configuraciones completas y el orden de compra. evaluation contiene índices heurísticos relativos al plan de referencia, no daño calculado ni probabilidades. stats suma atributos fijos de Data Dragon, sin habilidades ni pasivas condicionales. Las tasas de la fuente son por campeón/rol, no de este draft. Las herramientas del kit no demuestran prioridad de línea ni garantizan acceso a un objetivo. Los roles no confirmados siguen siendo hipótesis. Elegir entre candidatos validados; no inventar una configuración ni mecánicas.",
+      "Comparar configuraciones completas y su orden. evaluation y scenarios son índices heurísticos, no daño calculado ni probabilidades. mechanics contiene modificadores legibles en el paquete; onHit cuenta efectos sin inventar sus daños omitidos. El valor del daño depende de acceso, duración y supervivencia. No sobreponderar el daño de un soporte ni sumar tenacidad sin verificar acumulación. Las tasas son por campeón/rol, no de este draft. El lado cambia la orientación del mapa, no justifica por sí solo otra runa. Roles inciertos son hipótesis. Elegir entre candidatos validados; no inventar mecánicas.",
   });
 }

@@ -1,15 +1,17 @@
 import type { GameData, Item } from "../gameData";
 import type { DraftContext, Plan } from "./recommendations";
-import { draftSignals, removableControl } from "./draftSignals";
+import { draftSignals, fightContext } from "./draftSignals";
 import { getClientKnowledge, profileById } from "./profiles";
+import { championTools } from "./championTools";
+import { itemMechanics, combineMechanics } from "./itemMechanics";
 
 export const itemGroups = [
-  [3053, 3156, 6673],
+  [3053, 3156, 6673, 2525],
   [3033, 3036, 6694, 3302],
   [3135, 3137, 3302, 8010],
   [3074, 3748, 6698, 6631],
-  [3078, 3100, 6662],
-  [3003, 3004, 3119],
+  [3078, 3100, 6662, 3508, 2510],
+  [3003, 3004, 3119, 2526],
 ];
 export const compatibleItems = (ids: number[]) =>
   new Set(ids).size === ids.length &&
@@ -32,6 +34,7 @@ export interface BuildEvaluation {
   cost: number;
   changes: number;
   stats: BuildStats;
+  mechanics: ReturnType<typeof combineMechanics>;
   score: number;
 }
 export interface BuildOption {
@@ -90,7 +93,7 @@ const catalog = {
 };
 const cap = (value: number) => Math.max(0, Math.min(1, value));
 const ratio = (value: number, reference: number, fallback: number) =>
-  Math.min(1.35, value / Math.max(reference, fallback));
+  Math.min(1.8, value / Math.max(reference, fallback));
 
 export function buildSearch(
   data: GameData,
@@ -104,14 +107,15 @@ export function buildSearch(
   );
   if (!own || !kit || !seeds.length) return [];
   const signals = draftSignals(ctx);
-  const removable = signals.enemies.filter(
-    (e) =>
-      e.locked &&
-      getClientKnowledge()
-        .champions.find((c) => c.id === e.championId)
-        ?.abilities.some((a) => removableControl.test(a.description)),
-  ).length;
+  const fight = fightContext(ctx);
+  const tools = championTools(ctx.playerChampionId!);
+  const removable = signals.tenacity.length;
   const items = new Map(data.items.map((i) => [i.id, i]));
+  const mechanicsById = new Map(
+    data.items.map((i) => [i.id, itemMechanics(i)]),
+  );
+  const mechanics = (ids: number[]) =>
+    combineMechanics(ids.map((id) => mechanicsById.get(id)!));
   const get = (ids: number[]) => ids.map((id) => items.get(id)!);
   const protection = kit.abilities.some((a) =>
     /(?:cura|curar|escudo|escudar).{0,100}aliad|aliad.{0,100}(?:cura|escudo)/iu.test(
@@ -128,27 +132,47 @@ export function buildSearch(
   const reference = seeds[0].items.map((id) => items.get(id)!);
   if (reference.some((i) => !i)) return [];
   const referenceStats = buildStats(reference);
+  const referenceMechanics = mechanics(seeds[0].items);
   for (const seed of seeds) {
     const base = get(seed.items);
     if (base.some((i) => !i)) continue;
     const baseline = referenceStats;
     const ap = baseline.ap > baseline.ad && baseline.ap >= 100;
     const ad = !ap && baseline.ad >= 80;
-    const attacks =
-      (ad || ap) && (own.traits.includes("attacks") || baseline.speed >= 0.4);
+    const attacks = (ad || ap) && (tools.attacks || baseline.speed >= 0.4);
     const tank = !ap && !ad;
     const mana = base.slice(0, 3).some((i) => i.tags.includes("Mana"));
     const boots = base.filter((i) => i.tags.includes("Boots")).length;
     const pool = new Set([
       ...seeds.flatMap((s) => s.items),
+      ...data.items
+        .filter((i) => {
+          if (
+            !i.purchasable ||
+            i.cost < 1800 ||
+            !i.from.length ||
+            i.tags.includes("Boots")
+          )
+            return false;
+          const stats = i.stats;
+          return ap
+            ? (stats.FlatMagicDamageMod ?? 0) >= 40
+            : ad
+              ? (stats.FlatPhysicalDamageMod ?? 0) >= 25 ||
+                (attacks && (stats.PercentAttackSpeedMod ?? 0) >= 0.25)
+              : (stats.FlatArmorMod ?? 0) >= 25 ||
+                (stats.FlatSpellBlockMod ?? 0) >= 25 ||
+                (stats.FlatHPPoolMod ?? 0) >= 350;
+        })
+        .map((i) => i.id),
       ...(ap ? catalog.ap : []),
       ...(attacks && ad ? catalog.attacks : []),
       ...(attacks && ap ? [3115, 2510, 3124] : []),
-      ...(ad && !attacks ? catalog.fighter : []),
+      ...(ad && kit.classes.includes("fighter") ? catalog.fighter : []),
       ...(ad && kit.classes.includes("assassin") ? catalog.assassin : []),
       ...(tank ? catalog.tank : []),
       ...(ctx.playerRole === "SUPPORT" && protection ? catalog.protection : []),
-      ...(boots ? [3006, 3020, 3047, 3111, 3158] : []),
+      ...(boots ? [3006, 3009, 3020, 3047, 3111, 3158] : []),
     ]);
     const eligible = [...pool].filter((id) => {
       const i = items.get(id);
@@ -196,29 +220,59 @@ export function buildSearch(
       )
         return false;
       if (tank && (i.stats.FlatMagicDamageMod ?? 0) > 60) return false;
+      if (tank && (i.stats.FlatPhysicalDamageMod ?? 0) > 25) return false;
       if (!ranged && id === 3085) return false;
       return true;
     });
     const evaluate = (ids: number[]): BuildEvaluation => {
       const list = get(ids);
       const stats = buildStats(list);
+      const m = mechanics(ids);
       const changes = ids.filter((id) => !seed.items.includes(id)).length;
+      const spellPower = (s: BuildStats, effects: typeof m) =>
+        s.ap *
+        (1 + effects.apMultiplier) *
+        (1 + effects.haste / 200) *
+        (1 +
+          effects.magicPen * (0.4 + fight.extended) +
+          effects.flatMagicPen / 150);
+      const attackPower = (s: BuildStats, effects: typeof m) =>
+        (90 + s.ad) *
+        (1 + cap(s.crit) * (1 + effects.critDamage)) *
+        (1 + s.speed * fight.access) *
+        (1 +
+          effects.lethality / 150 +
+          effects.armorPen * (0.4 + fight.extended));
+      // Índices de inversión, no simulación de DPS: no incluyen rotaciones ni estadísticas base de cada campeón.
       const offense = ap
-        ? ratio(stats.ap, baseline.ap, 200) * (attacks ? 0.8 : 1) +
-          (attacks ? ratio(stats.speed, baseline.speed, 0.65) * 0.2 : 0)
+        ? ratio(
+            spellPower(stats, m),
+            spellPower(baseline, referenceMechanics),
+            200,
+          ) *
+            (attacks ? 0.85 : 1) +
+          (attacks
+            ? ratio(stats.speed, baseline.speed, 0.65) * 0.15 * fight.access
+            : 0)
         : ad
-          ? ratio(stats.ad, baseline.ad, 140) * (attacks ? 0.6 : 1) +
-            (attacks
-              ? ratio(stats.speed, baseline.speed, 0.65) * 0.25 +
-                cap(stats.crit) * 0.15
-              : 0)
+          ? attacks
+            ? ratio(
+                attackPower(stats, m),
+                attackPower(baseline, referenceMechanics),
+                140,
+              )
+            : ratio(
+                stats.ad * (1 + m.haste / 200) * (1 + m.lethality / 150),
+                baseline.ad *
+                  (1 + referenceMechanics.haste / 200) *
+                  (1 + referenceMechanics.lethality / 150),
+                140,
+              )
           : ratio(stats.health, baseline.health, 1200) * 0.4 +
             ratio(stats.armor + stats.mr, baseline.armor + baseline.mr, 160) *
               0.6;
-      const phys =
-        signals.physical / Math.max(1, signals.physical + signals.magic);
-      const magic =
-        signals.magic / Math.max(1, signals.physical + signals.magic);
+      const phys = signals.exposure.physical;
+      const magic = signals.exposure.magic;
       // Rendimientos decrecientes; sumar otra defensa no recibe el mismo premio.
       const defense =
         (1 - Math.exp(-stats.armor / 80)) * phys +
@@ -233,7 +287,7 @@ export function buildSearch(
         const wound = ids.find(
           (id) => [3165, 3033, 6609, 3075].includes(id) && has(id),
         );
-        if (wound) utility += 0.75;
+        if (wound) utility += 0.45;
       }
       if (signals.frontline >= 2) {
         if (attacks && has(3153)) utility += 0.65 * indexWeight(3153);
@@ -246,11 +300,24 @@ export function buildSearch(
       if (ap && signals.frontline < 2 && (has(4645) || has(4646)))
         utility += 0.3;
       if (signals.control.length >= 2 && has(3102)) utility += 0.3;
-      if (removable >= 2 && ids.includes(3111)) utility += 0.4;
+      if (removable) utility += m.tenacity * Math.min(3, removable) * 0.65;
+      if (m.lifeline) utility += fight.pressure * 0.25;
+      if (m.stasis && ap) utility += fight.pressure * 0.25;
+      if (m.onHit && attacks)
+        utility += Math.min(2, m.onHit) * fight.access * fight.extended * 0.18;
+      if (protection && signals.carries.length)
+        utility += Math.min(0.4, m.healPower * 2);
       if (protection && signals.carries.length && has(3504)) utility += 0.4;
       if (ctx.playerRole === "SUPPORT" && signals.engage >= 2 && has(3190))
         utility += 0.5;
       if (has(3031) && stats.crit < 0.5) utility -= 0.55;
+      if (ids.includes(3084) && !tools.frontline) utility -= 0.8;
+      if (ids.includes(3083) && stats.health < 1500) utility -= 0.6;
+      if (m.onHit && !attacks) utility -= m.onHit * 0.25;
+      if (tools.specialAttacks) {
+        utility -= Math.abs(stats.crit - baseline.crit) * 1.5;
+        utility -= Math.abs(stats.speed - baseline.speed) * 1.5;
+      }
       // Compras de penetración porcentual tempranas desplazan el primer pico de daño.
       if (
         ids
@@ -258,7 +325,7 @@ export function buildSearch(
           .some((id) => [3135, 3137, 3036, 3033, 6694].includes(id))
       )
         utility -= 0.45;
-      if (attacks && stats.speed < 0.4) utility -= 0.65;
+      if (attacks && stats.speed < 0.2 && fight.extended > 0.5) utility -= 0.45;
       if ([3089, 3031].includes(ids[0])) utility -= 0.7;
       if (
         [3102, 3157, 3026, 3053, 3156, 6673].includes(ids[0]) &&
@@ -274,14 +341,15 @@ export function buildSearch(
       const first = list.find((i) => !i.tags.includes("Boots"))!;
       const firstStats = buildStats([first]);
       const firstBase = reference.find((i) => !i.tags.includes("Boots"))!;
-      const attackPower = (s: BuildStats) =>
-        s.ad / 40 + s.speed / 0.3 + s.crit * 1.2;
       const firstPower = ap
         ? firstStats.ap / Math.max(50, firstBase.stats.FlatMagicDamageMod ?? 0)
         : ad
           ? attacks
-            ? attackPower(firstStats) /
-              Math.max(1, attackPower(buildStats([firstBase])))
+            ? attackPower(firstStats, mechanics([first.id])) /
+              Math.max(
+                1,
+                attackPower(buildStats([firstBase]), mechanics([firstBase.id])),
+              )
             : firstStats.ad /
               Math.max(35, firstBase.stats.FlatPhysicalDamageMod ?? 0)
           : firstStats.health / 500;
@@ -314,7 +382,17 @@ export function buildSearch(
                 : 0)
           );
         }, 0);
-      return { offense, defense, utility, tempo, cost, changes, stats, score };
+      return {
+        offense,
+        defense,
+        utility,
+        tempo,
+        cost,
+        changes,
+        stats,
+        mechanics: m,
+        score,
+      };
     };
     const valid = (ids: number[]) => {
       if (!compatibleItems(ids)) return false;
@@ -325,13 +403,28 @@ export function buildSearch(
       )
         return false;
       const stats = buildStats(list);
+      if (
+        tools.specialAttacks &&
+        ids.filter((id) => !seed.items.includes(id)).length > 2
+      )
+        return false;
+      if (list.filter((i) => mechanicsById.get(i.id)!.lifeline).length > 1)
+        return false;
       if (ap && stats.ap < baseline.ap * 0.75) return false;
       if (ad && stats.ad < baseline.ad * 0.7) return false;
-      if (attacks && stats.speed < Math.min(0.4, baseline.speed * 0.6))
-        return false;
       if (mana && !list.slice(0, 3).some((i) => i.tags.includes("Mana")))
         return false;
       if (ctx.playerRole === "BOT" && baseline.crit >= 0.5 && stats.crit < 0.5)
+        return false;
+      // Compras que necesitan acumularse no se introducen al final de la ruta.
+      if (
+        ids.some(
+          (id, index) =>
+            [3003, 3004, 3119, 2526, 6657, 3084, 3032].includes(id) &&
+            index > 2 &&
+            !seed.items.includes(id),
+        )
+      )
         return false;
       return true;
     };

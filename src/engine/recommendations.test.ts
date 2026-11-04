@@ -82,7 +82,7 @@ describe("recomendaciones con procedencia", () => {
     expect(r.errors).toEqual([]);
     expect(r.plans.length).toBeGreaterThan(0);
     for (const p of r.plans) {
-      expect(p.items).toContain(3111);
+      expect(p.items.some((id) => [3111, 3091, 3156].includes(id))).toBe(true);
       expect(
         p.items.filter((id) => [3156, 3053, 6673].includes(id)).length,
       ).toBeLessThanOrEqual(1);

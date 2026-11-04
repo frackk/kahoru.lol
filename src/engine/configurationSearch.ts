@@ -4,7 +4,9 @@ import { purchaseRoute, validateRunes } from "./recommendations";
 import { officialPages } from "./analysis";
 import { draftSignals } from "./draftSignals";
 import { getClientKnowledge, profileById } from "./profiles";
+import { expandRunePages, createRuneEvaluator, runeKey } from "./runeSearch";
 import { buildSearch, buildStats, type BuildEvaluation } from "./buildSearch";
+import { championTools } from "./championTools";
 
 export interface DecisionReason {
   id: string;
@@ -40,6 +42,7 @@ export function searchConfigurations(
   const profile = profileById.get(ctx.playerChampionId)!;
   if (!own || !profile) return [];
   const signals = draftSignals(ctx);
+  const evaluateRunes = createRuneEvaluator(data, ctx);
   const item = (id: number) => data.items.find((i) => i.id === id);
   const name = (id: number) =>
     data.catalog.champions.find((c) => c.id === id)?.name ?? String(id);
@@ -47,11 +50,6 @@ export function searchConfigurations(
     data.trees
       .flatMap((t) => t.slots.flatMap((s) => s.runes))
       .find((r) => r.id === id);
-  const allyProtection = own.abilities.some((a) =>
-    /(?:cura|curar|escudo|escudar).{0,100}aliad|aliad.{0,100}(?:cura|escudo)/iu.test(
-      a.description,
-    ),
-  );
   const pages: RunePage[] = [];
   const riotPages = officialPages(ctx.playerChampionId, ctx.playerRole);
   const previous = /^config-(?:\d+-)*\d+$/u.test(preferredId ?? "")
@@ -84,73 +82,12 @@ export function searchConfigurations(
     )
       pages.push(p);
   }
-  const generated = new Map<string, { text: string; rune: number }>();
+  const publishedPages = new Set(pages.map(runeKey));
+  const expanded = expandRunePages(data, ctx, pages);
+  pages.splice(0, pages.length, ...expanded);
   const lane = signals.enemies.find(
     (e) => e.locked && e.role === ctx.playerRole,
   );
-  const canHeal =
-    allyProtection ||
-    own.abilities.some((a) =>
-      /\b(?:se cura|lo cura|recupera.{0,20}vida)/iu.test(a.description),
-    );
-  const tweaks = [
-    {
-      from: 8014,
-      to: 8017,
-      when: signals.frontline >= 2,
-      valid: /60%/u,
-      text: "Corte como alternativa para dañar objetivos con más del 60% de vida; no equivale por sí sola a una ventaja contra tanques.",
-    },
-    {
-      from: 8451,
-      to: 8242,
-      when: signals.control.length >= 2,
-      valid: /control de masas/iu,
-      text: "Inquebrantable como alternativa de resistencia al recibir control de masas; se compara con la vida de Sobrecrecimiento.",
-    },
-    {
-      from: 8451,
-      to: 8453,
-      when: canHeal,
-      valid: /curaciones y escudos/iu,
-      text: "Revitalizar como alternativa para las curaciones o escudos del kit propio; se compara con la vida de Sobrecrecimiento.",
-    },
-    {
-      from: 8473,
-      to: 8444,
-      when: !!lane?.profile.traits.includes("poke"),
-      valid: /recibir daño/iu,
-      text: "Segundo Aire como alternativa a Coraza Ósea ante el poke del rival de línea confirmado.",
-    },
-  ];
-  for (const tweak of tweaks)
-    for (const page of [...pages]) {
-      if (
-        !tweak.when ||
-        !tweak.valid.test(rune(tweak.to)?.description ?? "") ||
-        !runeIds(page).includes(tweak.from)
-      )
-        continue;
-      const replace = (ids: number[]) =>
-        ids.map((id) => (id === tweak.from ? tweak.to : id));
-      const changed = {
-        ...page,
-        primaryRunes: replace(page.primaryRunes),
-        secondaryRunes: replace(page.secondaryRunes),
-      };
-      if (
-        validateRunes(data, changed).length ||
-        pages.some((p) => runeIds(p).join() === runeIds(changed).join())
-      )
-        continue;
-      pages.push(changed);
-      generated.set(runeIds(changed).join(), {
-        text: [generated.get(runeIds(page).join())?.text, tweak.text]
-          .filter(Boolean)
-          .join(" "),
-        rune: tweak.to,
-      });
-    }
   if (
     !validateRunes(data, previousPage).length &&
     !pages.some((p) => runeIds(p).join() === runeIds(previousPage).join())
@@ -168,94 +105,47 @@ export function searchConfigurations(
         reasons.push({ id: `e${reasons.length}`, text, references, weight });
       const published =
         runeIds(page).join() === runeIds(providerPage ?? seed.runes).join();
-      const tweak = generated.get(ids.join());
+      const adapted =
+        expanded.some((p) => runeKey(p) === runeKey(page)) &&
+        !publishedPages.has(runeKey(page));
       const retained =
-        !published &&
-        !tweak &&
-        !riotPages.some((p) => runeIds(p).join() === ids.join());
+        runeKey(page) === runeKey(previousPage) &&
+        !publishedPages.has(runeKey(page));
       add(
         published
           ? "Configuración de runas observada por la fuente para este campeón y rol."
-          : tweak
+          : adapted
             ? "Página adaptada por Kahoru a partir de una opción del campeón y rol; sin muestra estadística propia."
             : retained
               ? "Página elegida previamente; se reevalúa con el draft actual, sin muestra estadística propia."
               : "Página alternativa publicada por el cliente para este campeón y rol; se evalúa completa, incluida su runa clave.",
         [`champion:${ctx.playerChampionId}`, `rune:${key}`],
-        published ? 1 : 0,
+        published ? 0.3 : 0,
       );
-      if (tweak) add(tweak.text, [`rune:${tweak.rune}`], 2);
-      if (signals.frontline >= 2 && [8008, 8010].includes(key))
+      for (const reason of evaluateRunes(page, build.evaluation.stats.speed))
+        add(reason.text, [`rune:${reason.rune}`], reason.weight);
+      const mechanics = build.evaluation.mechanics;
+      if (championTools(ctx.playerChampionId).specialAttacks)
         add(
-          `${rune(key)?.name}: alternativa de acumulaciones para intercambios prolongados frente a ${signals.enemies
-            .filter((e) => e.profile.traits.includes("frontline"))
-            .map((e) => name(e.championId))
-            .join(", ")}; exige tiempo de contacto.`,
-          [`rune:${key}`],
-          5,
+          "La pasiva modifica las reglas de ataque o crítico. Se limita el cambio de la referencia porque faltan sus coeficientes completos; no se simula como un atacante estándar.",
+          [`champion:${ctx.playerChampionId}`],
+          0,
         );
-      if (
-        signals.frontline < 2 &&
-        [8112, 9923].includes(key) &&
-        signals.setup.length
-      )
+      if (mechanics.critDamage && build.evaluation.stats.crit)
         add(
-          `${rune(key)?.name}: alternativa para intercambios cortos coordinados con el control de ${name(signals.setup[0].championId)}.`,
-          [`rune:${key}`, `champion:${signals.setup[0].championId}`],
-          4,
+          "El daño crítico adicional se evalúa junto a la probabilidad de crítico de toda la ruta; no como DA aislado.",
+          build.ids
+            .filter((id) =>
+              /Daño de Golpe Crítico/iu.test(item(id)!.description),
+            )
+            .map((id) => `item:${id}`),
+          0,
         );
-      if (signals.engage >= 2 && [8230, 8465, 8439].includes(key))
+      if (mechanics.tenacity && signals.tenacity.length)
         add(
-          `${rune(key)?.name}: comparar su movilidad o defensa con las entradas de ${signals.enemies
-            .filter((e) => e.profile.traits.includes("engage"))
-            .map((e) => name(e.championId))
-            .join(", ")}; la activación depende de su descripción.`,
-          [`rune:${key}`],
-          4,
-        );
-      if (
-        ids.includes(9111) &&
-        (signals.engage >= 2 || profile.traits.includes("resets"))
-      )
-        add(
-          "Triunfo aporta recuperación tras un derribo; importa sobrevivir hasta conseguirlo.",
-          ["rune:9111"],
-          2,
-        );
-      if (
-        ids.includes(8232) &&
-        ctx.playerRole === "JUNGLE" &&
-        signals.setup.length >= 2 &&
-        signals.engage < 2
-      )
-        add(
-          "Caminar sobre Agua ofrece una alternativa para coordinar río con el control de las líneas aliadas.",
-          ["rune:8232"],
-          3,
-        );
-      const attackSpeed = build.ids.some((id) =>
-        item(id)?.tags.includes("AttackSpeed"),
-      );
-      if (key === 8008 && attackSpeed)
-        add(
-          "La velocidad de ataque de los objetos acompaña la acumulación de Cadencia Letal; necesita acceso sostenido al objetivo.",
-          [
-            "rune:8008",
-            ...build.ids
-              .filter((id) => item(id)?.tags.includes("AttackSpeed"))
-              .map((id) => `item:${id}`),
-          ],
-          2,
-        );
-      if (
-        [8214, 8465].includes(key) &&
-        allyProtection &&
-        signals.carries.length
-      )
-        add(
-          `La página permite orientar recursos de protección a ${name(signals.carries[0].championId)}.`,
-          [`rune:${key}`, `champion:${signals.carries[0].championId}`],
-          2,
+          `Tenacidad frente a ${signals.tenacity.map((e) => name(e.championId)).join(", ")}; no se cuenta dos veces la misma respuesta ni se aplica a supresiones o desplazamientos.`,
+          build.ids.map((id) => `item:${id}`),
+          0,
         );
       for (const id of build.ids) {
         const it = item(id)!;
@@ -316,39 +206,9 @@ export function searchConfigurations(
       );
       if (deltas.length)
         add(
-          `Frente a la referencia: ${deltas.join(", ")}. Solo atributos fijos; no incluye pasivas condicionales ni daño de habilidades.`,
+          `Frente a la referencia: ${deltas.join(", ")}. Diferencia de atributos fijos; los modificadores reconocidos se evalúan por separado, sin simular una rotación completa.`,
           build.ids.map((id) => `item:${id}`),
           0,
-        );
-      if (
-        [8112, 9923].includes(key) &&
-        signals.frontline < 2 &&
-        build.evaluation.stats.crit >= 0.5
-      )
-        add(
-          "La inversión en crítico acompaña una propuesta de intercambios cortos; exige acceso a un objetivo y desplaza presupuesto que podría ir a vida.",
-          [
-            `rune:${key}`,
-            ...build.ids
-              .filter((id) => item(id)?.tags.includes("CriticalStrike"))
-              .map((id) => `item:${id}`),
-          ],
-          1,
-        );
-      if (
-        [8008, 8010].includes(key) &&
-        signals.frontline >= 2 &&
-        build.evaluation.stats.speed >= 0.4
-      )
-        add(
-          "La velocidad de ataque de la ruta sostiene las acumulaciones de la página en peleas prolongadas; perder contacto reduce su valor.",
-          [
-            `rune:${key}`,
-            ...build.ids
-              .filter((id) => item(id)?.tags.includes("AttackSpeed"))
-              .map((id) => `item:${id}`),
-          ],
-          1,
         );
       if (key !== seed.runes.primaryRunes[0])
         changes.push(
@@ -454,7 +314,7 @@ export function searchConfigurations(
             : "Se conserva la inversión de la referencia; las runas cambian sus condiciones de uso. No hay una tasa medida contra este draft.",
           decision: { score, reasons, changes, evaluation: build.evaluation },
           samples: build.changes.length ? [] : seed.samples,
-          source: `OP.GG MCP: referencia de compras y página estadística. Riot: páginas alternativas y descripciones del paquete ${data.catalog.version}. ${published ? "Se conserva la página estadística." : tweak ? "Página adaptada por Kahoru." : retained ? "Se conserva la página elegida previamente." : "Página alternativa del cliente de Riot."} Las compras y su orden se comparan por estadísticas y mecánicas verificadas. El puntaje es heurístico; no hay una muestra conjunta medida.`,
+          source: `OP.GG MCP: referencia de compras y página estadística. Riot: páginas alternativas y descripciones del paquete ${data.catalog.version}. ${published ? "Se conserva la página estadística." : adapted ? "Página adaptada por Kahoru." : retained ? "Se conserva la página elegida previamente." : "Página alternativa del cliente de Riot."} Las compras y su orden se comparan por estadísticas y mecánicas verificadas. El puntaje es heurístico; no hay una muestra conjunta medida.`,
         });
       } catch {
         /* Descartar rutas imposibles sin bloquear las demás configuraciones. */
@@ -475,11 +335,13 @@ export function searchConfigurations(
   if (baseline) selected.push(baseline);
   const preferred = output.find((p) => p.id === preferredId);
   if (preferred && preferred !== baseline) selected.push(preferred);
-  for (const p of output)
-    if (
-      !selected.some((q) => q.runes.primaryRunes[0] === p.runes.primaryRunes[0])
-    )
-      selected.push(p);
+  const representedKeys = new Set<number>();
+  for (const p of output) {
+    const key = p.runes.primaryRunes[0];
+    if (representedKeys.has(key)) continue;
+    representedKeys.add(key);
+    if (!selected.some((q) => q.id === p.id)) selected.push(p);
+  }
   for (const p of output)
     if (
       selected.length < 9 &&

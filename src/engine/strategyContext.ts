@@ -39,6 +39,7 @@ export function strategyContext(
       .find((r) => r.id === id)?.name;
   return JSON.stringify({
     patch: data.catalog.version,
+    side: ctx.playerSide ?? null,
     player: {
       champion: ctx.playerChampionId ? name(ctx.playerChampionId) : null,
       role: ctx.playerRole ? roleNames[ctx.playerRole] : null,

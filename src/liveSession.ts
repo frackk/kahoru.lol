@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { invoke, isTauri } from "@tauri-apps/api/core";
-import type { DraftSlot, Role } from "./contracts";
+import type { DraftSlot, Role, MapSide } from "./contracts";
 import type { GameData } from "./gameData";
 import { sessionPlans } from "./engine/sessionPlans";
 import { requestStatistics } from "./statistics";
@@ -16,6 +16,7 @@ export interface LiveSnapshot {
   enemies: DraftSlot[];
   bans: number[];
   playerRole: Role | null;
+  playerSide: MapSide | null;
   message: string;
 }
 
@@ -39,7 +40,12 @@ export function useLiveSession(data: GameData | null) {
             next.playerChampionId &&
             role
           )
-            void requestStatistics(next.playerChampionId, role);
+            void requestStatistics(
+              next.playerChampionId,
+              role,
+              false,
+              data.catalog.version,
+            );
           sessionPlans.prepare(
             data,
             {
@@ -50,6 +56,7 @@ export function useLiveSession(data: GameData | null) {
               enemies: next.enemies,
               bans: next.bans,
               gameVersion: next.version,
+              playerSide: next.playerSide,
             },
             next.connected && next.phase === "ChampSelect",
           );

@@ -78,3 +78,17 @@ El recorrido nativo comprobó proveedor, elección de configuración con modelo 
 Estas pruebas comprueban adaptación y validez estructural. No acreditan criterio profesional, superioridad sobre otro programa, calidad de todos los matchups ni ausencia de impacto en FPS. Siguen pendientes calibración, revisión experta y mecánicas que no se deducen de los atributos fijos de Data Dragon.
 
 Instalación existente de E: actualizada a 0.7.0. El ejecutable instalado pasó proveedor, draft aportado, IA automática, estrategia, fuentes, actualización, cliente abierto y conservación de la configuración. Se verificó el binario frente al de distribución normalizando únicamente los tres bytes de tipo de bundle que modifica NSIS. Hashes en `test-results/release-verification.json`; capturas y planes completos en `test-results/`, fuera de Git. No se escribieron runas ni spells en LoL.
+
+## Entrega 0.8.0
+
+Fecha: 04/11/2026. Pasaron 518 pruebas TypeScript y 35 Rust, formato, lint, tipos, Clippy y empaquetado NSIS. Las regresiones cubren control y tenacidad, recursos de soportes, pasivas especiales de ataque, modificadores, incompatibilidades, runas reconstruidas, inferencias, lado y conservación de la elección. La cobertura de 282 combinaciones campeón/rol sigue siendo estructural.
+
+Antes de la transición del proveedor se evaluaron catorce escenarios con las seis cachés reales: 59,94–540,83 ms por ejecución y hasta 43.032 bytes de contexto. No son percentiles ni métricas de calidad competitiva. El recorrido de la captura no pudo completarse con datos reales porque OP.GG pasó a informar 16.22 para Viego mientras el paquete y el cliente seguían en 16.21. Se mantuvo el rechazo; no se alteraron versiones ni muestras para aprobar la prueba.
+
+Se añadió almacenamiento por parche, migración, respaldo compatible con fecha original, vencimiento a siete días y espera entre reintentos. Las pruebas verifican transición en ambos sentidos, reinicio, fallo de red, identidad, respuestas tardías y aplicación abierta durante varios días. Una respuesta ya sobrescrita por una versión anterior no se puede recuperar automáticamente.
+
+Pasó el recorrido nativo de distribución con --release --provider --catalog-draft --roles-configuration-model --configuration-auto --model --sources --update. Se usaron Malphite, Elise, Ahri, Jinx y Leona para las cinco posiciones con referencias compatibles; se verificaron elección local, automático, estrategia, imágenes, habilidades, fases, preferencias y conservación de compras/runas/spells. El caso de noviembre conserva sus regresiones sintéticas; no se presenta esta prueba como validación nativa de ese mismo draft. LoL estaba cerrado en el recorrido final y no hubo escrituras al cliente.
+
+El instalador 0.8.0 se aplicó a la instalación existente de E:. Se comparó el binario completo normalizando únicamente la marca NSIS de tres bytes. Hashes en test-results/release-verification.json. La calidad estratégica general, la calibración, una segunda fuente estadística y una evaluación comparativa independiente siguen pendientes.
+
+La instalación pasó también --release --provider --catalog-draft --configuration-auto --model, incluida la conservación de la configuración al entrar a partida.

@@ -201,19 +201,20 @@ async fn get_champion_analysis(
     ) {
         return Err("El análisis se prepara antes de entrar a partida.".into());
     }
-    let slug = state
-        .game
-        .lock()
-        .map_err(|_| "Datos no disponibles")?
-        .catalog
-        .champions
-        .iter()
-        .find(|c| c.id == champion_id)
-        .map(|c| c.slug.clone())
-        .ok_or("Campeón no disponible")?;
+    let (slug, version) = {
+        let game = state.game.lock().map_err(|_| "Datos no disponibles")?;
+        let slug = game
+            .catalog
+            .champions
+            .iter()
+            .find(|c| c.id == champion_id)
+            .map(|c| c.slug.clone())
+            .ok_or("Campeón no disponible")?;
+        (slug, game.catalog.version.clone())
+    };
     let provider = state.statistics.clone();
     tauri::async_runtime::spawn_blocking(move || {
-        provider.analysis(champion_id, &slug, &role, refresh)
+        provider.analysis(champion_id, &slug, &role, &version, refresh)
     })
     .await
     .map_err(|_| "Consulta estadística interrumpida")?

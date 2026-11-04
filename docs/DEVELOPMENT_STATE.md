@@ -1,6 +1,6 @@
 # Continuidad del desarrollo
 
-Punto de trabajo: 3 de noviembre de 2026, entrega 0.7.0 verificada localmente.
+Punto de trabajo: 4 de noviembre de 2026, entrega 0.8.0 verificada e instalada.
 
 ## Repositorio y decisiones
 
@@ -91,3 +91,19 @@ Pruebas de estructura: 504 TypeScript, incluidas las 282 combinaciones de campe�
 Pendiente central: calidad estratégica, no amplitud nominal. Los pesos todavía no están calibrados; faltan mecánicas de habilidades/pasivas más completas, modelado de acceso y tiempos, contrastes expertos, segundo proveedor y matchups sólidos. No afirmar que ya piensa como un profesional ni que supera a iTero. El siguiente trabajo debe evaluar decisiones concretas antes de ampliar más la enumeración.
 
 Instalación activa: `E:\Programas\kahoru.lol\kahoru.lol v.0.1\kahoru.lol\kahoru-lol.exe`, versión 0.7.0. Instalador: `src-tauri/target/release/bundle/nsis/kahoru.lol_0.7.0_x64-setup.exe`. El código y la documentación de esta entrega se publican juntos en main. La prueba local de la instalación fue `--release --provider --past-draft --configuration-auto --model --sources --update --live`. Registros y hashes: `test-results/release-verification.json`.
+
+## Entrega 0.8.0: amenazas y configuraciones
+
+Pedido: avanzar sobre el criterio de builds/runas para todo el catálogo y corregir el lado. El caso reciente está en tests/fixtures/november-draft.ts: Mordekaiser, Viego, Irelia, Jhin y Karma contra Nautilus, Tryndamere, Ahri, Miss Fortune y Fiddlesticks. Las posiciones enemigas siguen inferidas. No copiar iTero ni tomar una coincidencia como validación.
+
+- LCU: team del jugador local, azul/rojo/desconocido, corrección por sesión y continuidad. Se observó team=2 en selección real; ambos valores tienen pruebas unitarias.
+- Herramientas: terror y silencio de Fiddlesticks reconocidos, supresión/desplazamiento separados, daños ponderados por clase y recursos. Se elimina el doble premio de diversidad en equipos equilibrados.
+- Compras: catálogo compatible más amplio, modificadores de crítico/penetración/AP/aceleración, coste y orden; atributos condicionales separados y grupos incompatibles ampliados. Pasivas de ataque especiales restringen cambios hasta contar con coeficientes completos.
+- Runas: filas y secundarias reconstruidas; claves respaldadas para campeón/rol, presupuestos por sección y evaluación de contacto, duración, control y kit. La referencia reservada ya no desplaza la mejor variante de su misma clave.
+- Modelo: recibe nueva evidencia; sigue seleccionando candidatos, no es un agente experto entrenado. Sin nuevas dependencias ni fuentes estadísticas. Importación explícita y congelación de plan conservadas.
+
+Comprobaciones ya terminadas: 518 tests TypeScript, 35 Rust, formato/lint/tipos/Clippy y compilación NSIS. Seis evaluaciones optativas con cachés reales cubren 14 escenarios, incluido el nuevo draft: 59,94–540,83 ms por ejecución, contexto máximo 43.032 bytes. No es p95 ni prueba de calidad competitiva. La verificación nativa e instalación se registra al cerrar esta entrega.
+
+Sigue faltando validar calidad de decisiones por matchup y campeón. El cálculo sigue usando heurísticas y descripciones incompletas, con un único proveedor estadístico. No afirmar razonamiento profesional universal, optimización completa ni superioridad sobre iTero. La siguiente inversión debe ser conocimiento de mecánicas con evidencia y evaluación estratégica, no más variantes nominales.
+
+Cierre técnico del 04/11: 518 pruebas TypeScript y 35 Rust aprobadas. Pasó la distribución con IA en cinco roles sobre --catalog-draft, automático, estrategia y actualización. El intento con Viego encontró estadísticas 16.22 incompatibles con el paquete 16.21; no se falseó el parche. La nueva caché conserva copias por parche y muestra el respaldo compatible con fecha original. Para recuperar el contexto, leer DATA_SOURCES.md y VALIDATION.md. Instalación existente actualizada a 0.8.0 y binario verificado; pasó además el recorrido instalado con --provider --catalog-draft --configuration-auto --model. No quedan procesos de prueba ni inferencia abiertos.

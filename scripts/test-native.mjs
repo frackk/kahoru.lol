@@ -141,6 +141,7 @@ try {
     });
   }
   await page.getByRole("button", { name: "Nuevo draft" }).click();
+  await page.getByLabel("Lado del mapa", { exact: true }).selectOption("RED");
   const catalog = JSON.parse(
     await readFile(new URL("../data/champions.json", import.meta.url), "utf8"),
   );
@@ -162,9 +163,13 @@ try {
   }
   const withProvider = process.argv.includes("--provider");
   const picks = withProvider
-    ? (process.argv.includes("--past-draft")
-        ? [133, 234, 30, 21, 161, 54, 31, 202, 115, 497]
-        : [82, 234, 80, 222, 432, 113, 141, 134, 21, 50]
+    ? (process.argv.includes("--catalog-draft")
+        ? [54, 60, 103, 222, 89, 23, 9, 134, 21, 111]
+        : process.argv.includes("--november-draft")
+          ? [82, 234, 39, 202, 43, 23, 9, 103, 21, 111]
+          : process.argv.includes("--past-draft")
+            ? [133, 234, 30, 21, 161, 54, 31, 202, 115, 497]
+            : [82, 234, 80, 222, 432, 113, 141, 134, 21, 50]
       ).map((id) => catalog.champions.find((c) => c.id === id))
     : catalog.champions.slice(0, 10);
   if (withProvider)
@@ -435,6 +440,14 @@ try {
     .getByRole("button", { name: "Iniciar partida", exact: true })
     .click();
   await page.getByRole("heading", { name: "Partida", exact: true }).waitFor();
+  assert.equal(
+    await page.getByLabel("Lado del mapa", { exact: true }).inputValue(),
+    "RED",
+  );
+  assert.equal(
+    await page.getByLabel("Lado del mapa", { exact: true }).isDisabled(),
+    true,
+  );
   if (process.argv.includes("--model"))
     await page
       .getByText(/Prioridades elegidas entre hechos del motor/)
@@ -523,6 +536,23 @@ try {
   console.log(
     "Windows: diez picks, runas, planes conservados, imágenes, fases, reconexión y preferencias verificados.",
   );
+} catch (error) {
+  const page = browser
+    ?.contexts()[0]
+    ?.pages()
+    .find((p) => /localhost|127\.0\.0\.1/.test(p.url()));
+  if (page) {
+    await mkdir("test-results", { recursive: true });
+    await writeFile(
+      "test-results/native-failure.txt",
+      await page.locator("body").innerText(),
+    );
+    await page.screenshot({
+      path: "test-results/native-failure.png",
+      fullPage: true,
+    });
+  }
+  throw error;
 } finally {
   await mkdir("test-results", { recursive: true });
   await writeFile("test-results/native-process.log", processOutput);

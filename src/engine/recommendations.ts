@@ -9,6 +9,7 @@ import { strategy } from "./strategy";
 import { contextualLoadout } from "./loadoutContext";
 import { skillOrder, type SkillOrder } from "./skillOrder";
 import { draftSignals } from "./draftSignals";
+import { championTools } from "./championTools";
 import { matchupEvidence, type MatchupEvidence } from "./matchups";
 import {
   searchConfigurations,
@@ -16,7 +17,7 @@ import {
 } from "./configurationSearch";
 import shards from "../../data/knowledge/shards.json";
 import { compatibleItems } from "./buildSearch";
-import type { DraftSlot, Role } from "../contracts";
+import type { DraftSlot, Role, MapSide } from "../contracts";
 import type { GameData, Item } from "../gameData";
 import {
   profiles,
@@ -34,6 +35,7 @@ export interface DraftContext {
   enemies: DraftSlot[];
   bans: number[];
   gameVersion?: string | null;
+  playerSide?: MapSide | null;
 }
 export interface RunePage {
   primary: number;
@@ -311,13 +313,6 @@ export function purchaseRoute(
   return steps;
 }
 
-function teamProfiles(slots: DraftSlot[]): Profile[] {
-  return slots.flatMap((s) =>
-    s.championId && profileById.has(s.championId)
-      ? [profileById.get(s.championId)!]
-      : [],
-  );
-}
 export function rankChampions(
   data: GameData,
   ctx: DraftContext,
@@ -331,12 +326,15 @@ export function rankChampions(
       .concat(ctx.enemies)
       .flatMap((s) => (s.championId ? [s.championId] : [])),
   ]);
-  const enemies = teamProfiles(ctx.enemies);
+  const signals = draftSignals(ctx);
+  const enemies = signals.enemies.map((e) => e.profile);
   const allyMass = (test: (p: Profile) => boolean) =>
     ctx.allies
       .filter((s) => s.championId !== ctx.playerChampionId)
       .reduce((n, s) => {
-        const p = s.championId ? profileById.get(s.championId) : undefined;
+        const p = signals.allies.find(
+          (a) => a.championId === s.championId,
+        )?.profile;
         return n + (p && test(p) ? (s.locked ? 1 : 0.35) : 0);
       }, 0);
   return profiles
@@ -376,23 +374,33 @@ export function rankChampions(
             ));
         reasons.push("Aporta una opción de iniciación.");
       }
-      if (
-        allyMass((a) => a.damage === "physical") > 1 &&
+      const damage = signals.allyExposure;
+      const desired =
         p.damage === "magic"
-      ) {
-        score += 15 * Math.min(1, allyMass((a) => a.damage === "physical") - 1);
+          ? damage.physical
+          : p.damage === "physical"
+            ? damage.magic
+            : Math.max(damage.physical, damage.magic);
+      if (damage.total >= 1.5 && desired > 0.62) {
+        score += Math.min(15, (desired - 0.5) * 30);
         reasons.push(
-          "Diversifica el daño frente a la concentración física aliada.",
+          "Diversifica una composición con daño concentrado, ponderando rol y recursos.",
         );
       }
+      const tools = championTools(p.championId);
       if (
-        allyMass((a) => a.damage === "magic") > 1 &&
-        p.damage === "physical"
+        signals.control.length >= 2 &&
+        tools.mobility &&
+        tools.control.length
       ) {
-        score += 15;
+        score += 4;
         reasons.push(
-          "Diversifica el daño frente a la concentración mágica aliada.",
+          "Combina movilidad y control para crear una ventana; no garantiza atravesar el control rival.",
         );
+      }
+      if (signals.setup.length >= 2 && tools.executes) {
+        score += 4;
+        reasons.push("Puede cerrar un derribo después del control aliado.");
       }
       if (
         enemies.filter((e) => e.traits.includes("frontline")).length >= 2 &&
@@ -433,7 +441,15 @@ export function rankChampions(
             : "La ventaja depende de ejecutar el perfil del campeón; no hay datos de matchup incorporados.",
       };
     })
-    .sort((a, b) => b.score - a.score || a.championId - b.championId);
+    .sort(
+      (a, b) =>
+        b.score - a.score ||
+        (
+          data.catalog.champions.find((c) => c.id === a.championId)?.name ?? ""
+        ).localeCompare(
+          data.catalog.champions.find((c) => c.id === b.championId)?.name ?? "",
+        ),
+    );
 }
 
 export function recommend(
@@ -487,7 +503,7 @@ export function recommend(
   const a = analysis.analysis?.data;
   if (!a || a.trends?.win?.version !== patch) {
     errors.push(
-      "El proveedor no informa tendencias para el parche activo. No usamos esa build como actual.",
+      `OP.GG informa tendencias del parche ${a?.trends?.win?.version ?? "desconocido"}; el paquete activo usa ${patch}. Comprobá los datos cuando el cliente y el proveedor compartan parche.`,
     );
     return result;
   }
@@ -722,28 +738,4 @@ export function recommend(
   return result;
 }
 
-export function possibleRoles(slots: DraftSlot[]): (Role[] | null)[] {
-  const all: Role[] = ["TOP", "JUNGLE", "MID", "BOT", "SUPPORT"];
-  const options = slots.map((s) =>
-    s.role
-      ? [s.role]
-      : s.championId
-        ? (profileById.get(s.championId)?.roles ?? all)
-        : all,
-  );
-  const assignments: Role[][] = [];
-  function walk(index: number, chosen: Role[]) {
-    if (index === options.length) {
-      assignments.push(chosen);
-      return;
-    }
-    for (const r of options[index])
-      if (!chosen.includes(r)) walk(index + 1, [...chosen, r]);
-  }
-  walk(0, []);
-  return slots.map((s, i) =>
-    !s.championId || !profileById.has(s.championId)
-      ? null
-      : [...new Set(assignments.map((a) => a[i]))],
-  );
-}
+export { possibleRoles } from "./roleInference";

@@ -10,7 +10,13 @@ import {
 } from "../statistics";
 import { ClientPages, SpellIcons } from "./ClientPages";
 import { GameDataContext, GameIcon, ChampionIcon } from "../gameData";
-import { roleNames, roles, type Role } from "../contracts";
+import {
+  roleNames,
+  roles,
+  sideNames,
+  type Role,
+  type MapSide,
+} from "../contracts";
 import { sessionPlans } from "../engine/sessionPlans";
 import { type DraftContext } from "../engine/recommendations";
 import { profileById, profiles } from "../engine/profiles";
@@ -34,6 +40,9 @@ export function Preparation({
   const data = useContext(GameDataContext);
   const [manualRole, setManualRole] = useState<Role | null>(() =>
     sessionPlans.role(context.sessionId),
+  );
+  const [manualSide, setManualSide] = useState<MapSide | null>(() =>
+    sessionPlans.side(context.sessionId),
   );
   const [pool, setPool] = useState<number[]>(() => {
     try {
@@ -59,12 +68,22 @@ export function Preparation({
       editable &&
       !disabledReason &&
       context.playerChampionId &&
-      effectiveRole
+      effectiveRole &&
+      data
     )
-      void requestStatistics(context.playerChampionId, effectiveRole);
-  }, [context.playerChampionId, effectiveRole, editable, disabledReason]);
+      void requestStatistics(
+        context.playerChampionId,
+        effectiveRole,
+        false,
+        data.catalog.version,
+      );
+  }, [context.playerChampionId, effectiveRole, editable, disabledReason, data]);
   if (!data) return null;
-  const ctx = { ...context, playerRole: manualRole ?? context.playerRole };
+  const ctx = {
+    ...context,
+    playerRole: manualRole ?? context.playerRole,
+    playerSide: manualSide ?? context.playerSide ?? null,
+  };
   const prepared = disabledReason
     ? undefined
     : sessionPlans.prepare(data, ctx, editable, poolOnly ? pool : undefined);
@@ -73,7 +92,11 @@ export function Preparation({
   const decision = result?.candidates?.find(
     (p) => p.id === prepared?.selected,
   )?.decision;
-  const statistics = readStatistics(ctx.playerChampionId, ctx.playerRole);
+  const statistics = readStatistics(
+    ctx.playerChampionId,
+    ctx.playerRole,
+    data.catalog.version,
+  );
   const rune = (id: number) =>
     data.trees
       .flatMap((t) => t.slots.flatMap((s) => s.runes))
@@ -130,6 +153,27 @@ export function Preparation({
           <h2>Opciones para el draft</h2>
         </div>
         <label>
+          Lado del mapa
+          <select
+            aria-label="Lado del mapa"
+            value={manualSide ?? ""}
+            disabled={!editable}
+            onChange={(e) => {
+              const side = (e.target.value || null) as MapSide | null;
+              sessionPlans.setSide(context.sessionId, side);
+              setManualSide(side);
+            }}
+          >
+            <option value="">
+              {context.playerSide
+                ? `Detectado: ${sideNames[context.playerSide]}`
+                : "Sin confirmar"}
+            </option>
+            <option value="BLUE">{sideNames.BLUE}</option>
+            <option value="RED">{sideNames.RED}</option>
+          </select>
+        </label>
+        <label>
           Tu rol{" "}
           <select
             aria-label="Rol del análisis"
@@ -163,6 +207,7 @@ export function Preparation({
             {statistics?.pending
               ? "Consultando análisis por campeón y posición…"
               : (statistics?.error ??
+                statistics?.data?.warning ??
                 "Análisis de compras: OP.GG. Consulta por campeón y posición.")}
           </p>
           <button
@@ -172,6 +217,7 @@ export function Preparation({
                 ctx.playerChampionId!,
                 ctx.playerRole!,
                 true,
+                data.catalog.version,
               )
             }
           >

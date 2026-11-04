@@ -13,6 +13,7 @@ import { configurationContext } from "./configurationContext";
 import type { Analysis } from "./analysis";
 import type { GameData } from "../gameData";
 import type { Role } from "../contracts";
+import { novemberDraft } from "../../tests/fixtures/november-draft";
 
 const directory = process.env.KAHORU_STATISTICS_DIRECTORY;
 const report: object[] = [];
@@ -39,7 +40,7 @@ for (const [id, role] of [
       for (const draft of [
         frontlineDraft,
         fragileDraft,
-        ...(id === 234 ? [pastDraft] : []),
+        ...(id === 234 ? [pastDraft, novemberDraft] : []),
       ]) {
         const ctx = {
           ...draft,

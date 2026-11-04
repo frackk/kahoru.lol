@@ -1,7 +1,7 @@
 import type { GameData } from "../gameData";
 import type { DraftContext, Plan } from "./recommendations";
 import { profileById } from "./profiles";
-import { controlAbility, draftSignals } from "./draftSignals";
+import { controlAbility, draftSignals, laneOpponent } from "./draftSignals";
 
 export function strategyFacts(data: GameData, ctx: DraftContext, plan?: Plan) {
   const facts: {
@@ -36,6 +36,19 @@ export function strategyFacts(data: GameData, ctx: DraftContext, plan?: Plan) {
         ? `Apertura: buscar una salida hacia ${target}; su control facilita el gank si la línea permite acompañarlo. Sin ventana, completar campamentos y comprar.`
         : "Apertura: priorizar campamentos y primera compra; no hay una línea con control aliado confirmado para justificar un desvío.",
     );
+    if (
+      ctx.playerSide &&
+      setup?.role &&
+      ["TOP", "BOT", "SUPPORT"].includes(setup.role)
+    ) {
+      const towardTop = setup.role === "TOP";
+      const startBuff =
+        (ctx.playerSide === "BLUE") === towardTop ? "rojo" : "azul";
+      add(
+        "opening",
+        `Ruta a valorar desde lado ${ctx.playerSide === "BLUE" ? "azul" : "rojo"}: empezar en el cuadrante del buff ${startBuff} deja una limpieza orientada hacia ${towardTop ? "top" : "bot"}, donde ${target} puede acompañar. Es una alternativa previa, condicionada a la apertura y velocidad de limpieza del campeón; no presupone invasión ni prioridad.`,
+      );
+    }
   } else if (ctx.playerRole === "SUPPORT") {
     add(
       "opening",
@@ -44,13 +57,11 @@ export function strategyFacts(data: GameData, ctx: DraftContext, plan?: Plan) {
         : "Línea: confirmar la pareja de bot antes de fijar intercambios o movimientos al río.",
     );
   } else {
-    const opponent = s.enemies.find(
-      (e) => e.locked && e.role === ctx.playerRole,
-    );
+    const opponent = laneOpponent(ctx);
     add(
       "opening",
       opponent
-        ? `Línea contra ${name(opponent.championId)}: ${controlAbility(opponent.championId) ? `respetar ${controlAbility(opponent.championId)!.name} antes de comprometer el intercambio` : "preparar la oleada antes de salir a apoyar"}. No hay ventaja de línea demostrada.`
+        ? `Línea contra ${name(opponent.championId)}${opponent.confidence === "inferred" ? " (posición inferida)" : ""}: ${controlAbility(opponent.championId) ? `respetar ${controlAbility(opponent.championId)!.name} antes de comprometer el intercambio` : "preparar la oleada antes de salir a apoyar"}. No hay ventaja de línea demostrada.`
         : "Línea: la posición rival sigue sin confirmar; preparar oleadas y la primera compra antes de comprometer movimientos.",
     );
   }
